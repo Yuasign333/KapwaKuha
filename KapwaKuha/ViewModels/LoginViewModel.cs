@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿// FILE: LoginViewModel.cs  
+// Shared by DonorLoginWindow.xaml and BeneficiaryLoginWindow.xaml
+// Role passed from code-behind: "Donor" | "Beneficiary"
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -7,8 +10,6 @@ using KapwaKuha.Services;
 
 namespace KapwaKuha.ViewModels
 {
-    // Shared by AdminLogin.xaml and DonorLogin.xaml
-    // Role is passed from code-behind: "Admin" | "Donor"
     public class LoginViewModel : ObservableObject
     {
         public UserModel CurrentUser { get; }
@@ -16,6 +17,7 @@ namespace KapwaKuha.ViewModels
         public ICommand LoginCommand { get; }
         public ICommand BackCommand { get; }
         public ICommand ForgotPasswordCommand { get; }
+        public ICommand SignUpCommand { get; }
 
         private bool _errorVisible;
         public bool ErrorVisible
@@ -31,15 +33,25 @@ namespace KapwaKuha.ViewModels
             set { _errorMessage = value; OnPropertyChanged(); }
         }
 
+        public string RoleLabel => CurrentUser.Role == "Donor"
+            ? "Donor Login" : "Beneficiary Login";
+        public string RoleHint => CurrentUser.Role == "Donor"
+            ? "Username  (e.g. juandc)" : "User ID  (e.g. B001)";
+
         public LoginViewModel(string role)
         {
             CurrentUser = new UserModel { Role = role };
 
             LoginCommand = new RelayCommand(ExecuteLogin);
-            BackCommand = new RelayCommand(_ => NavigationService.Navigate(new View.ChooseRoleWindow()));
+
+            BackCommand = new RelayCommand(_ =>
+                NavigationService.Navigate(new View.ChooseRoleWindow()));
+
             ForgotPasswordCommand = new RelayCommand(_ =>
-                MessageBox.Show("Contact your system admin to reset your password.",
-                    "Forgot Password", MessageBoxButton.OK, MessageBoxImage.Information));
+                NavigationService.Navigate(new View.ForgotPasswordWindow(role)));
+
+            SignUpCommand = new RelayCommand(_ =>
+                NavigationService.Navigate(new View.SignUpWindow(role)));
         }
 
         private async void ExecuteLogin(object? parameter)
@@ -48,34 +60,15 @@ namespace KapwaKuha.ViewModels
                 CurrentUser.Password = pb.Password;
 
             if (string.IsNullOrWhiteSpace(CurrentUser.UserID) ||
+                CurrentUser.UserID.Contains(" ") ||
                 string.IsNullOrWhiteSpace(CurrentUser.Password))
             {
-                ErrorMessage = "Please enter your ID/username and password.";
+                ErrorMessage = "Username/ID and password are required. No spaces allowed.";
                 ErrorVisible = true;
                 return;
             }
 
-            if (CurrentUser.Role == "Admin")
-            {
-                var (ok, userId, fullName) =
-                    await KapwaDataService.LoginAdmin(CurrentUser.UserID, CurrentUser.Password);
-
-                if (ok)
-                {
-                    ErrorVisible = false;
-                    UserSession.UserId = userId;
-                    UserSession.Username = userId;
-                    UserSession.FullName = fullName;
-                    UserSession.Role = "Admin";
-                    NavigationService.Navigate(new View.AdminDashboardWindow(userId));
-                }
-                else
-                {
-                    ErrorMessage = "Invalid Agent ID or password.";
-                    ErrorVisible = true;
-                }
-            }
-            else // Donor
+            if (CurrentUser.Role == "Donor")
             {
                 var (ok, userId, fullName, username) =
                     await KapwaDataService.LoginDonor(CurrentUser.UserID, CurrentUser.Password);
@@ -92,6 +85,26 @@ namespace KapwaKuha.ViewModels
                 else
                 {
                     ErrorMessage = "Invalid username or password.";
+                    ErrorVisible = true;
+                }
+            }
+            else // Beneficiary
+            {
+                var (ok, userId, fullName, username) =
+                    await KapwaDataService.LoginBeneficiary(CurrentUser.UserID, CurrentUser.Password);
+
+                if (ok)
+                {
+                    ErrorVisible = false;
+                    UserSession.UserId = userId;
+                    UserSession.Username = username;
+                    UserSession.FullName = fullName;
+                    UserSession.Role = "Beneficiary";
+                    NavigationService.Navigate(new View.BeneficiaryDashboardWindow(userId));
+                }
+                else
+                {
+                    ErrorMessage = "Invalid User ID or password.";
                     ErrorVisible = true;
                 }
             }
