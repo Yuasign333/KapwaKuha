@@ -1,6 +1,5 @@
 ﻿// FILE: BeneficiaryModel.cs
-// DB Table: Beneficiaries
-// ERD: Strong Entity — parallel to CustomerModel in CarRentals
+// DB Table: Beneficiaries — Strong Entity (parallel to CustomerModel)
 using KapwaKuha.ViewModels;
 
 namespace KapwaKuha.Models
@@ -15,6 +14,8 @@ namespace KapwaKuha.Models
         public System.DateTime? Beneficiary_Birthdate { get; set; }
         public string Beneficiary_Sex { get; set; } = string.Empty;
         public string Beneficiary_Contact { get; set; } = string.Empty;
+        public string Beneficiary_Username { get; set; } = string.Empty;
+        public string Beneficiary_Password { get; set; } = string.Empty;
 
         private string _status = "Active";
         public string Beneficiaries_Status
@@ -26,7 +27,9 @@ namespace KapwaKuha.Models
         public string Organization_ID { get; set; } = string.Empty;
         public string Organization_Name { get; set; } = string.Empty;
 
-        // Display name for ComboBox: "Ana Reyes — Barangay San Jose"
+        public string SecurityQuestion { get; set; } = "What is your pet name?";
+        public string SecurityAnswer { get; set; } = string.Empty;
+
         public string DisplayName => $"{Beneficiary_FullName} — {Organization_Name}";
     }
 }

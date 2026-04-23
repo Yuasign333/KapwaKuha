@@ -73,6 +73,9 @@ namespace KapwaKuha.ViewModels
         public string ErrorMessage { get => _errorMessage; set { _errorMessage = value; OnPropertyChanged(); } }
         public bool ErrorVisible { get => _errorVisible; set { _errorVisible = value; OnPropertyChanged(); } }
 
+        // ── Label shown in header badge ────────────────────────────────────────
+        public string DonorLabel => $"Donor: {UserSession.Username}";
+
         public ObservableCollection<string> Categories { get; } = new();
         public ObservableCollection<string> Conditions { get; } =
             new() { "New", "Good", "Fair", "Poor" };
@@ -80,13 +83,20 @@ namespace KapwaKuha.ViewModels
 
         public ICommand BackCommand { get; }
         public ICommand SaveCommand { get; }
+        // ── NEW: explicit mode-switch commands for XAML button bindings ────────
+        public ICommand SetGeneralPostCommand { get; }
+        public ICommand SetDirectTargetCommand { get; }
 
-        public PostItemViewModel(string donorId)
+        public PostItemViewModel(string donorId, string prefillTitle = "")
         {
             _donorId = donorId;
 
             BackCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.DonorDashboardWindow(_donorId)));
+
+            // Mode toggles — called by the two mode-picker buttons in PostItemWindow.xaml
+            SetGeneralPostCommand = new RelayCommand(_ => PostType = "GeneralPost");
+            SetDirectTargetCommand = new RelayCommand(_ => PostType = "DirectTarget");
 
             SaveCommand = new AsyncRelayCommand(async _ =>
             {
@@ -101,7 +111,7 @@ namespace KapwaKuha.ViewModels
 
                 var confirm = MessageBox.Show(
                     $"Post item?\n\nName: {ItemName}\nCategory: {SelectedCategory}\n" +
-                    $"Condition: {SelectedCondition}\nType: {PostType}",
+                    $"Condition: {SelectedCondition}\nMode: {(IsDirectTarget ? "Direct Target" : "General Post")}",
                     "Confirm Post", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (confirm != MessageBoxResult.Yes) return;
 
@@ -109,7 +119,7 @@ namespace KapwaKuha.ViewModels
                 {
                     IsBusy = true;
                     string itemId = await KapwaDataService.GetNextItemId();
-                    string catId = await KapwaDataService.GetCategoryIdByName(SelectedCategory);
+                    string? catId = await KapwaDataService.GetCategoryId(SelectedCategory);
 
                     var item = new ItemModel
                     {
@@ -119,7 +129,7 @@ namespace KapwaKuha.ViewModels
                         Item_Status = "Available",
                         Date_Found = DateTime.Now,
                         Donor_ID = _donorId,
-                        Category_ID = catId,
+                        Category_ID = catId ?? "",
                         PostType = PostType,
                         TargetBeneficiary_ID = IsDirectTarget ? SelectedBeneficiaryId : ""
                     };
@@ -132,6 +142,10 @@ namespace KapwaKuha.ViewModels
                 catch { /* service already showed error */ }
                 finally { IsBusy = false; }
             });
+
+            // Pre-fill title when navigated from HighPriorityNeedsWindow
+            if (!string.IsNullOrEmpty(prefillTitle))
+                ItemName = prefillTitle;
 
             LoadData();
         }

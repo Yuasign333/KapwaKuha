@@ -21,9 +21,35 @@ namespace KapwaKuha.ViewModels
         private string _errorMessage = string.Empty;
         private bool _errorVisible;
 
-        public string Title { get => _title; set { _title = value; OnPropertyChanged(); } }
-        public string Description { get => _description; set { _description = value; OnPropertyChanged(); } }
-        public string Urgency { get => _urgency; set { _urgency = value; OnPropertyChanged(); } }
+        public string Title
+        {
+            get => _title;
+            set { _title = value; OnPropertyChanged(); }
+        }
+        public string Description
+        {
+            get => _description;
+            set { _description = value; OnPropertyChanged(); }
+        }
+        public string Urgency
+        {
+            get => _urgency;
+            set
+            {
+                _urgency = value;
+                OnPropertyChanged();
+                // Notify all three bool properties so XAML triggers update
+                OnPropertyChanged(nameof(IsLow));
+                OnPropertyChanged(nameof(IsMedium));
+                OnPropertyChanged(nameof(IsHigh));
+            }
+        }
+
+        // ── NEW: urgency bool properties for RadioButton / toggle bindings ─────
+        public bool IsLow { get => _urgency == "Low"; set { if (value) Urgency = "Low"; } }
+        public bool IsMedium { get => _urgency == "Medium"; set { if (value) Urgency = "Medium"; } }
+        public bool IsHigh { get => _urgency == "High"; set { if (value) Urgency = "High"; } }
+
         public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
         public string ErrorMessage { get => _errorMessage; set { _errorMessage = value; OnPropertyChanged(); } }
         public bool ErrorVisible { get => _errorVisible; set { _errorVisible = value; OnPropertyChanged(); } }
@@ -33,6 +59,10 @@ namespace KapwaKuha.ViewModels
 
         public ICommand BackCommand { get; }
         public ICommand PostNeedCommand { get; }
+        // ── NEW: explicit urgency-setter commands for button-based UI ──────────
+        public ICommand SetLowCommand { get; }
+        public ICommand SetMediumCommand { get; }
+        public ICommand SetHighCommand { get; }
 
         public NeedsWishlistViewModel(string beneficiaryId)
         {
@@ -40,6 +70,10 @@ namespace KapwaKuha.ViewModels
 
             BackCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId)));
+
+            SetLowCommand = new RelayCommand(_ => Urgency = "Low");
+            SetMediumCommand = new RelayCommand(_ => Urgency = "Medium");
+            SetHighCommand = new RelayCommand(_ => Urgency = "High");
 
             PostNeedCommand = new AsyncRelayCommand(async _ =>
             {
@@ -56,13 +90,14 @@ namespace KapwaKuha.ViewModels
                     var post = new NeedsPostModel
                     {
                         NeedsPost_ID = postId,
-                        Org_ID = _beneficiaryId,  // linked through beneficiary's org
+                        Org_ID = _beneficiaryId, // linked through beneficiary's org
                         Title = Title.Trim(),
                         Description = Description.Trim(),
                         Urgency = Urgency,
                         Status = "Open"
                     };
                     await KapwaDataService.PostNeedsRequest(post);
+                    MyPosts.Insert(0, post); // Add to top of local list immediately
                     MessageBox.Show($"✅ Need posted! ID: {postId}",
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     Title = Description = string.Empty;

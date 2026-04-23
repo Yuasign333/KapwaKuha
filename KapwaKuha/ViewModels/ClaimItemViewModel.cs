@@ -1,6 +1,7 @@
 ﻿// FILE: ClaimItemViewModel.cs
 // Window: ClaimItemWindow.xaml
-// Handles the claim flow: HandoffType + confirmation — parallel to ProcessReturnViewModel
+// Handles the claim flow: HandoffType selection + confirmation
+// Parallel to ProcessReturnViewModel in CarRentals
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -32,11 +33,17 @@ namespace KapwaKuha.ViewModels
                 OnPropertyChanged(nameof(IsPickup));
                 OnPropertyChanged(nameof(IsDelivery));
                 OnPropertyChanged(nameof(IsDonationDrive));
+                // Show/hide the EventName field only for Donation Drive
+                OnPropertyChanged(nameof(ShowEventName));
             }
         }
         public bool IsPickup { get => _handoffType == "Pickup"; set { if (value) HandoffType = "Pickup"; } }
         public bool IsDelivery { get => _handoffType == "Delivery"; set { if (value) HandoffType = "Delivery"; } }
         public bool IsDonationDrive { get => _handoffType == "Donation Drive"; set { if (value) HandoffType = "Donation Drive"; } }
+
+        /// <summary>Collapses the EventName row unless Donation Drive is selected.</summary>
+        public System.Windows.Visibility ShowEventName =>
+            IsDonationDrive ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
 
         public string Location { get => _location; set { _location = value; OnPropertyChanged(); } }
         public string EventName { get => _eventName; set { _eventName = value; OnPropertyChanged(); } }
@@ -46,6 +53,10 @@ namespace KapwaKuha.ViewModels
 
         public ICommand BackCommand { get; }
         public ICommand ConfirmClaimCommand { get; }
+        // ── NEW: explicit handoff-mode commands for XAML button bindings ───────
+        public ICommand SetPickupCommand { get; }
+        public ICommand SetDeliveryCommand { get; }
+        public ICommand SetDonationDriveCommand { get; }
 
         public ClaimItemViewModel(string beneficiaryId, ItemModel item)
         {
@@ -55,6 +66,11 @@ namespace KapwaKuha.ViewModels
             BackCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.BrowseItemsWindow(_beneficiaryId)));
 
+            // Handoff mode toggles
+            SetPickupCommand = new RelayCommand(_ => HandoffType = "Pickup");
+            SetDeliveryCommand = new RelayCommand(_ => HandoffType = "Delivery");
+            SetDonationDriveCommand = new RelayCommand(_ => HandoffType = "Donation Drive");
+
             ConfirmClaimCommand = new AsyncRelayCommand(async _ =>
             {
                 ErrorVisible = false;
@@ -62,9 +78,13 @@ namespace KapwaKuha.ViewModels
                 if (string.IsNullOrWhiteSpace(Location))
                 { ErrorMessage = "Please enter a pickup/delivery location."; ErrorVisible = true; return; }
 
+                if (IsDonationDrive && string.IsNullOrWhiteSpace(EventName))
+                { ErrorMessage = "Please enter the event name for a Donation Drive."; ErrorVisible = true; return; }
+
                 var confirm = MessageBox.Show(
                     $"Claim this item?\n\nItem: {Item.Item_Name}\n" +
-                    $"Handoff: {HandoffType}\nLocation: {Location}",
+                    $"Handoff: {HandoffType}\nLocation: {Location}" +
+                    (IsDonationDrive ? $"\nEvent: {EventName}" : ""),
                     "Confirm Claim", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (confirm != MessageBoxResult.Yes) return;
 
@@ -82,11 +102,11 @@ namespace KapwaKuha.ViewModels
                         Claim_Date = DateTime.Now,
                         Claim_Status = "Pending",
                         Handoff_Type = HandoffType,
-                        Verification_Notes = $"Location: {Location} | Event: {EventName}"
+                        Verification_Notes = $"Location: {Location}" +
+                                             (IsDonationDrive ? $" | Event: {EventName}" : "")
                     };
 
                     await KapwaDataService.SaveClaim(claim);
-                    await KapwaDataService.UpdateItemStatus(Item.Item_ID, "Claimed");
                     KapwaDataService.GenerateClaimReport(claim);
 
                     MessageBox.Show($"✅ Claimed! Your Claim ID: {claimId}",

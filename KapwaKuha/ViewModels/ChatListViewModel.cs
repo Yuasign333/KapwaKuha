@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
+using KapwaKuha.Models;
 using KapwaKuha.Services;
 
 namespace KapwaKuha.ViewModels
@@ -46,29 +47,49 @@ namespace KapwaKuha.ViewModels
         {
             if (_role == "Beneficiary")
             {
+                // GetChatDonors() returns List<DonorModel>
                 var donors = await KapwaDataService.GetChatDonors();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ChatUsers.Clear();
-                    foreach (var (id, name, last, unread) in donors)
+                    foreach (var d in donors)
                         ChatUsers.Add(new ChatUserRow
                         {
-                            UserId = id,
-                            DisplayName = name,
-                            LastMessage = last,
-                            UnreadCount = unread
+                            UserId = d.Donor_ID,
+                            DisplayName = d.Donor_FullName,
+                            LastMessage = "", // populated on demand
+                            UnreadCount = 0
                         });
                 });
             }
-            // Donor view: list of beneficiaries they've chatted with — extend as needed
+            // Donor view: list of beneficiaries they've chatted with (extend as needed)
         }
     }
 
-    public class ChatUserRow
+    public class ChatUserRow : ObservableObject
     {
         public string UserId { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public string LastMessage { get; set; } = string.Empty;
-        public int UnreadCount { get; set; }
+
+        private int _unreadCount;
+        public int UnreadCount
+        {
+            get => _unreadCount;
+            set
+            {
+                _unreadCount = value;
+                OnPropertyChanged();
+                // Recompute Visibility whenever count changes
+                OnPropertyChanged(nameof(HasUnread));
+            }
+        }
+
+        /// <summary>
+        /// Visibility-typed property for XAML badge binding.
+        /// Visible when UnreadCount > 0, Collapsed otherwise.
+        /// </summary>
+        public Visibility HasUnread =>
+            _unreadCount > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 }
