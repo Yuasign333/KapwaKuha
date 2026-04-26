@@ -61,5 +61,17 @@ namespace KapwaKuha.ViewModels
                 }
             });
         }
+        public class BeneficiaryDashboardDesignViewModel : ObservableObject
+        {
+            public string WelcomeText { get; } = "Welcome, Ana Reyes!";
+            public string UserLabel { get; } = "Beneficiary: B001";
+            public bool IsSidebarOpen { get; } = false;
+            public ICommand HamburgerCommand { get; } = new RelayCommand(_ => { });
+            public ICommand ClaimTrackerCommand { get; } = new RelayCommand(_ => { });
+            public ICommand BrowseItemsCommand { get; } = new RelayCommand(_ => { });
+            public ICommand NeedsWishlistCommand { get; } = new RelayCommand(_ => { });
+            public ICommand ChatCommand { get; } = new RelayCommand(_ => { });
+            public ICommand LogoutCommand { get; } = new RelayCommand(_ => { });
+        }
     }
 }

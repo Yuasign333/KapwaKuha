@@ -5,519 +5,209 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:KapwaKuha.ViewModels"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:ClaimProcessDesignViewModel, IsDesignTimeCreatable=True}"
         Title="KapwaKuha — Claim Process"
         Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
-        Background="#F0F4F8"
-        FontFamily="Segoe UI">
-
-    <!-- ──────────────────────────────────────────────────────────────────────
-         GLOBAL RESOURCES
-         Color System based on KapwaKuha brand (teal/blue + dark navy)
-         Parallel to CarRentals purple color system in App.xaml
-    ────────────────────────────────────────────────────────────────────────── -->
-    <Window.Resources>
-
-        <!-- ── BRAND COLORS ── -->
-        <SolidColorBrush x:Key="KapwaTeal"       Color="#00B4D8"/>
-        <SolidColorBrush x:Key="KapwaTealDark"   Color="#0077B6"/>
-        <SolidColorBrush x:Key="KapwaTealLight"  Color="#90E0EF"/>
-        <SolidColorBrush x:Key="KapwaNavy"       Color="#03045E"/>
-        <SolidColorBrush x:Key="KapwaBackground" Color="#F0F4F8"/>
-        <SolidColorBrush x:Key="KapwaSurface"    Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="KapwaText"       Color="#03045E"/>
-        <SolidColorBrush x:Key="KapwaSubText"    Color="#5E7A8A"/>
-        <SolidColorBrush x:Key="KapwaLost"       Color="#E63946"/>
-        <SolidColorBrush x:Key="KapwaFound"      Color="#00B4D8"/>
-        <SolidColorBrush x:Key="KapwaClaimed"    Color="#9E9E9E"/>
-        <SolidColorBrush x:Key="KapwaSuccess"    Color="#2DC653"/>
-
-        <!-- ── GLOBAL BUTTON STYLE ── -->
-        <Style x:Key="KapwaButtonStyle" TargetType="Button">
-            <Setter Property="Background"        Value="{StaticResource KapwaTeal}"/>
-            <Setter Property="Foreground"        Value="White"/>
-            <Setter Property="FontSize"          Value="13"/>
-            <Setter Property="FontWeight"        Value="SemiBold"/>
-            <Setter Property="Padding"           Value="20,10"/>
-            <Setter Property="BorderThickness"   Value="0"/>
-            <Setter Property="Cursor"            Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="8"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource KapwaTealDark}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Background" Value="#CCCCCC"/>
-                                <Setter Property="Foreground" Value="#999999"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- ── BACK/SECONDARY BUTTON STYLE ── -->
-        <Style x:Key="KapwaSecondaryButton" TargetType="Button" BasedOn="{StaticResource KapwaButtonStyle}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource KapwaTeal}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{StaticResource KapwaTeal}"
-                                BorderThickness="1.5"
-                                CornerRadius="8"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#E8F7FB"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- ── CARD BORDER STYLE ── -->
-        <Style x:Key="KapwaCard" TargetType="Border">
-            <Setter Property="Background"     Value="{StaticResource KapwaSurface}"/>
-            <Setter Property="CornerRadius"   Value="12"/>
-            <Setter Property="Padding"        Value="20"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect Color="#000000" Opacity="0.06"
-                                      BlurRadius="12" ShadowDepth="2"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- ── STATUS BADGE STYLE (converts Item_Status to colored pill) ── -->
-        <!-- StatusBadgeColor is computed in LostItemModel.StatusBadgeColor -->
-        <Style x:Key="StatusBadge" TargetType="Border">
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding"      Value="10,4"/>
-        </Style>
-
-        <!-- ── DATA GRID STYLE ── -->
-        <Style x:Key="KapwaDataGrid" TargetType="DataGrid">
-            <Setter Property="Background"           Value="Transparent"/>
-            <Setter Property="BorderThickness"      Value="0"/>
-            <Setter Property="RowBackground"        Value="White"/>
-            <Setter Property="AlternatingRowBackground" Value="#F7FBFD"/>
-            <Setter Property="GridLinesVisibility"  Value="Horizontal"/>
-            <Setter Property="HorizontalGridLinesBrush" Value="#E5EEF2"/>
-            <Setter Property="SelectionMode"        Value="Single"/>
-            <Setter Property="CanUserAddRows"       Value="False"/>
-            <Setter Property="CanUserDeleteRows"    Value="False"/>
-            <Setter Property="CanUserResizeRows"    Value="False"/>
-            <Setter Property="AutoGenerateColumns"  Value="False"/>
-            <Setter Property="HeadersVisibility"    Value="Column"/>
-            <Setter Property="FontSize"             Value="13"/>
-            <Setter Property="RowHeight"            Value="44"/>
-            <Setter Property="ColumnHeaderHeight"   Value="38"/>
-        </Style>
-
-        <!-- ── TEXTBOX INPUT STYLE ── -->
-        <Style x:Key="KapwaInput" TargetType="TextBox">
-            <Setter Property="Background"     Value="#F5F9FC"/>
-            <Setter Property="BorderBrush"    Value="#C5D8E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding"        Value="10,8"/>
-            <Setter Property="FontSize"       Value="13"/>
-            <Setter Property="Foreground"     Value="{StaticResource KapwaText}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="8"
-                                Padding="{TemplateBinding Padding}">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter Property="BorderBrush" Value="{StaticResource KapwaTeal}"/>
-                                <Setter Property="Background"  Value="White"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- ── COMBOBOX STYLE ── -->
-        <Style x:Key="KapwaCombo" TargetType="ComboBox">
-            <Setter Property="Background"     Value="#F5F9FC"/>
-            <Setter Property="BorderBrush"    Value="#C5D8E0"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding"        Value="10,8"/>
-            <Setter Property="FontSize"       Value="13"/>
-            <Setter Property="Height"         Value="40"/>
-        </Style>
-
-    </Window.Resources>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         ROOT LAYOUT
-    ══════════════════════════════════════════════════════════════════════════ -->
+        FontFamily="Segoe UI" ResizeMode="CanResize">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>
-            <!-- Header bar -->
-            <RowDefinition Height="*"/>
-            <!-- Main content -->
-            <RowDefinition Height="36"/>
-            <!-- Status bar -->
-        </Grid.RowDefinitions>
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.07" Stretch="UniformToFill"/>
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="White" Offset="0"/>
+                    <GradientStop Color="LightSkyBlue" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Ellipse Width="340" Height="340" Opacity="0.13" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-80,-80,0">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#00B4D8" Offset="0"/>
+                    <GradientStop Color="Transparent" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
 
-        <!-- ── ROW 0: HEADER BAR ─────────────────────────────────────────── -->
-        <Border Grid.Row="0" Background="{StaticResource KapwaNavy}">
-            <Grid Margin="20,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="34"/>
+            </Grid.RowDefinitions>
 
-                <!-- Back button -->
-                <Button Grid.Column="0"
-                        Command="{Binding BackCommand}"
-                        Style="{StaticResource KapwaSecondaryButton}"
-                        Foreground="White"
-                        BorderBrush="White"
-                        Padding="14,6"
-                        Content="← Back"
-                        VerticalAlignment="Center"/>
-
-                <!-- Center logo + title -->
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <!-- Stylized K logo using text — replace with actual image when available -->
-                    <Border Background="{StaticResource KapwaTeal}"
-                            CornerRadius="20"
-                            Width="36" Height="36"
-                            Margin="0,0,10,0">
-                        <TextBlock Text="K" FontSize="18" FontWeight="Bold"
-                                   Foreground="White"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="KapwaKuha"
-                                   FontSize="18" FontWeight="Bold"
-                                   Foreground="White"/>
-                        <TextBlock Text="Claim Process Portal"
-                                   FontSize="11"
-                                   Foreground="{StaticResource KapwaTealLight}"/>
+            <!-- Top bar -->
+            <Border Grid.Row="0" Background="#AAFFFFFF">
+                <Border.Effect>
+                    <DropShadowEffect Color="#0077B6" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
+                </Border.Effect>
+                <Grid Margin="20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Command="{Binding BackCommand}" Style="{StaticResource LinkBtn}"
+                            Content="← Back" FontSize="13" Foreground="#03045E"/>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                        <TextBlock Text="Claim Process" FontSize="17" FontWeight="Bold" Foreground="#03045E"/>
+                        <TextBlock Text="Verify and release found items to beneficiaries"
+                                   FontSize="11" Foreground="#5E7A8A"/>
                     </StackPanel>
-                </StackPanel>
-
-                <!-- Admin label -->
-                <TextBlock Grid.Column="2"
-                           Text="{Binding AdminLabel}"
-                           Foreground="{StaticResource KapwaTealLight}"
-                           FontSize="12"
-                           VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
-
-        <!-- ── ROW 1: MAIN CONTENT ────────────────────────────────────────── -->
-        <Grid Grid.Row="1" Margin="20,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
-                <!-- Left: Found items list -->
-                <ColumnDefinition Width="16"/>
-                <!-- Gutter -->
-                <ColumnDefinition Width="2*"/>
-                <!-- Right: Claim form -->
-            </Grid.ColumnDefinitions>
-
-            <!-- ── LEFT PANEL: Found Items DataGrid ─────────────────────── -->
-            <Border Grid.Column="0" Style="{StaticResource KapwaCard}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <!-- Panel header -->
-                        <RowDefinition Height="*"/>
-                        <!-- DataGrid -->
-                    </Grid.RowDefinitions>
-
-                    <!-- Panel Header -->
-                    <Grid Grid.Row="0" Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="📦 Found Items"
-                                       FontSize="16" FontWeight="Bold"
-                                       Foreground="{StaticResource KapwaNavy}"/>
-                            <TextBlock Text="Items confirmed found — awaiting verified claim"
-                                       FontSize="11"
-                                       Foreground="{StaticResource KapwaSubText}"
-                                       Margin="0,2,0,0"/>
-                        </StackPanel>
-
-                        <!-- Refresh Button -->
-                        <Button Grid.Column="1"
-                                Command="{Binding RefreshCommand}"
-                                Style="{StaticResource KapwaSecondaryButton}"
-                                Content="⟳ Refresh"
-                                Padding="12,6"
-                                VerticalAlignment="Top"/>
-                    </Grid>
-
-                    <!-- Found Items DataGrid -->
-                    <DataGrid Grid.Row="1"
-                              Style="{StaticResource KapwaDataGrid}"
-                              ItemsSource="{Binding FoundItems}"
-                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}">
-                        <DataGrid.Columns>
-
-                            <!-- Item ID -->
-                            <DataGridTextColumn Header="Item ID"
-                                                Binding="{Binding Item_ID}"
-                                                Width="80" IsReadOnly="True"/>
-
-                            <!-- Item Name -->
-                            <DataGridTextColumn Header="Item Name"
-                                                Binding="{Binding Item_Name}"
-                                                Width="*" IsReadOnly="True">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Category -->
-                            <DataGridTextColumn Header="Category"
-                                                Binding="{Binding Category_Name}"
-                                                Width="100" IsReadOnly="True"/>
-
-                            <!-- Condition -->
-                            <DataGridTextColumn Header="Condition"
-                                                Binding="{Binding Item_Condition}"
-                                                Width="90" IsReadOnly="True"/>
-
-                            <!-- Status Badge Column -->
-                            <DataGridTemplateColumn Header="Status" Width="90">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Border Style="{StaticResource StatusBadge}"
-                                                Background="{Binding StatusBadgeColor}"
-                                                HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding Item_Status}"
-                                                       Foreground="White"
-                                                       FontSize="11"
-                                                       FontWeight="SemiBold"
-                                                       HorizontalAlignment="Center"/>
-                                        </Border>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <!-- Storage Days -->
-                            <DataGridTextColumn Header="Storage"
-                                                Binding="{Binding StorageDaysDisplay}"
-                                                Width="120" IsReadOnly="True">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontSize" Value="11"/>
-                                        <Setter Property="Foreground" Value="#5E7A8A"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <!-- Donor -->
-                            <DataGridTextColumn Header="Reported By"
-                                                Binding="{Binding Donor_Name}"
-                                                Width="110" IsReadOnly="True"/>
-
-                        </DataGrid.Columns>
-                    </DataGrid>
-
+                    <Border Grid.Column="2" CornerRadius="14" Padding="10,5" VerticalAlignment="Center"
+                            Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1">
+                        <TextBlock Text="{Binding AdminLabel}" FontSize="11" Foreground="#03045E" FontWeight="SemiBold"/>
+                    </Border>
                 </Grid>
             </Border>
 
-            <!-- ── RIGHT PANEL: Claim Process Form ──────────────────────── -->
-            <Border Grid.Column="2" Style="{StaticResource KapwaCard}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="20,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
 
-                        <!-- Form Title -->
-                        <TextBlock Text="Process Claim"
-                                   FontSize="16" FontWeight="Bold"
-                                   Foreground="{StaticResource KapwaNavy}"
-                                   Margin="0,0,0,4"/>
-                        <TextBlock Text="Verify identity and release the item"
-                                   FontSize="11"
-                                   Foreground="{StaticResource KapwaSubText}"
-                                   Margin="0,0,0,20"/>
-
-                        <!-- ── SELECTED ITEM SUMMARY CARD ── -->
-                        <Border CornerRadius="8"
-                                Background="#EBF7FB"
-                                Padding="14"
-                                Margin="0,0,0,16"
-                                Visibility="{Binding IsItemSelected,
-                                             Converter={x:Static BooleanToVisibilityConverter}}">
+                <!-- Found items list -->
+                <Border Grid.Column="0" Style="{StaticResource GlassCard}" Padding="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="16,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Text="Selected Item"
-                                           FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{StaticResource KapwaTealDark}"
-                                           Margin="0,0,0,6"/>
-                                <TextBlock Text="{Binding SelectedItem.Item_Name}"
-                                           FontSize="15" FontWeight="Bold"
-                                           Foreground="{StaticResource KapwaNavy}"/>
-                                <TextBlock Text="{Binding SelectedItem.Item_ID}"
-                                           FontSize="11"
-                                           Foreground="{StaticResource KapwaSubText}"/>
-                                <Separator Margin="0,8"/>
-                                <!-- Storage Days — key metric -->
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⏱ " FontSize="13"/>
+                                <TextBlock Text="📦 Found Items" FontSize="15" FontWeight="Bold" Foreground="#03045E"/>
+                                <TextBlock Text="Items confirmed found — awaiting verified claim"
+                                           FontSize="11" Foreground="#5E7A8A"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding RefreshCommand}"
+                                    Style="{StaticResource LinkBtn}" Content="⟳ Refresh" FontSize="12"/>
+                        </Grid>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding FoundItems}"
+                                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False"
+                                  BorderThickness="0" Background="Transparent"
+                                  RowBackground="Transparent" AlternatingRowBackground="#11CAF0F8"
+                                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#22B390E0EF"
+                                  RowHeight="42" ColumnHeaderHeight="36" SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding Item_ID}" Width="80"/>
+                                <DataGridTextColumn Header="Item Name" Binding="{Binding Item_Name}" Width="*"/>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category_Name}" Width="100"/>
+                                <DataGridTemplateColumn Header="Status" Width="90">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border CornerRadius="10" Padding="7,2"
+                                                    Background="{Binding StatusColor}"
+                                                    HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding Item_Status}" Foreground="White"
+                                                           FontSize="11" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Storage" Binding="{Binding StorageDaysDisplay}" Width="120"/>
+                                <DataGridTextColumn Header="Reported By" Binding="{Binding Donor_Name}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+                <!-- Claim form -->
+                <Border Grid.Column="2" Style="{StaticResource GlassCard}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Process Claim" FontSize="15" FontWeight="Bold"
+                                       Foreground="#03045E" Margin="0,0,0,4"/>
+                            <TextBlock Text="Verify identity and release the item"
+                                       FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,16"/>
+
+                            <!-- Selected item summary -->
+                            <Border CornerRadius="12" Padding="14" Margin="0,0,0,14"
+                                    Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1"
+                                    Visibility="{Binding IsItemSelected, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="SELECTED ITEM" FontSize="10" FontWeight="Bold"
+                                               Foreground="#0077B6" Margin="0,0,0,6"/>
+                                    <TextBlock Text="{Binding SelectedItem.Item_Name}"
+                                               FontSize="15" FontWeight="Bold" Foreground="#03045E"/>
+                                    <TextBlock Text="{Binding SelectedItem.Item_ID}"
+                                               FontSize="11" Foreground="#5E7A8A"/>
+                                    <Rectangle Height="1" Fill="White" Margin="0,8"/>
                                     <TextBlock Text="{Binding StorageDaysDisplay}"
-                                               FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{StaticResource KapwaTealDark}"/>
+                                               FontSize="12" Foreground="#0077B6" FontWeight="SemiBold"/>
                                 </StackPanel>
-                                <TextBlock Text="{Binding SelectedItem.Item_Condition,
-                                                  StringFormat='Condition: {0}'}"
-                                           FontSize="11"
-                                           Foreground="{StaticResource KapwaSubText}"
-                                           Margin="0,4,0,0"/>
-                                <TextBlock Text="{Binding SelectedItem.Category_Name,
-                                                  StringFormat='Category: {0}'}"
-                                           FontSize="11"
-                                           Foreground="{StaticResource KapwaSubText}"/>
-                            </StackPanel>
-                        </Border>
+                            </Border>
 
-                        <!-- No item selected placeholder -->
-                        <Border CornerRadius="8"
-                                Background="#F5F9FC"
-                                BorderBrush="#DDE8EE"
-                                BorderThickness="1.5"
-                                Padding="14"
-                                Margin="0,0,0,16">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsItemSelected}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <TextBlock Text="← Select a Found item from the list to begin"
-                                       FontSize="12"
-                                       Foreground="{StaticResource KapwaSubText}"
-                                       HorizontalAlignment="Center"
-                                       TextWrapping="Wrap"/>
-                        </Border>
+                            <!-- Empty state -->
+                            <Border CornerRadius="12" Padding="14" Margin="0,0,0,14"
+                                    Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsItemSelected}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="← Select a Found item from the list"
+                                           HorizontalAlignment="Center" Foreground="#5E7A8A" FontSize="12"/>
+                            </Border>
 
-                        <!-- ── FORM LABEL + BENEFICIARY ── -->
-                        <TextBlock Text="Beneficiary" FontSize="12" FontWeight="SemiBold"
-                                   Foreground="{StaticResource KapwaNavy}"
-                                   Margin="0,0,0,6"/>
-                        <ComboBox Style="{StaticResource KapwaCombo}"
-                                  ItemsSource="{Binding Beneficiaries}"
-                                  SelectedItem="{Binding SelectedBeneficiary, Mode=TwoWay}"
-                                  DisplayMemberPath="DisplayName"
-                                  Margin="0,0,0,14"
-                                  IsEnabled="{Binding IsItemSelected}"/>
+                            <!-- Beneficiary -->
+                            <TextBlock Text="Beneficiary" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="#03045E" Margin="0,0,0,6"/>
+                            <Border Style="{StaticResource GlassInputBorder}">
+                                <ComboBox ItemsSource="{Binding Beneficiaries}"
+                                          SelectedItem="{Binding SelectedBeneficiary}"
+                                          DisplayMemberPath="DisplayName"
+                                          Background="Transparent" BorderThickness="0"
+                                          Height="34" VerticalContentAlignment="Center" FontSize="12"
+                                          IsEnabled="{Binding IsItemSelected}"/>
+                            </Border>
 
-                        <!-- ── VERIFICATION NOTES ── -->
-                        <TextBlock Text="Verification Notes" FontSize="12" FontWeight="SemiBold"
-                                   Foreground="{StaticResource KapwaNavy}"
-                                   Margin="0,0,0,6"/>
-                        <TextBlock Text="Describe how you verified the claimer's identity (ID, item description, etc.)"
-                                   FontSize="11"
-                                   Foreground="{StaticResource KapwaSubText}"
-                                   TextWrapping="Wrap"
-                                   Margin="0,0,0,6"/>
-                        <TextBox Style="{StaticResource KapwaInput}"
-                                 Text="{Binding VerificationNotes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="90"
-                                 TextWrapping="Wrap"
-                                 AcceptsReturn="True"
-                                 VerticalContentAlignment="Top"
-                                 Margin="0,0,0,20"
-                                 IsEnabled="{Binding IsItemSelected}"/>
+                            <!-- Verification notes -->
+                            <TextBlock Text="Verification Notes" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="#03045E" Margin="0,4,0,4"/>
+                            <TextBlock Text="Describe how you verified the claimer's identity"
+                                       FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,6"/>
+                            <Border Style="{StaticResource GlassInputBorder}" Margin="0,0,0,20">
+                                <TextBox Text="{Binding VerificationNotes, UpdateSourceTrigger=PropertyChanged}"
+                                         BorderThickness="0" Background="Transparent"
+                                         Height="80" TextWrapping="Wrap" AcceptsReturn="True"
+                                         VerticalContentAlignment="Top" FontSize="12"
+                                         IsEnabled="{Binding IsItemSelected}"/>
+                            </Border>
 
-                        <!-- ── PROCESS CLAIM BUTTON ── -->
-                        <Button Command="{Binding ProcessClaimCommand}"
-                                Style="{StaticResource KapwaButtonStyle}"
-                                Background="{StaticResource KapwaSuccess}"
-                                Content="✅ Release Item to Beneficiary"
-                                Height="44"
-                                FontSize="14"
-                                IsEnabled="{Binding IsItemSelected}"/>
+                            <!-- Release button -->
+                            <Button Command="{Binding ProcessClaimCommand}"
+                                    Style="{StaticResource GradientButton}"
+                                    IsEnabled="{Binding IsItemSelected}">
+                                <TextBlock Text="✅ Release Item to Beneficiary"/>
+                            </Button>
 
-                        <!-- Busy indicator -->
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Margin="0,10,0,0">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Text="Processing..." FontSize="12"
-                                       Foreground="{StaticResource KapwaTeal}"/>
+                            <!-- Busy indicator -->
+                            <TextBlock Text="Processing..." HorizontalAlignment="Center"
+                                       Foreground="#0077B6" FontSize="12" Margin="0,10,0,0"
+                                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
                         </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
 
-                        <!-- ── IMPACT REMINDER ── -->
-                        <Border CornerRadius="8"
-                                Background="#F0FFF4"
-                                Padding="12"
-                                Margin="0,16,0,0">
-                            <StackPanel>
-                                <TextBlock Text="💙 Community Impact"
-                                           FontSize="11" FontWeight="SemiBold"
-                                           Foreground="#1B5E20"
-                                           Margin="0,0,0,4"/>
-                                <TextBlock Text="Every claim processed returns something precious to someone in the community. Kapwa — we are each other."
-                                           FontSize="11"
-                                           Foreground="#388E3C"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
-
-                    </StackPanel>
-                </ScrollViewer>
+            <!-- Status bar -->
+            <Border Grid.Row="2" Background="#CC03045E">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#90E0EF"
+                           FontSize="11" Margin="14,0" VerticalAlignment="Center"/>
             </Border>
         </Grid>
-
-        <!-- ── ROW 2: STATUS BAR ──────────────────────────────────────────── -->
-        <Border Grid.Row="2" Background="{StaticResource KapwaNavy}" Padding="20,0">
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="{StaticResource KapwaTealLight}"
-                       FontSize="11"
-                       VerticalAlignment="Center"/>
-        </Border>
-
     </Grid>
 </Window>

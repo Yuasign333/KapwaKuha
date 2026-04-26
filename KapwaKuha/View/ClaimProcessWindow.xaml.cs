@@ -2,12 +2,15 @@
 using System.Windows;
 using KapwaKuha.Services;
 
-public partial class ClaimProcessWindow : Window
+namespace KapwaKuha.View   
 {
-    public ClaimProcessWindow(string adminId)
+    public partial class ClaimProcessWindow : Window
     {
-        InitializeComponent();
-        DataContext = new ClaimProcessViewModel(adminId);
-        Loaded += (s, e) => NavigationService.SetCurrent(this);
+        public ClaimProcessWindow(string adminId)
+        {
+            InitializeComponent();
+            DataContext = new ClaimProcessViewModel(adminId);
+            Loaded += (s, e) => NavigationService.SetCurrent(this);
+        }
     }
 }

@@ -65,5 +65,18 @@ namespace KapwaKuha.ViewModels
                 }
             });
         }
+        public class DonorDashboardDesignViewModel : ObservableObject
+        {
+            public string WelcomeText { get; } = "Welcome back, Juan Dela Cruz!";
+            public string UserLabel { get; } = "Donor: juandc";
+            public bool IsSidebarOpen { get; } = false;
+            public ICommand HamburgerCommand { get; } = new RelayCommand(_ => { });
+            public ICommand PostItemCommand { get; } = new RelayCommand(_ => { });
+            public ICommand MyImpactCommand { get; } = new RelayCommand(_ => { });
+            public ICommand HighPriorityNeedsCommand { get; } = new RelayCommand(_ => { });
+            public ICommand ActiveListingsCommand { get; } = new RelayCommand(_ => { });
+            public ICommand ChatCommand { get; } = new RelayCommand(_ => { });
+            public ICommand LogoutCommand { get; } = new RelayCommand(_ => { });
+        }
     }
 }

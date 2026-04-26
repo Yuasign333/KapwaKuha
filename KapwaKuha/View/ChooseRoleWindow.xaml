@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:KapwaKuha.ViewModels"
         Title="KapwaKuha — Choose Role"
-        Width="480" Height="580"
+          Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         FontFamily="Segoe UI">
@@ -72,8 +72,8 @@
                 Width="360" CornerRadius="24" Padding="36,32">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#FFFFFFEE" Offset="0"/>
-                    <GradientStop Color="#E8F7FBCC" Offset="1"/>
+                    <GradientStop Color="LightSkyBlue" Offset="0"/>
+                    <GradientStop Color="White" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Effect>
@@ -81,23 +81,8 @@
             </Border.Effect>
             <StackPanel>
                 <!-- Logo circle -->
-                <Border Width="72" Height="72" CornerRadius="36" Margin="0,0,0,12"
-                        HorizontalAlignment="Center">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#00B4D8" Offset="0"/>
-                            <GradientStop Color="#0077B6" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <TextBlock Text="K" FontSize="36" FontWeight="Bold" Foreground="White"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
 
-                <TextBlock Text="KapwaKuha" FontSize="22" FontWeight="Bold"
-                           Foreground="#03045E" HorizontalAlignment="Center"/>
-                <TextBlock Text="Donate is something they await."
-                           FontSize="12" Foreground="#5E7A8A"
-                           HorizontalAlignment="Center" Margin="0,2,0,24"/>
+                <Image Source="https://i.imgur.com/kLvIl0T.png" Width="204" Height="186" HorizontalAlignment="Center"/>
 
                 <!-- Donor card -->
                 <Button Command="{Binding DonorCommand}" Margin="0,0,0,12"

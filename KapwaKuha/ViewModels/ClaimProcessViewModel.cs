@@ -82,9 +82,9 @@ namespace KapwaKuha.ViewModels
             AdminLabel = $"Agent: {adminId}";
 
             BackCommand = new RelayCommand(_ =>
-                NavigationService.Navigate(new View.AdminDashboardWindow(_adminId)));
+                NavigationService.Navigate(new View.DonorDashboardWindow(_adminId)));
 
-            RefreshCommand = new AsyncRelayCommand(async _ => await LoadFoundItemsAsync());
+            RefreshCommand = new RelayCommand(_ => LoadFoundItemsAsync());
 
             ProcessClaimCommand = new AsyncRelayCommand(async _ =>
             {

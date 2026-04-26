@@ -47,18 +47,17 @@ namespace KapwaKuha.ViewModels
         {
             if (_role == "Beneficiary")
             {
-                // GetChatDonors() returns List<DonorModel>
                 var donors = await KapwaDataService.GetChatDonors();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     ChatUsers.Clear();
-                    foreach (var d in donors)
+                    foreach (var (userId, fullName, lastMsg, unread) in donors)
                         ChatUsers.Add(new ChatUserRow
                         {
-                            UserId = d.Donor_ID,
-                            DisplayName = d.Donor_FullName,
-                            LastMessage = "", // populated on demand
-                            UnreadCount = 0
+                            UserId = userId,
+                            DisplayName = fullName,
+                            LastMessage = lastMsg,
+                            UnreadCount = unread
                         });
                 });
             }

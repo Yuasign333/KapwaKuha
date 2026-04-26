@@ -365,6 +365,19 @@ namespace KapwaKuha.Services
             catch { return ""; }
         }
 
+        /// <summary>Alias for GetCategoryIdByName — used by PostItemViewModel.</summary>
+        public static Task<string> GetCategoryId(string name)
+            => GetCategoryIdByName(name);
+
+        /// <summary>
+        /// Items with status "Available" — used by ClaimProcessViewModel.
+        /// Parallel to GetActiveRentals() in CarRentals.
+        /// </summary>
+        public static async Task<List<ItemModel>> GetFoundItems()
+        {
+            var all = await GetAllItems();
+            return all.FindAll(i => i.Item_Status == "Available");
+        }
         private static ItemModel MapItem(SqlDataReader r) => new()
         {
             Item_ID = r["Item_ID"].ToString() ?? "",

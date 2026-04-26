@@ -1,27 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using KapwaKuha.Services;
 
 namespace KapwaKuha.View
 {
-    /// <summary>
-    /// Interaction logic for ItemsWindow.xaml
-    /// </summary>
     public partial class ItemsWindow : Window
     {
-        public ItemsWindow()
+        public ItemsWindow(string userId)
         {
             InitializeComponent();
+            DataContext = new KapwaKuha.ViewModels.ItemsViewModel(userId);
+            Loaded += (s, e) => NavigationService.SetCurrent(this);
         }
     }
 }
