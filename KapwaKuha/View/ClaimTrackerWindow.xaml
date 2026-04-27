@@ -10,11 +10,13 @@
         <Rectangle>
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#CAF0F8" Offset="0"/>
-                    <GradientStop Color="#90E0EF" Offset="1"/>
+                    <GradientStop Color="White" Offset="0"/>
+                    <GradientStop Color="LightSkyBlue" Offset="1"/>
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
+
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.07" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
 
         <Grid>
             <Grid.RowDefinitions>
@@ -48,7 +50,22 @@
             </Border>
 
             <!-- Claims DataGrid -->
-            <Border Grid.Row="1" Background="White" CornerRadius="16" Margin="20,16">
+            <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5">
+
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                        <GradientStop Color="#66FFFFFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="White" Offset="0"/>
+                        <GradientStop Color="#33FFFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+
                 <Border.Effect>
                     <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
                 </Border.Effect>

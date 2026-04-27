@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:KapwaKuha.ViewModels"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=vm:ItemsDesignViewModel, IsDesignTimeCreatable=True}"
+      
         Title="KapwaKuha — All Items"
         Height="680" Width="1100"
         WindowStartupLocation="CenterScreen"
@@ -20,12 +20,14 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.08" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="60"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            
+            
 
             <!-- Top bar -->
             <Border Grid.Row="0" Background="#AAFFFFFF">
@@ -161,16 +163,16 @@
 
                             <TextBlock Text="Update Status" FontSize="12" FontWeight="SemiBold"
                                        Foreground="#03045E" Margin="0,0,0,6"/>
-                            <Border Style="{StaticResource GlassInputBorder}">
+                          
                                 <ComboBox ItemsSource="{Binding StatusOptions}"
                                           SelectedItem="{Binding NewStatus}"
                                           Background="Transparent" BorderThickness="0"
                                           Height="32" VerticalContentAlignment="Center" FontSize="12"/>
-                            </Border>
+                         
 
                             <Button Command="{Binding UpdateStatusCommand}"
                                     Style="{StaticResource GradientButton}"
-                                    Margin="0,8,0,0">
+                                    Margin="0,30,0,0">
                                 <TextBlock Text="Update Status →"/>
                             </Button>
                         </StackPanel>

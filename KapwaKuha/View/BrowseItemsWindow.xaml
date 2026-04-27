@@ -14,8 +14,8 @@
         <Rectangle>
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#CAF0F8" Offset="0"/>
-                    <GradientStop Color="#90E0EF" Offset="1"/>
+                    <GradientStop Color="White" Offset="0"/>
+                    <GradientStop Color="LightSkyBlue" Offset="1"/>
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
@@ -28,6 +28,7 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.03" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
 
         <Grid>
             <Grid.RowDefinitions>

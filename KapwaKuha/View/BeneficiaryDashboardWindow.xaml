@@ -28,7 +28,7 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
-        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.10" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.05" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
 
 
 

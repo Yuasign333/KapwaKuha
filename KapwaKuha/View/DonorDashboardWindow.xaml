@@ -11,7 +11,7 @@
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI" ResizeMode="CanResize">
     <Grid>
-        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.07" Stretch="UniformToFill"/>
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.05" Stretch="UniformToFill"/>
         <Rectangle>
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -29,7 +29,7 @@
             </Ellipse.Fill>
         </Ellipse>
 
-        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.10" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.05" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
 
         <Grid>
             <Grid.ColumnDefinitions>

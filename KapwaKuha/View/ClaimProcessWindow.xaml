@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:KapwaKuha.ViewModels"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=vm:ClaimProcessDesignViewModel, IsDesignTimeCreatable=True}"
         Title="KapwaKuha — Claim Process"
         Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI" ResizeMode="CanResize">
+
     <Grid>
         <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.07" Stretch="UniformToFill"/>
         <Rectangle>
@@ -28,7 +28,7 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
-
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.07" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="60"/>
@@ -36,7 +36,6 @@
                 <RowDefinition Height="34"/>
             </Grid.RowDefinitions>
 
-            <!-- Top bar -->
             <Border Grid.Row="0" Background="#AAFFFFFF">
                 <Border.Effect>
                     <DropShadowEffect Color="#0077B6" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
@@ -61,7 +60,6 @@
                 </Grid>
             </Border>
 
-            <!-- Content -->
             <Grid Grid.Row="1" Margin="20,16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*"/>
@@ -69,13 +67,13 @@
                     <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Found items list -->
                 <Border Grid.Column="0" Style="{StaticResource GlassCard}" Padding="0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
+
                         <Grid Grid.Row="0" Margin="16,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -89,37 +87,73 @@
                             <Button Grid.Column="1" Command="{Binding RefreshCommand}"
                                     Style="{StaticResource LinkBtn}" Content="⟳ Refresh" FontSize="12"/>
                         </Grid>
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding FoundItems}"
-                                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                                  AutoGenerateColumns="False" CanUserAddRows="False"
-                                  BorderThickness="0" Background="Transparent"
-                                  RowBackground="Transparent" AlternatingRowBackground="#11CAF0F8"
-                                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#22B390E0EF"
-                                  RowHeight="42" ColumnHeaderHeight="36" SelectionMode="Single">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding Item_ID}" Width="80"/>
-                                <DataGridTextColumn Header="Item Name" Binding="{Binding Item_Name}" Width="*"/>
-                                <DataGridTextColumn Header="Category" Binding="{Binding Category_Name}" Width="100"/>
-                                <DataGridTemplateColumn Header="Status" Width="90">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Border CornerRadius="10" Padding="7,2"
-                                                    Background="{Binding StatusColor}"
-                                                    HorizontalAlignment="Center">
-                                                <TextBlock Text="{Binding Item_Status}" Foreground="White"
-                                                           FontSize="11" FontWeight="SemiBold"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="Storage" Binding="{Binding StorageDaysDisplay}" Width="120"/>
-                                <DataGridTextColumn Header="Reported By" Binding="{Binding Donor_Name}" Width="110"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
+                        <ListView Grid.Row="1" ItemsSource="{Binding FoundItems}"
+          SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+          BorderThickness="0" 
+          Background="Transparent"
+          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+          Margin="4,0,5,10">
+
+                            <ListView.Resources>
+                                <LinearGradientBrush x:Key="GlassSelected" StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#66FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#6687CEEB" Offset="1"/>
+                                </LinearGradientBrush>
+
+                                <LinearGradientBrush x:Key="GlassHover" StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#44FFFFFF" Offset="0"/>
+                                    <GradientStop Color="#3387CEEB" Offset="1"/>
+                                </LinearGradientBrush>
+                            </ListView.Resources>
+
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="Margin" Value="0,2"/>
+                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource GlassSelected}"/>
+                                            <Setter Property="BorderBrush" Value="#88FFFFFF"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource GlassHover}"/>
+                                            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding Item_ID}" Width="70"/>
+                                    <GridViewColumn Header="Item Name" DisplayMemberBinding="{Binding Item_Name}" Width="150"/>
+                                    <GridViewColumn Header="Category" DisplayMemberBinding="{Binding Category_Name}" Width="100"/>
+
+                                    <GridViewColumn Header="Status" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="10" Padding="7,2"
+                                Background="{Binding StatusColor}"
+                                HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding Item_Status}" Foreground="White"
+                                       FontSize="11" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="Storage" DisplayMemberBinding="{Binding StorageDaysDisplay}" Width="100"/>
+                                    <GridViewColumn Header="Reported By" DisplayMemberBinding="{Binding Donor_Name}" Width="100"/>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
                     </Grid>
                 </Border>
 
-                <!-- Claim form -->
                 <Border Grid.Column="2" Style="{StaticResource GlassCard}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
@@ -128,7 +162,6 @@
                             <TextBlock Text="Verify identity and release the item"
                                        FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,16"/>
 
-                            <!-- Selected item summary -->
                             <Border CornerRadius="12" Padding="14" Margin="0,0,0,14"
                                     Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1"
                                     Visibility="{Binding IsItemSelected, Converter={StaticResource BoolToVis}}">
@@ -145,7 +178,6 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Empty state -->
                             <Border CornerRadius="12" Padding="14" Margin="0,0,0,14"
                                     Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1">
                                 <Border.Style>
@@ -162,19 +194,17 @@
                                            HorizontalAlignment="Center" Foreground="#5E7A8A" FontSize="12"/>
                             </Border>
 
-                            <!-- Beneficiary -->
                             <TextBlock Text="Beneficiary" FontSize="12" FontWeight="SemiBold"
                                        Foreground="#03045E" Margin="0,0,0,6"/>
-                            <Border Style="{StaticResource GlassInputBorder}">
+                         
                                 <ComboBox ItemsSource="{Binding Beneficiaries}"
                                           SelectedItem="{Binding SelectedBeneficiary}"
                                           DisplayMemberPath="DisplayName"
                                           Background="Transparent" BorderThickness="0"
                                           Height="34" VerticalContentAlignment="Center" FontSize="12"
                                           IsEnabled="{Binding IsItemSelected}"/>
-                            </Border>
+                          
 
-                            <!-- Verification notes -->
                             <TextBlock Text="Verification Notes" FontSize="12" FontWeight="SemiBold"
                                        Foreground="#03045E" Margin="0,4,0,4"/>
                             <TextBlock Text="Describe how you verified the claimer's identity"
@@ -187,14 +217,12 @@
                                          IsEnabled="{Binding IsItemSelected}"/>
                             </Border>
 
-                            <!-- Release button -->
                             <Button Command="{Binding ProcessClaimCommand}"
                                     Style="{StaticResource GradientButton}"
                                     IsEnabled="{Binding IsItemSelected}">
                                 <TextBlock Text="✅ Release Item to Beneficiary"/>
                             </Button>
 
-                            <!-- Busy indicator -->
                             <TextBlock Text="Processing..." HorizontalAlignment="Center"
                                        Foreground="#0077B6" FontSize="12" Margin="0,10,0,0"
                                        Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
@@ -203,7 +231,6 @@
                 </Border>
             </Grid>
 
-            <!-- Status bar -->
             <Border Grid.Row="2" Background="#CC03045E">
                 <TextBlock Text="{Binding StatusMessage}" Foreground="#90E0EF"
                            FontSize="11" Margin="14,0" VerticalAlignment="Center"/>

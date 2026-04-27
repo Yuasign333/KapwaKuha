@@ -12,5 +12,7 @@ namespace KapwaKuha.View
             DataContext = new ClaimProcessViewModel(adminId);
             Loaded += (s, e) => NavigationService.SetCurrent(this);
         }
+
+     
     }
 }

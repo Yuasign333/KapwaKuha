@@ -84,7 +84,7 @@
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Background="White">
-            <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.05" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+            <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.02" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
 
 
             <Button Command="{Binding BackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top" 
@@ -92,7 +92,7 @@
 
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400" Margin="20,0">
 
-                <TextBlock Text="LOGIN" FontSize="36" FontWeight="Black" Foreground="DarkCyan" HorizontalAlignment="Center"/>
+                <TextBlock Text=" BENEFICIARY LOGIN" FontSize="36" FontWeight="Black" Foreground="#87CEEB" HorizontalAlignment="Center"/>
                 <TextBlock Text="Sign in to your KapwaKuha Beneficiary Portal." FontSize="14" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,8,0,40"/>
 
                 <Border Background="#F4F6F8" CornerRadius="12" Height="50" Margin="0,0,0,16">
@@ -103,7 +103,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="👤" Foreground="#9CA3AF" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <TextBox Grid.Column="1" Text="{Binding CurrentUser.UserID, UpdateSourceTrigger=PropertyChanged}" 
-                                 BorderThickness="0" Foreground="AntiqueWhite" VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
+                                 BorderThickness="0" Background ="Transparent" VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
                     </Grid>
                 </Border>
 
@@ -114,7 +114,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="🔒" Foreground="#9CA3AF" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <PasswordBox x:Name="PwBox" Grid.Column="1" BorderThickness="0" Foreground="AntiqueWhite" VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
+                        <PasswordBox x:Name="PwBox" Grid.Column="1" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
                     </Grid>
                 </Border>
 

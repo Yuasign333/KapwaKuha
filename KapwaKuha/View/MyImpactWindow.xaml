@@ -10,8 +10,8 @@
         <Rectangle>
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#CAF0F8" Offset="0"/>
-                    <GradientStop Color="#90E0EF" Offset="1"/>
+                    <GradientStop Color="White" Offset="0"/>
+                    <GradientStop Color="LightSkyBlue" Offset="1"/>
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
@@ -25,11 +25,15 @@
             </Ellipse.Fill>
         </Ellipse>
 
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.05" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="56"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            
+            
 
             <!-- Top bar -->
             <Border Grid.Row="0" Background="#0077B6">
@@ -78,9 +82,24 @@
                     <!-- Metric cards row -->
                     <UniformGrid Rows="1" Columns="3" Margin="0,0,0,20">
                         <!-- Total Donated -->
-                        <Border Background="White" CornerRadius="16" Padding="22,18" Margin="0,0,14,0">
+                        <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5" Padding=" 22,38">
+
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="White" Offset="0"/>
+                                    <GradientStop Color="#33FFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+
                             <Border.Effect>
-                                <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.14"/>
+                                <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
                             </Border.Effect>
                             <StackPanel>
                                 <TextBlock Text="🤲" FontSize="28" Margin="0,0,0,8"/>
@@ -93,9 +112,24 @@
                         </Border>
 
                         <!-- Total Claimed -->
-                        <Border Background="White" CornerRadius="16" Padding="22,18" Margin="0,0,14,0">
+                        <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5" Padding=" 22,38">
+
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="White" Offset="0"/>
+                                    <GradientStop Color="#33FFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+
                             <Border.Effect>
-                                <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.14"/>
+                                <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
                             </Border.Effect>
                             <StackPanel>
                                 <TextBlock Text="✅" FontSize="28" Margin="0,0,0,8"/>
@@ -108,10 +142,25 @@
                         </Border>
 
                         <!-- Active Items -->
-                        <Border Background="White" CornerRadius="16" Padding="22,18">
-                            <Border.Effect>
-                                <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.14"/>
-                            </Border.Effect>
+                        <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5" Padding=" 22,38">
+    
+    <Border.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#CCFFFFFF" Offset="0"/>
+            <GradientStop Color="#66FFFFFF" Offset="1"/>
+        </LinearGradientBrush>
+    </Border.Background>
+
+    <Border.BorderBrush>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="White" Offset="0"/>
+            <GradientStop Color="#33FFFF" Offset="1"/>
+        </LinearGradientBrush>
+    </Border.BorderBrush>
+
+    <Border.Effect>
+        <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
+    </Border.Effect>
                             <StackPanel>
                                 <TextBlock Text="📦" FontSize="28" Margin="0,0,0,8"/>
                                 <TextBlock Text="Still Available" FontSize="12"
@@ -122,6 +171,8 @@
                             </StackPanel>
                         </Border>
                     </UniformGrid>
+                    
+                    
 
                     <!-- Avg + community message -->
                     <Grid>
@@ -131,9 +182,24 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Background="White" CornerRadius="16" Padding="22,18">
+                        <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5" Padding=" 22,38">
+
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="White" Offset="0"/>
+                                    <GradientStop Color="#33FFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+
                             <Border.Effect>
-                                <DropShadowEffect Color="#00B4D8" BlurRadius="14" ShadowDepth="0" Opacity="0.10"/>
+                                <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
                             </Border.Effect>
                             <StackPanel>
                                 <TextBlock Text="⏱" FontSize="28" Margin="0,0,0,8"/>
