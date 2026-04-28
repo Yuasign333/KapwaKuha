@@ -151,7 +151,6 @@
                 <TextBlock Text="Let's personalize your KapwaKuha experience." FontSize="16" Foreground="#6B7280" Margin="0,-20,0,40"/>
 
                 <TextBlock Text="Are you here to donate or receive assistance?" FontSize="14" FontWeight="SemiBold" Foreground="#0A2540" Margin="0,-20,0,16"/>
-
                 <Grid Margin="0,0,0,40">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -159,11 +158,17 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="0" Content="🤲 Donor" 
-                      Style="{StaticResource KapwaBtn}" Height="55" FontSize="16" Margin="0,0,0,-20"/>
+                    <Button Grid.Column="0"
+            Content="🤲 Donor"
+            Command="{Binding DonorCommand}"
+            Style="{StaticResource KapwaBtn}"
+            Height="55" FontSize="16"/>
 
-                    <Button Grid.Column="2" Content="❤️ Beneficiary" 
-                      Style="{StaticResource KapwaBtn}" Height="55" FontSize="16" Margin="0,0,0,-20"/>
+                    <Button Grid.Column="2"
+            Content="❤️ Beneficiary"
+            Command="{Binding BeneficiaryCommand}"
+            Style="{StaticResource KapwaBtn}"
+            Height="55" FontSize="16"/>
                 </Grid>
 
             </StackPanel>

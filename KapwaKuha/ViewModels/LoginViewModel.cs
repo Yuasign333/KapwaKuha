@@ -51,7 +51,7 @@ namespace KapwaKuha.ViewModels
                 NavigationService.Navigate(new View.ForgotPasswordWindow(role)));
 
             SignUpCommand = new RelayCommand(_ =>
-                NavigationService.Navigate(new View.SignUpWindow(role)));
+                NavigationService.Navigate(new View.SignUpWindow(CurrentUser.Role)));
         }
 
         private async void ExecuteLogin(object? parameter)

@@ -10,6 +10,7 @@ namespace KapwaKuha.View
         // Add this field to hold a reference to OrgCombo
         private ComboBox OrgCombo => (ComboBox)FindName("OrgCombo");
 
+        // SignUpWindow.xaml.cs — must be:
         public SignUpWindow(string role)
         {
             InitializeComponent();

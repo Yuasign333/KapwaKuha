@@ -286,9 +286,9 @@ namespace KapwaKuha.Services
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-            INSERT INTO Items(Item_ID,Item_Name,Item_Condition,Item_Status,
-                             Date_Found,Donor_ID,Category_ID,Post_Type,Target_Beneficiary_ID)
-            VALUES(@id,@name,@cond,@status,@date,@did,@catid,@ptype,@tbid)", conn);
+            INSERT INTO Items(Item_ID, Item_Name, Item_Condition, Item_Status,
+                             Date_Found, Donor_ID, Category_ID, PostType, TargetBeneficiary_ID)
+            VALUES(@id, @name, @cond, @status, @date, @did, @catid, @ptype, @tbid)", conn);
                 cmd.Parameters.AddWithValue("@id", item.Item_ID);
                 cmd.Parameters.AddWithValue("@name", item.Item_Name);
                 cmd.Parameters.AddWithValue("@cond", item.Item_Condition);
@@ -296,15 +296,14 @@ namespace KapwaKuha.Services
                 cmd.Parameters.AddWithValue("@date", item.Date_Found);
                 cmd.Parameters.AddWithValue("@did", item.Donor_ID);
                 cmd.Parameters.AddWithValue("@catid", item.Category_ID);
-                cmd.Parameters.AddWithValue("@ptype", item.PostType);   // ItemModel.PostType
+                cmd.Parameters.AddWithValue("@ptype", item.PostType);
                 cmd.Parameters.AddWithValue("@tbid",
                     string.IsNullOrEmpty(item.TargetBeneficiary_ID)
-                        ? (object)DBNull.Value : item.TargetBeneficiary_ID); // ItemModel.TargetBeneficiary_ID
+                        ? "" : item.TargetBeneficiary_ID);
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex) { MessageBox.Show("AddItem failed: " + ex.Message); throw; }
         }
-
 
 
         public static async Task DeleteItem(string itemId)

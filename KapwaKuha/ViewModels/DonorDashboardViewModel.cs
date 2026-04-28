@@ -16,10 +16,8 @@ namespace KapwaKuha.ViewModels
         public bool IsSidebarOpen
         {
             get => _isSidebarOpen;
-            set { _isSidebarOpen = value; OnPropertyChanged(); OnPropertyChanged(nameof(SidebarWidth)); }
+            set { _isSidebarOpen = value; OnPropertyChanged(); }
         }
-        public GridLength SidebarWidth => IsSidebarOpen ? new GridLength(220) : new GridLength(0);
-
         public string WelcomeText { get; }
         public string UserLabel { get; }
 

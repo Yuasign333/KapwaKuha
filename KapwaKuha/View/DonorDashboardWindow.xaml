@@ -37,7 +37,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Width="220" Style="{StaticResource AnimatedSidebarStyle}"
+            <Border Grid.Column="0" Width="0" Style="{StaticResource AnimatedSidebarStyle}"
         BorderThickness="0,0,1.5,0">
 
                 <Border.BorderBrush>
