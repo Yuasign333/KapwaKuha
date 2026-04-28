@@ -4,96 +4,31 @@
         Title="KapwaKuha — Beneficiary Login"
         Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
-        WindowState="Maximized" 
+        WindowState="Maximized"
         FontFamily="Segoe UI">
-
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-
-        <Style x:Key="KapwaBtn" TargetType="Button">
-            <Setter Property="Background" Value="#00A8E8"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Height" Value="45"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="22">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#008CBA"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="OutlineBtn" TargetType="Button">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#0A2540"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#F0F8FF"/>
-                                <Setter Property="BorderBrush" Value="#00A8E8"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="LinkBtn" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#00A8E8"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <TextBlock Text="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" TextDecorations="Underline"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-
+    <!-- NO Window.Resources -->
     <Grid>
-
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="1.2*"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Background="White">
-            <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.02" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+            <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.02"
+                   Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Height="2808" RenderTransformOrigin="0.5,0.5"/>
+            <Button Command="{Binding BackCommand}"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Style="{StaticResource LinkBtn}"
+                    Content="← Back" Margin="40,40,0,0" FontSize="14"/>
 
-
-            <Button Command="{Binding BackCommand}" HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Style="{StaticResource LinkBtn}" Content="← Back" Margin="40,40,0,0" FontSize="14"/>
-
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="400" Margin="20,0">
-
-                <TextBlock Text=" BENEFICIARY LOGIN" FontSize="36" FontWeight="Black" Foreground="#87CEEB" HorizontalAlignment="Center"/>
-                <TextBlock Text="Sign in to your KapwaKuha Beneficiary Portal." FontSize="14" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,8,0,40"/>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                        Width="400" Margin="20,0">
+                <TextBlock Text="BENEFICIARY LOGIN" FontSize="36" FontWeight="Black"
+                           Foreground="#87CEEB" HorizontalAlignment="Center"/>
+                <TextBlock Text="Sign in to your KapwaKuha Beneficiary Portal."
+                           FontSize="14" Foreground="#6B7280"
+                           HorizontalAlignment="Center" Margin="0,8,0,40"/>
 
                 <Border Background="#F4F6F8" CornerRadius="12" Height="50" Margin="0,0,0,16">
                     <Grid>
@@ -101,9 +36,34 @@
                             <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="👤" Foreground="#9CA3AF" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <TextBox Grid.Column="1" Text="{Binding CurrentUser.UserID, UpdateSourceTrigger=PropertyChanged}" 
-                                 BorderThickness="0" Background ="Transparent" VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
+                        <TextBlock Text="👤" Foreground="#9CA3AF" FontSize="16"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <Grid Grid.Column="1">
+                            <TextBox x:Name="UserEntry"
+                 Text="{Binding CurrentUser.UserID, UpdateSourceTrigger=PropertyChanged}"
+                   BorderThickness="0" Background="Transparent"
+                  VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"
+                  Panel.ZIndex="1"/>
+
+                            <TextBlock IsHitTestVisible="False"
+                 Text="Enter your username"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Left"
+                Padding="5,0,0,0"
+                Foreground="Gray"
+               FontSize="14">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=UserEntry}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -113,18 +73,25 @@
                             <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="🔒" Foreground="#9CA3AF" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <PasswordBox x:Name="PwBox" Grid.Column="1" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
+                        <TextBlock Text="🔒" Foreground="#9CA3AF" FontSize="16"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <PasswordBox x:Name="PwBox" Grid.Column="1"
+                                     BorderThickness="0" Background="Transparent"
+                                     VerticalContentAlignment="Center" FontSize="14" Padding="0,0,15,0"/>
                     </Grid>
                 </Border>
 
                 <Border Background="#FEE2E2" CornerRadius="8" Padding="12,10" Margin="0,0,0,12"
                         Visibility="{Binding ErrorVisible, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#DC2626" FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#DC2626"
+                               FontSize="12" TextWrapping="Wrap" HorizontalAlignment="Center"/>
                 </Border>
 
-                <Button Content="Login Now" Style="{StaticResource KapwaBtn}" Margin="0,10,0,30" Height="50"
-                        Command="{Binding LoginCommand}" CommandParameter="{Binding ElementName=PwBox}"/>
+                <Button Content="Login Now"
+                        Style="{StaticResource GradientButton}"
+                        Margin="0,10,0,30" Height="50"
+                        Command="{Binding LoginCommand}"
+                        CommandParameter="{Binding ElementName=PwBox}"/>
 
                 <Grid Margin="0,0,0,24">
                     <Grid.ColumnDefinitions>
@@ -133,7 +100,8 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Separator Grid.Column="0" Background="#E5E7EB" Margin="0,0,12,0"/>
-                    <TextBlock Grid.Column="1" Text="Account Actions" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Account Actions"
+                               FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center"/>
                     <Separator Grid.Column="2" Background="#E5E7EB" Margin="12,0,0,0"/>
                 </Grid>
 
@@ -143,15 +111,15 @@
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-
-                    <Button Grid.Column="0" Style="{StaticResource OutlineBtn}" Command="{Binding ForgotPasswordCommand}" Height="45">
+                    <Button Grid.Column="0" Style="{StaticResource OutlineBtn}"
+                            Command="{Binding ForgotPasswordCommand}" Height="45">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="🔑" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="Forgot Password" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Grid.Column="2" Style="{StaticResource OutlineBtn}" Command="{Binding SignUpCommand}" Height="45">
+                    <Button Grid.Column="2" Style="{StaticResource OutlineBtn}"
+                            Command="{Binding SignUpCommand}" Height="45">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="✨" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="Create Account" VerticalAlignment="Center"/>
@@ -159,11 +127,13 @@
                     </Button>
                 </Grid>
 
+                <TextBlock Text="Default: B001 / Ana1234"
+                           FontSize="11" Foreground="#9CA3AF"
+                           HorizontalAlignment="Center" Margin="0,24,0,0"/>
             </StackPanel>
         </Grid>
 
         <Border Grid.Column="1" ClipToBounds="True">
-
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#00A8E8" Offset="0"/>
@@ -171,35 +141,31 @@
                     <GradientStop Color="#0A2540" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
-
             <Grid>
-                <Ellipse Width="600" Height="600" Fill="#1AFFFFFF" Margin="-200,-200,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                <Ellipse Width="800" Height="800" Fill="#0DFFFFFF" Margin="0,0,-300,-300" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
-
-                <Border Width="420" Height="550" CornerRadius="24" Background="#1AFFFFFF" BorderBrush="#4DFFFFFF" BorderThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Ellipse Width="600" Height="600" Fill="#1AFFFFFF"
+                         Margin="-200,-200,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Ellipse Width="800" Height="800" Fill="#0DFFFFFF"
+                         Margin="0,0,-300,-300" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+                <Border Width="420" Height="550" CornerRadius="24"
+                        Background="#1AFFFFFF" BorderBrush="#4DFFFFFF" BorderThickness="1.5"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Border.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="30" Opacity="0.25" ShadowDepth="10"/>
                     </Border.Effect>
-
                     <Border CornerRadius="20" Margin="-84,-36,-32,0" Height="584" VerticalAlignment="Top">
                         <Border.Background>
                             <ImageBrush ImageSource="https://i.imgur.com/jBNgAku.png" Stretch="UniformToFill"/>
                         </Border.Background>
                     </Border>
-
-
                 </Border>
-
-                <Border Width="60" Height="60" Background="White" CornerRadius="30" 
+                <Border Width="60" Height="60" Background="White" CornerRadius="30"
                         HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-450,200,0,0">
                     <Border.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="20" Opacity="0.15" ShadowDepth="5"/>
                     </Border.Effect>
                     <TextBlock Text="💙" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-
             </Grid>
         </Border>
-
     </Grid>
 </Window>
