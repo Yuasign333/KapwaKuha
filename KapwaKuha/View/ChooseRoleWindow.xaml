@@ -28,8 +28,13 @@
                     <Image Source="https://i.imgur.com/FHFRQxB.png"
                            Width="60" Height="60"
                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <TextBlock Text="KapwaKuha" Foreground="White"
+                    <TextBlock Text="Kapwa" Foreground="White"
                                FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                    <TextBlock Text="Kuha" Foreground="White"
+           FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+
+
                 </StackPanel>
                 <TextBlock Text="One-stop platform to manage your donations and assistance requests."
                            Foreground="White" FontSize="36" FontWeight="SemiBold"
@@ -60,10 +65,7 @@
                            Width="100" Height="100" Stretch="Uniform"
                            VerticalAlignment="Top" Margin="-25,5,10,0"/>
                     <TextBlock Grid.Column="1" FontSize="32" FontWeight="Bold"
-                               Foreground="#0A2540" VerticalAlignment="Center" Margin="-30,0,0,-5">
-                        <Run Text="Welcome to Kapwa"/>
-                        <Run Foreground="#FF00A8E8" Text="Kuha"/>
-                    </TextBlock>
+                               Foreground="#0A2540" VerticalAlignment="Center" Margin="-30,0,0,-5"><Run Text="Welcome to Kapwa"/><Run Foreground="#FF00A8E8" Text="Kuha"/></TextBlock>
                 </Grid>
 
                 <TextBlock Text="Let's personalize your KapwaKuha experience."
