@@ -144,7 +144,7 @@
                     </Button>
                 </Grid>
 
-                <TextBlock Text="Default: B001 / Ana1234"
+                <TextBlock Text="Default: anareyes / bene123"
                            FontSize="11" Foreground="#9CA3AF"
                            HorizontalAlignment="Center" Margin="0,24,0,0"/>
             </StackPanel>

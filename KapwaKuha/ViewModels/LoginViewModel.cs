@@ -36,7 +36,7 @@ namespace KapwaKuha.ViewModels
         public string RoleLabel => CurrentUser.Role == "Donor"
             ? "Donor Login" : "Beneficiary Login";
         public string RoleHint => CurrentUser.Role == "Donor"
-            ? "Username  (e.g. juandc)" : "User ID  (e.g. B001)";
+            ? "Username  (e.g. juandc)" : "Username  (e.g. anareyes)";
 
         public LoginViewModel(string role)
         {

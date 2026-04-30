@@ -1,7 +1,4 @@
-﻿// FILE: ItemModel.cs 
-// DB Table: Items
-// ERD: Strong Entity — provider asset (parallel to CarModel)
-// Status lifecycle: "Available" → "Claimed" | "Reserved"
+﻿// FILE: Models/ItemModel.cs
 using System;
 using KapwaKuha.ViewModels;
 
@@ -28,26 +25,37 @@ namespace KapwaKuha.Models
         }
 
         public DateTime Date_Found { get; set; } = DateTime.Now;
-
         public string Donor_ID { get; set; } = string.Empty;
         public string Donor_Name { get; set; } = string.Empty;
         public string Category_ID { get; set; } = string.Empty;
         public string Category_Name { get; set; } = string.Empty;
-
-        // Post type — "DirectTarget" or "GeneralPost"
         public string PostType { get; set; } = "GeneralPost";
-
-        // For Direct Target — target beneficiary
         public string TargetBeneficiary_ID { get; set; } = string.Empty;
+        public string Item_Description { get; set; } = string.Empty;
 
-        // Computed
+        private string _imagePath = string.Empty;
+        public string Item_ImagePath
+        {
+            get => _imagePath;
+            set
+            {
+                _imagePath = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasItemImage));
+            }
+        }
+
+        // Checks the file actually exists so the Image control doesn't crash on a stale path
+        public bool HasItemImage =>
+            !string.IsNullOrEmpty(Item_ImagePath) &&
+            System.IO.File.Exists(Item_ImagePath);
+
         public int StorageDays => (DateTime.Now - Date_Found).Days;
         public string StorageDaysDisplay =>
             StorageDays == 0 ? "Posted today" :
             StorageDays == 1 ? "1 day posted" :
             $"{StorageDays} days posted";
 
-        // Status badge colors per doc Section 9.3
         public string StatusBadgeBackground => Item_Status switch
         {
             "Available" => "#EBF7FB",
@@ -62,8 +70,6 @@ namespace KapwaKuha.Models
             "Reserved" => "#B8860B",
             _ => "#9E9E9E"
         };
-
-        // Legacy single hex color for simple bindings
         public string StatusColor => Item_Status switch
         {
             "Available" => "#00B4D8",

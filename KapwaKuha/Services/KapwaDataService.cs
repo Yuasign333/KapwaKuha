@@ -76,11 +76,11 @@ namespace KapwaKuha.Services
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
                     SELECT b.Beneficiary_ID,
-                           b.Beneficiary_FName + ' ' + b.Beneficiary_LName AS FullName,
-                           u.UserID AS Username
+                           b.Beneficiary_FullName AS FullName,
+                           b.Beneficiary_Username AS Username
                     FROM Beneficiaries b
                     INNER JOIN Users u ON u.UserID = b.Beneficiary_ID
-                    WHERE u.UserID = @uname AND u.Password = @pw", conn);
+                    WHERE b.Beneficiary_Username = @uname AND u.Password = @pw", conn);
                 cmd.Parameters.AddWithValue("@uname", username);
                 cmd.Parameters.AddWithValue("@pw", password);
                 using var r = await cmd.ExecuteReaderAsync();
@@ -146,7 +146,7 @@ namespace KapwaKuha.Services
         }
 
         public static async Task RegisterBeneficiary(BeneficiaryModel bene, string password,
-            string securityQuestion, string securityAnswer)
+     string securityQuestion, string securityAnswer)
         {
             try
             {
@@ -155,8 +155,13 @@ namespace KapwaKuha.Services
                 using var cmd = new SqlCommand("sp_RegisterBeneficiary", conn);
                 cmd.CommandType = System.Data.CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@BeneficiaryId", bene.Beneficiary_ID);
-                cmd.Parameters.AddWithValue("@FName", bene.Beneficiary_FName);
-                cmd.Parameters.AddWithValue("@LName", bene.Beneficiary_LName);
+
+                // DB has a single Beneficiary_FullName column — combine FName+LName if needed
+                var fullName = string.IsNullOrWhiteSpace(bene.Beneficiary_FullName)
+                    ? $"{bene.Beneficiary_FName} {bene.Beneficiary_LName}".Trim()
+                    : bene.Beneficiary_FullName;
+                cmd.Parameters.AddWithValue("@FullName", fullName);
+                cmd.Parameters.AddWithValue("@Username", bene.Beneficiary_Username);
                 cmd.Parameters.AddWithValue("@Sex", bene.Beneficiary_Sex);
                 cmd.Parameters.AddWithValue("@Contact", bene.Beneficiary_Contact);
                 cmd.Parameters.AddWithValue("@OrgId", bene.Organization_ID);
@@ -231,6 +236,8 @@ namespace KapwaKuha.Services
                        i.Date_Found, i.Donor_ID, i.Category_ID,
                        ISNULL(i.PostType,'GeneralPost') AS PostType,
                        ISNULL(i.TargetBeneficiary_ID,'') AS TargetBeneficiary_ID,
+                       ISNULL(i.Item_Description,'') AS Item_Description,
+                       ISNULL(i.Item_ImagePath,'') AS Item_ImagePath,
                        d.Donor_FullName AS Donor_Name,
                        c.Category_Name
                 FROM Items i
@@ -287,8 +294,9 @@ namespace KapwaKuha.Services
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
             INSERT INTO Items(Item_ID, Item_Name, Item_Condition, Item_Status,
-                             Date_Found, Donor_ID, Category_ID, PostType, TargetBeneficiary_ID)
-            VALUES(@id, @name, @cond, @status, @date, @did, @catid, @ptype, @tbid)", conn);
+                             Date_Found, Donor_ID, Category_ID, PostType, TargetBeneficiary_ID,
+                             Item_Description, Item_ImagePath)
+            VALUES(@id, @name, @cond, @status, @date, @did, @catid, @ptype, @tbid, @desc, @img)", conn);
                 cmd.Parameters.AddWithValue("@id", item.Item_ID);
                 cmd.Parameters.AddWithValue("@name", item.Item_Name);
                 cmd.Parameters.AddWithValue("@cond", item.Item_Condition);
@@ -300,6 +308,8 @@ namespace KapwaKuha.Services
                 cmd.Parameters.AddWithValue("@tbid",
                     string.IsNullOrEmpty(item.TargetBeneficiary_ID)
                         ? "" : item.TargetBeneficiary_ID);
+                cmd.Parameters.AddWithValue("@desc", item.Item_Description ?? "");
+                cmd.Parameters.AddWithValue("@img", item.Item_ImagePath ?? "");
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex) { MessageBox.Show("AddItem failed: " + ex.Message); throw; }
@@ -389,25 +399,29 @@ namespace KapwaKuha.Services
             Category_ID = r["Category_ID"].ToString() ?? "",
             Category_Name = r["Category_Name"].ToString() ?? "",
             PostType = r["PostType"].ToString() ?? "GeneralPost",
-            TargetBeneficiary_ID = r["TargetBeneficiary_ID"].ToString() ?? ""
+            TargetBeneficiary_ID = r["TargetBeneficiary_ID"].ToString() ?? "",
+            Item_Description = r["Item_Description"].ToString() ?? "",
+            Item_ImagePath = r["Item_ImagePath"].ToString() ?? ""
         };
 
         // ══════════════════════════════════════════════════════════════════════
         // CLAIMS  (Weak Entity — parallel to Rentals)
         // ══════════════════════════════════════════════════════════════════════
 
-        public static async Task<List<ClaimModel>> GetAllClaims()
+        
+       public static async Task<List<ClaimModel>> GetAllClaims()
         {
             var list = new List<ClaimModel>();
             const string sql = @"
-                SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
-                       cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
-                       ISNULL(cl.Handoff_Type,'Pickup') AS Handoff_Type,
-                       i.Item_Name,
-                       b.Beneficiary_FName + ' ' + b.Beneficiary_LName AS Beneficiary_Name
-                FROM Claims cl
-                LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
-                LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID";
+        SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
+               cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
+               ISNULL(cl.Handoff_Type,'Pickup') AS Handoff_Type,
+               i.Item_Name,
+               ISNULL(i.Item_ImagePath,'') AS Item_ImagePath,
+               b.Beneficiary_FullName AS Beneficiary_Name
+        FROM Claims cl
+        LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
+        LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID";
             try
             {
                 using var conn = new SqlConnection(_conn);
@@ -463,6 +477,7 @@ namespace KapwaKuha.Services
             Claim_ID = r["Claim_ID"].ToString() ?? "",
             Item_ID = r["Item_ID"].ToString() ?? "",
             Item_Name = r["Item_Name"].ToString() ?? "",
+            Item_ImagePath = r["Item_ImagePath"].ToString() ?? "",
             Beneficiary_ID = r["Beneficiary_ID"].ToString() ?? "",
             Beneficiary_Name = r["Beneficiary_Name"].ToString() ?? "",
             Claim_Date = Convert.ToDateTime(r["Claim_Date"]),
@@ -479,12 +494,14 @@ namespace KapwaKuha.Services
         {
             var list = new List<BeneficiaryModel>();
             const string sql = @"
-                SELECT b.Beneficiary_ID, b.Beneficiary_FName, b.Beneficiary_LName,
-                       b.Beneficiary_Sex, b.Beneficiary_Contact, b.Beneficiaries_Status,
-                       b.Organization_ID, o.Organization_Name
-                FROM Beneficiaries b
-                LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
-                WHERE b.Beneficiaries_Status='Active'";
+        SELECT b.Beneficiary_ID, b.Beneficiary_FullName,
+               b.Beneficiary_Username,
+               b.Beneficiary_Sex, b.Beneficiary_Contact,
+               b.Beneficiaries_Status, b.Organization_ID,
+               o.Organization_Name
+        FROM Beneficiaries b
+        LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
+        WHERE b.Beneficiaries_Status = 'Active'";
             try
             {
                 using var conn = new SqlConnection(_conn);
@@ -495,8 +512,8 @@ namespace KapwaKuha.Services
                     list.Add(new BeneficiaryModel
                     {
                         Beneficiary_ID = r["Beneficiary_ID"].ToString() ?? "",
-                        Beneficiary_FName = r["Beneficiary_FName"].ToString() ?? "",
-                        Beneficiary_LName = r["Beneficiary_LName"].ToString() ?? "",
+                        Beneficiary_FullName = r["Beneficiary_FullName"].ToString() ?? "",
+                        Beneficiary_Username = r["Beneficiary_Username"].ToString() ?? "",
                         Beneficiary_Sex = r["Beneficiary_Sex"].ToString() ?? "",
                         Beneficiary_Contact = r["Beneficiary_Contact"].ToString() ?? "",
                         Beneficiaries_Status = r["Beneficiaries_Status"].ToString() ?? "Active",
@@ -504,9 +521,12 @@ namespace KapwaKuha.Services
                         Organization_Name = r["Organization_Name"].ToString() ?? ""
                     });
             }
-            catch (Exception ex) { MessageBox.Show("GetActiveBeneficiaries failed: " + ex.Message); }
+            catch (Exception ex) { MessageBox.Show("GetActiveBeneficiariesFull failed: " + ex.Message); }
             return list;
         }
+        /// <summary>Returns ALL active beneficiaries for donor chat search.</summary>
+        public static Task<List<BeneficiaryModel>> GetAllBeneficiariesForChat()
+            => GetActiveBeneficiariesFull();
 
         // Legacy tuple version used by ClaimProcessViewModel
         public static async Task<List<(string Id, string DisplayName)>> GetActiveBeneficiaries()

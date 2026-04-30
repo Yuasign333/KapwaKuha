@@ -15,14 +15,14 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.07" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.07" Width="1980"
+               HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808"/>
 
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="56"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            
 
             <!-- Top bar -->
             <Border Grid.Row="0" Background="#0077B6">
@@ -43,16 +43,14 @@
                 </Grid>
             </Border>
 
-            <!-- Chat list -->
+            <!-- Chat list panel -->
             <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5">
-
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="#CCFFFFFF" Offset="0"/>
                         <GradientStop Color="#66FFFFFF" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
-
                 <Border.BorderBrush>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="White" Offset="0"/>
@@ -60,20 +58,37 @@
                     </LinearGradientBrush>
                 </Border.BorderBrush>
 
-               
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
+                    <!-- Header + search -->
                     <StackPanel Grid.Row="0" Margin="20,16,20,10">
                         <TextBlock Text="Conversations" FontSize="15" FontWeight="Bold"
                                    Foreground="#03045E"/>
-                        <TextBlock Text="Tap a contact to open the conversation."
-                                   FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0"/>
+                        <TextBlock Text="Search beneficiaries by name or username, then click to chat."
+                                   FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,10"/>
+                        <!-- Search bar -->
+                        <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+                                Background="White" Padding="10,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center"
+                                           FontSize="13" Margin="0,0,6,0" Foreground="#5E7A8A"/>
+                                <TextBox Grid.Column="1"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="36" Background="Transparent" BorderThickness="0"
+                                         Foreground="#0A2540" FontSize="13" VerticalContentAlignment="Center"/>
+                            </Grid>
+                        </Border>
                     </StackPanel>
 
+                    <!-- Contact list -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding ChatUsers}">
                             <ItemsControl.ItemTemplate>
@@ -101,9 +116,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <!-- Avatar -->
-                                            <Border Grid.Column="0" Width="46" Height="46"
-                                                    CornerRadius="23">
+                                            <!-- Avatar circle -->
+                                            <Border Grid.Column="0" Width="46" Height="46" CornerRadius="23">
                                                 <Border.Background>
                                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                                         <GradientStop Color="#00B4D8" Offset="0"/>
@@ -114,15 +128,18 @@
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"/>
                                             </Border>
-                                            <!-- Name + last message -->
+                                            <!-- Name + username/org + last message -->
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding DisplayName}"
                                                            FontSize="13" FontWeight="SemiBold"
                                                            Foreground="#03045E"/>
+                                                <TextBlock Text="{Binding SubText}"
+                                                           FontSize="10" Foreground="#0077B6"
+                                                           Margin="0,1,0,2"/>
                                                 <TextBlock Text="{Binding LastMessage}"
                                                            FontSize="11" Foreground="#5E7A8A"
                                                            TextTrimming="CharacterEllipsis"
-                                                           MaxWidth="280"/>
+                                                           MaxWidth="300"/>
                                             </StackPanel>
                                             <!-- Unread badge -->
                                             <Border Grid.Column="3" Width="22" Height="22"

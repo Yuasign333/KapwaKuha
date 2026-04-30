@@ -22,6 +22,9 @@ namespace KapwaKuha.ViewModels
         private string _selectedCondition = "Good";
         private string _postType = "GeneralPost";
         private string _selectedBeneficiaryId = string.Empty;
+        private BeneficiaryRow? _selectedBeneficiary;
+        private string _description = string.Empty;
+        private string _imagePath = string.Empty;
         private bool _isBusy;
         private string _errorMessage = string.Empty;
         private bool _errorVisible;
@@ -69,6 +72,31 @@ namespace KapwaKuha.ViewModels
             set { _selectedBeneficiaryId = value; OnPropertyChanged(); }
         }
 
+        public BeneficiaryRow? SelectedBeneficiary
+        {
+            get => _selectedBeneficiary;
+            set
+            {
+                _selectedBeneficiary = value;
+                OnPropertyChanged();
+                SelectedBeneficiaryId = value?.Id ?? string.Empty;
+            }
+        }
+
+        public string Description
+        {
+            get => _description;
+            set { _description = value; OnPropertyChanged(); }
+        }
+
+        public string ImagePath
+        {
+            get => _imagePath;
+            set { _imagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasImage)); }
+        }
+
+        public bool HasImage => !string.IsNullOrEmpty(_imagePath);
+
         public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
         public string ErrorMessage { get => _errorMessage; set { _errorMessage = value; OnPropertyChanged(); } }
         public bool ErrorVisible { get => _errorVisible; set { _errorVisible = value; OnPropertyChanged(); } }
@@ -83,6 +111,7 @@ namespace KapwaKuha.ViewModels
 
         public ICommand BackCommand { get; }
         public ICommand SaveCommand { get; }
+        public ICommand BrowseImageCommand { get; }
         // ── NEW: explicit mode-switch commands for XAML button bindings ────────
         public ICommand SetGeneralPostCommand { get; }
         public ICommand SetDirectTargetCommand { get; }
@@ -98,6 +127,17 @@ namespace KapwaKuha.ViewModels
             SetGeneralPostCommand = new RelayCommand(_ => PostType = "GeneralPost");
             SetDirectTargetCommand = new RelayCommand(_ => PostType = "DirectTarget");
 
+            BrowseImageCommand = new RelayCommand(_ =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
+                    Title = "Select Item Image"
+                };
+                if (dlg.ShowDialog() == true)
+                    ImagePath = dlg.FileName;
+            });
+
             SaveCommand = new AsyncRelayCommand(async _ =>
             {
                 ErrorVisible = false;
@@ -107,7 +147,9 @@ namespace KapwaKuha.ViewModels
                 if (string.IsNullOrWhiteSpace(SelectedCategory))
                 { ErrorMessage = "Please select a category."; ErrorVisible = true; return; }
                 if (IsDirectTarget && string.IsNullOrWhiteSpace(SelectedBeneficiaryId))
-                { ErrorMessage = "Select a target beneficiary for Direct Target post."; ErrorVisible = true; return; }
+                { ErrorMessage = "Please select a target beneficiary for Direct Target post."; ErrorVisible = true; return; }
+                if (string.IsNullOrWhiteSpace(ImagePath))
+                { ErrorMessage = "Please attach an image of the item."; ErrorVisible = true; return; }
 
                 var confirm = MessageBox.Show(
                     $"Post item?\n\nName: {ItemName}\nCategory: {SelectedCategory}\n" +
@@ -125,6 +167,8 @@ namespace KapwaKuha.ViewModels
                     {
                         Item_ID = itemId,
                         Item_Name = ItemName.Trim(),
+                        Item_Description = Description.Trim(),
+                        Item_ImagePath = ImagePath,
                         Item_Condition = SelectedCondition,
                         Item_Status = "Available",
                         Date_Found = DateTime.Now,

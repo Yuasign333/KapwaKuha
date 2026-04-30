@@ -65,9 +65,9 @@
 
                         <StackPanel Orientation="Horizontal">
                             <Grid Width="38" Height="38" Margin="0,0,4,0">
-                                <Image Source="https://i.imgur.com/FHFRQxB.png" 
-                           Width="60" Height="60" 
-                           HorizontalAlignment="Center" 
+                                <Image Source="https://i.imgur.com/FHFRQxB.png"
+                           Width="60" Height="60"
+                           HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
                             </Grid>
                             <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center">
@@ -199,7 +199,7 @@
                         <TextBlock Text="Post items, track impact, or respond to community needs."
                                    FontSize="12" Foreground="#5E7A8A" Margin="0,0,0,24"/>
 
-                        <UniformGrid Rows="2" Columns="2" HorizontalAlignment="Stretch">
+                        <UniformGrid Rows="2" Columns="3" HorizontalAlignment="Stretch">
                             <Button Command="{Binding PostItemCommand}" Style="{StaticResource CardHoverBtn}" Margin="0,0,14,14">
                                 <Border Style="{StaticResource GlassCard}">
                                     <StackPanel>
@@ -209,12 +209,21 @@
                                     </StackPanel>
                                 </Border>
                             </Button>
-                            <Button Command="{Binding MyImpactCommand}" Style="{StaticResource CardHoverBtn}" Margin="0,0,0,14">
+                            <Button Command="{Binding MyImpactCommand}" Style="{StaticResource CardHoverBtn}" Margin="0,0,14,14">
                                 <Border Style="{StaticResource GlassCard}">
                                     <StackPanel>
                                         <TextBlock Text="💙" FontSize="30" Margin="0,0,0,10"/>
                                         <TextBlock Text="My Impact Dashboard" FontSize="15" FontWeight="Bold" Foreground="#03045E"/>
                                         <TextBlock Text="See your community contribution" FontSize="11" Foreground="#5E7A8A" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                            <Button Command="{Binding ChatCommand}" Style="{StaticResource CardHoverBtn}" Margin="0,0,0,14">
+                                <Border Style="{StaticResource GlassCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="💬" FontSize="30" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Messages" FontSize="15" FontWeight="Bold" Foreground="#03045E"/>
+                                        <TextBlock Text="Chat with beneficiaries" FontSize="11" Foreground="#5E7A8A" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Button>
@@ -227,7 +236,7 @@
                                     </StackPanel>
                                 </Border>
                             </Button>
-                            <Button Command="{Binding ActiveListingsCommand}" Style="{StaticResource CardHoverBtn}">
+                            <Button Command="{Binding ActiveListingsCommand}" Style="{StaticResource CardHoverBtn}" Margin="0,0,14,0">
                                 <Border Style="{StaticResource GlassCard}">
                                     <StackPanel>
                                         <TextBlock Text="📋" FontSize="30" Margin="0,0,0,10"/>

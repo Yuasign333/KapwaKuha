@@ -104,8 +104,7 @@
 
                 <!-- Item cards -->
                 <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled"
-                              Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+                              HorizontalScrollBarVisibility="Disabled">
                     <ScrollViewer.Style>
                         <Style TargetType="ScrollViewer">
                             <Setter Property="Visibility" Value="Visible"/>
@@ -124,7 +123,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="210" CornerRadius="16" Margin="0,0,14,14"
+                                <Border Width="220" CornerRadius="16" Margin="0,0,14,14"
                                         Background="White" Cursor="Hand">
                                     <Border.Effect>
                                         <DropShadowEffect Color="#00B4D8" BlurRadius="18"
@@ -137,17 +136,47 @@
                                                       CommandParameter="{Binding}"/>
                                     </Border.InputBindings>
                                     <StackPanel>
-                                        <!-- Image area -->
-                                        <Border Height="110" CornerRadius="16,16,0,0" ClipToBounds="True">
-                                            <Border.Background>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                    <GradientStop Color="#EBF7FB" Offset="0"/>
-                                                    <GradientStop Color="#CAF0F8" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Border.Background>
-                                            <TextBlock Text="📦" FontSize="44"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"/>
+                                        <!-- Item image: real photo if available, else placeholder -->
+                                        <Border Height="130" CornerRadius="16,16,0,0" ClipToBounds="True">
+                                            <Grid>
+                                                <!-- Placeholder gradient shown when no image -->
+                                                <Border>
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                            <GradientStop Color="#EBF7FB" Offset="0"/>
+                                                            <GradientStop Color="#CAF0F8" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                </Border>
+                                                <TextBlock Text="📦" FontSize="44"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasItemImage}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <!-- Actual image -->
+                                                <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasItemImage}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                            </Grid>
                                         </Border>
                                         <!-- Info -->
                                         <StackPanel Margin="12,10,12,12">
@@ -155,7 +184,24 @@
                                                        FontSize="13" FontWeight="Bold"
                                                        Foreground="#03045E" TextWrapping="Wrap"/>
                                             <TextBlock Text="{Binding Donor_Name, StringFormat='by {0}'}"
-                                                       FontSize="10" Foreground="#5E7A8A" Margin="0,2,0,6"/>
+                                                       FontSize="10" Foreground="#5E7A8A" Margin="0,2,0,4"/>
+                                            <!-- Description caption -->
+                                            <TextBlock Text="{Binding Item_Description}"
+                                                       FontSize="11" Foreground="#445566"
+                                                       TextWrapping="Wrap" MaxHeight="36"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="0,0,0,6">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Item_Description}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                             <!-- Badges row -->
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                                 <Border CornerRadius="6" Padding="6,3" Margin="0,0,5,0"

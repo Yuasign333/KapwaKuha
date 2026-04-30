@@ -1,6 +1,4 @@
-﻿// FILE: ClaimModel.cs  
-// DB Table: Claims — WEAK ENTITY
-// Cannot exist without Item_ID (NOT NULL) and Beneficiary_ID (NOT NULL)
+﻿// FILE: Models/ClaimModel.cs
 using System;
 using KapwaKuha.ViewModels;
 
@@ -9,9 +7,10 @@ namespace KapwaKuha.Models
     public class ClaimModel : ObservableObject
     {
         public string Claim_ID { get; set; } = string.Empty;
-        public string Item_ID { get; set; } = string.Empty;       // NOT NULL — identifying FK
+        public string Item_ID { get; set; } = string.Empty;
         public string Item_Name { get; set; } = string.Empty;
-        public string Beneficiary_ID { get; set; } = string.Empty; // NOT NULL — identifying FK
+        public string Item_ImagePath { get; set; } = string.Empty;   // NEW
+        public string Beneficiary_ID { get; set; } = string.Empty;
         public string Beneficiary_Name { get; set; } = string.Empty;
         public DateTime Claim_Date { get; set; } = DateTime.Now;
 
@@ -33,7 +32,6 @@ namespace KapwaKuha.Models
 
         public string ClaimDateDisplay => Claim_Date.ToString("MMM dd, yyyy  HH:mm");
 
-        // Badge colors per doc Section 9.3
         public string StatusBadgeBackground => Claim_Status switch
         {
             "Pending" => "#F0EBFF",
