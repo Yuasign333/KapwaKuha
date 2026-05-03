@@ -1,6 +1,4 @@
-﻿// FILE: DonorDashboardViewModel.cs
-// Window: DonorDashboardWindow.xaml
-// Parallel to AdminDashboardViewModel in CarRentals
+﻿// FILE: ViewModels/DonorDashboardViewModel.cs
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -18,6 +16,7 @@ namespace KapwaKuha.ViewModels
             get => _isSidebarOpen;
             set { _isSidebarOpen = value; OnPropertyChanged(); }
         }
+
         public string WelcomeText { get; }
         public string UserLabel { get; }
 
@@ -26,8 +25,10 @@ namespace KapwaKuha.ViewModels
         public ICommand MyImpactCommand { get; }
         public ICommand HighPriorityNeedsCommand { get; }
         public ICommand ActiveListingsCommand { get; }
+        public ICommand ClaimTrackerCommand { get; }
         public ICommand ChatCommand { get; }
         public ICommand LogoutCommand { get; }
+        public ICommand MyAccountCommand { get; }
 
         public DonorDashboardViewModel(string donorId)
         {
@@ -49,6 +50,10 @@ namespace KapwaKuha.ViewModels
             ActiveListingsCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.ActiveListingsWindow(_donorId)));
 
+            // Donor sees their items' claims — pass "Donor" role
+            ClaimTrackerCommand = new RelayCommand(_ =>
+                NavigationService.Navigate(new View.DonorClaimTrackerWindow(_donorId)));
+
             ChatCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.ChatListWindow(_donorId, "Donor")));
 
@@ -62,7 +67,11 @@ namespace KapwaKuha.ViewModels
                     NavigationService.Navigate(new View.ChooseRoleWindow());
                 }
             });
+
+            MyAccountCommand = new RelayCommand(_ =>
+    NavigationService.Navigate(new View.DonorProfileWindow(_donorId)));
         }
+
         public class DonorDashboardDesignViewModel : ObservableObject
         {
             public string WelcomeText { get; } = "Welcome back, Juan Dela Cruz!";
@@ -73,6 +82,7 @@ namespace KapwaKuha.ViewModels
             public ICommand MyImpactCommand { get; } = new RelayCommand(_ => { });
             public ICommand HighPriorityNeedsCommand { get; } = new RelayCommand(_ => { });
             public ICommand ActiveListingsCommand { get; } = new RelayCommand(_ => { });
+            public ICommand ClaimTrackerCommand { get; } = new RelayCommand(_ => { });
             public ICommand ChatCommand { get; } = new RelayCommand(_ => { });
             public ICommand LogoutCommand { get; } = new RelayCommand(_ => { });
         }

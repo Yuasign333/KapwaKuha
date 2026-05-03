@@ -1,7 +1,9 @@
 ﻿// FILE: ChatListViewModel.cs
 // Window: ChatListWindow.xaml
-// Parallel to AdminChatListViewModel in CarRentals
+// Donor side: shows ALL registered beneficiaries with live search bar
+// Beneficiary side: shows donors they have chatted with
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -15,7 +17,22 @@ namespace KapwaKuha.ViewModels
         private readonly string _myId;
         private readonly string _role;
 
+        // Full unfiltered list for search
+        private System.Collections.Generic.List<ChatUserRow> _allUsers = new();
+
         public ObservableCollection<ChatUserRow> ChatUsers { get; } = new();
+
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                ApplySearch();
+            }
+        }
 
         public ICommand BackCommand { get; }
         public ICommand OpenChatCommand { get; }
@@ -45,23 +62,57 @@ namespace KapwaKuha.ViewModels
 
         private async void LoadChats()
         {
-            if (_role == "Beneficiary")
+            if (_role == "Donor")
             {
-                var donors = await KapwaDataService.GetChatDonors();
+                // Donors see ALL registered beneficiaries (they initiate)
+                var benes = await KapwaDataService.GetAllBeneficiariesForChat();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ChatUsers.Clear();
+                    _allUsers.Clear();
+                    foreach (var b in benes)
+                        _allUsers.Add(new ChatUserRow
+                        {
+                            UserId = b.Beneficiary_ID,
+                            DisplayName = b.Beneficiary_FullName,
+                            SubText = $"@{b.Beneficiary_Username}  ·  {b.Organization_Name}",
+                            LastMessage = "",
+                            UnreadCount = 0
+                        });
+                    ApplySearch();
+                });
+            }
+            else
+            {
+                // Beneficiaries see only donors they have active chats with
+                var donors = await KapwaDataService.GetChatDonorsForBeneficiary(_myId);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _allUsers.Clear();
                     foreach (var (userId, fullName, lastMsg, unread) in donors)
-                        ChatUsers.Add(new ChatUserRow
+                        _allUsers.Add(new ChatUserRow
                         {
                             UserId = userId,
                             DisplayName = fullName,
+                            SubText = "Donor",
                             LastMessage = lastMsg,
                             UnreadCount = unread
                         });
+                    ApplySearch();
                 });
             }
-            // Donor view: list of beneficiaries they've chatted with (extend as needed)
+        }
+
+        private void ApplySearch()
+        {
+            ChatUsers.Clear();
+            var q = _searchText.Trim().ToLower();
+            foreach (var row in _allUsers)
+            {
+                if (string.IsNullOrEmpty(q) ||
+                    row.DisplayName.ToLower().Contains(q) ||
+                    row.SubText.ToLower().Contains(q))
+                    ChatUsers.Add(row);
+            }
         }
     }
 
@@ -69,6 +120,7 @@ namespace KapwaKuha.ViewModels
     {
         public string UserId { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
+        public string SubText { get; set; } = string.Empty;
         public string LastMessage { get; set; } = string.Empty;
 
         private int _unreadCount;
@@ -79,15 +131,10 @@ namespace KapwaKuha.ViewModels
             {
                 _unreadCount = value;
                 OnPropertyChanged();
-                // Recompute Visibility whenever count changes
                 OnPropertyChanged(nameof(HasUnread));
             }
         }
 
-        /// <summary>
-        /// Visibility-typed property for XAML badge binding.
-        /// Visible when UnreadCount > 0, Collapsed otherwise.
-        /// </summary>
         public Visibility HasUnread =>
             _unreadCount > 0 ? Visibility.Visible : Visibility.Collapsed;
     }

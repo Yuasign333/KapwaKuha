@@ -1,6 +1,4 @@
-﻿// FILE: ActiveListingsViewModel.cs
-// Window: ActiveListingsWindow.xaml
-// Donor's own posted items — parallel to FleetStatusViewModel
+﻿// FILE: ViewModels/ActiveListingsViewModel.cs
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -23,13 +21,23 @@ namespace KapwaKuha.ViewModels
         public ItemModel? SelectedItem
         {
             get => _selectedItem;
-            set { _selectedItem = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsItemSelected)); }
+            set
+            {
+                _selectedItem = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsItemSelected));
+                OnPropertyChanged(nameof(CanEditSelected));
+            }
         }
         public bool IsItemSelected => SelectedItem != null;
+
+        // Edit only allowed when item is still Available
+        public bool CanEditSelected => SelectedItem?.Item_Status == "Available";
 
         public ICommand BackCommand { get; }
         public ICommand RefreshCommand { get; }
         public ICommand DeleteItemCommand { get; }
+        public ICommand EditPostCommand { get; }
 
         public ActiveListingsViewModel(string donorId)
         {
@@ -46,20 +54,78 @@ namespace KapwaKuha.ViewModels
                 if (SelectedItem.Item_Status != "Available")
                 {
                     MessageBox.Show("Only Available items can be deleted.", "Cannot Delete",
-                    MessageBoxButton.OK, MessageBoxImage.Warning); return;
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
                 }
-
                 var r = MessageBox.Show($"Delete '{SelectedItem.Item_Name}'?", "Confirm Delete",
                     MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (r != MessageBoxResult.Yes) return;
-
                 try
                 {
                     IsBusy = true;
                     await KapwaDataService.DeleteItem(SelectedItem.Item_ID);
                     Items.Remove(SelectedItem);
                     SelectedItem = null;
-                    MessageBox.Show("Item deleted.", "Done", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Item deleted.", "Done",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch { }
+                finally { IsBusy = false; }
+            });
+
+            EditPostCommand = new AsyncRelayCommand(async _ =>
+            {
+                if (SelectedItem == null) return;
+                if (SelectedItem.Item_Status != "Available")
+                {
+                    MessageBox.Show("Only Available items can be edited.", "Cannot Edit",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Open edit dialog inline using simple input dialogs
+                string newName = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Edit item name:", "Edit Post", SelectedItem.Item_Name);
+                if (string.IsNullOrWhiteSpace(newName)) return;
+
+                string newDesc = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Edit description:", "Edit Post", SelectedItem.Item_Description);
+
+                string newCond = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Edit condition (New/Good/Fair/Poor):", "Edit Post", SelectedItem.Item_Condition);
+                if (newCond != "New" && newCond != "Good" && newCond != "Fair" && newCond != "Poor")
+                    newCond = SelectedItem.Item_Condition;
+
+                // Optionally browse for new image
+                string newImage = SelectedItem.Item_ImagePath;
+                var imgResult = MessageBox.Show("Do you want to change the photo?",
+                    "Change Photo", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (imgResult == MessageBoxResult.Yes)
+                {
+                    var dlg = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
+                        Title = "Select New Item Image"
+                    };
+                    if (dlg.ShowDialog() == true) newImage = dlg.FileName;
+                }
+
+                var confirm = MessageBox.Show(
+                    $"Save changes to \"{newName}\"?", "Confirm Edit",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (confirm != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    IsBusy = true;
+                    SelectedItem.Item_Name = newName;
+                    SelectedItem.Item_Description = newDesc;
+                    SelectedItem.Item_Condition = newCond;
+                    SelectedItem.Item_ImagePath = newImage;
+                    await KapwaDataService.UpdateItem(SelectedItem);
+                    MessageBox.Show("✅ Item updated successfully!", "Saved",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    await LoadItemsAsync();
                 }
                 catch { }
                 finally { IsBusy = false; }

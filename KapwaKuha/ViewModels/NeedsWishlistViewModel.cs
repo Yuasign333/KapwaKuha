@@ -1,6 +1,4 @@
-﻿// FILE: NeedsWishlistViewModel.cs
-// Window: NeedsWishlistWindow.xaml
-// Beneficiary/Organization posts new needs
+﻿// FILE: ViewModels/NeedsWishlistViewModel.cs
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -17,6 +15,7 @@ namespace KapwaKuha.ViewModels
         private string _title = string.Empty;
         private string _description = string.Empty;
         private string _urgency = "Medium";
+        private string _imagePath = string.Empty;
         private bool _isBusy;
         private string _errorMessage = string.Empty;
         private bool _errorVisible;
@@ -38,14 +37,18 @@ namespace KapwaKuha.ViewModels
             {
                 _urgency = value;
                 OnPropertyChanged();
-                // Notify all three bool properties so XAML triggers update
                 OnPropertyChanged(nameof(IsLow));
                 OnPropertyChanged(nameof(IsMedium));
                 OnPropertyChanged(nameof(IsHigh));
             }
         }
+        public string ImagePath
+        {
+            get => _imagePath;
+            set { _imagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasImage)); }
+        }
+        public bool HasImage => !string.IsNullOrEmpty(_imagePath);
 
-        // ── NEW: urgency bool properties for RadioButton / toggle bindings ─────
         public bool IsLow { get => _urgency == "Low"; set { if (value) Urgency = "Low"; } }
         public bool IsMedium { get => _urgency == "Medium"; set { if (value) Urgency = "Medium"; } }
         public bool IsHigh { get => _urgency == "High"; set { if (value) Urgency = "High"; } }
@@ -55,11 +58,10 @@ namespace KapwaKuha.ViewModels
         public bool ErrorVisible { get => _errorVisible; set { _errorVisible = value; OnPropertyChanged(); } }
 
         public ObservableCollection<NeedsPostModel> MyPosts { get; } = new();
-        public ObservableCollection<string> UrgencyOptions { get; } = new() { "Low", "Medium", "High" };
 
         public ICommand BackCommand { get; }
         public ICommand PostNeedCommand { get; }
-        // ── NEW: explicit urgency-setter commands for button-based UI ──────────
+        public ICommand BrowseImageCommand { get; }
         public ICommand SetLowCommand { get; }
         public ICommand SetMediumCommand { get; }
         public ICommand SetHighCommand { get; }
@@ -74,6 +76,16 @@ namespace KapwaKuha.ViewModels
             SetLowCommand = new RelayCommand(_ => Urgency = "Low");
             SetMediumCommand = new RelayCommand(_ => Urgency = "Medium");
             SetHighCommand = new RelayCommand(_ => Urgency = "High");
+
+            BrowseImageCommand = new RelayCommand(_ =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
+                    Title = "Select Need Photo"
+                };
+                if (dlg.ShowDialog() == true) ImagePath = dlg.FileName;
+            });
 
             PostNeedCommand = new AsyncRelayCommand(async _ =>
             {
@@ -90,17 +102,18 @@ namespace KapwaKuha.ViewModels
                     var post = new NeedsPostModel
                     {
                         NeedsPost_ID = postId,
-                        Org_ID = _beneficiaryId, // linked through beneficiary's org
+                        Org_ID = _beneficiaryId,
                         Title = Title.Trim(),
                         Description = Description.Trim(),
                         Urgency = Urgency,
+                        ImagePath = ImagePath,
                         Status = "Open"
                     };
                     await KapwaDataService.PostNeedsRequest(post);
-                    MyPosts.Insert(0, post); // Add to top of local list immediately
+                    MyPosts.Insert(0, post);
                     MessageBox.Show($"✅ Need posted! ID: {postId}",
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    Title = Description = string.Empty;
+                    Title = Description = ImagePath = string.Empty;
                     Urgency = "Medium";
                 }
                 catch { }

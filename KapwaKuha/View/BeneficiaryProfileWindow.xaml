@@ -1,0 +1,219 @@
+﻿<!-- FILE: View/BeneficiaryProfileWindow.xaml -->
+<Window x:Class="KapwaKuha.View.BeneficiaryProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="KapwaKuha — My Account"
+        Height="720" Width="1280"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <Grid>
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="White" Offset="0"/>
+                    <GradientStop Color="LightSkyBlue" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.06"
+               Width="1980" Height="2808"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="56"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Top bar — identical to Donor -->
+            <Border Grid.Row="0" Background="#0077B6">
+                <Grid Margin="20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Command="{Binding BackCommand}"
+                            Content="← Back" Background="Transparent" BorderThickness="0"
+                            Foreground="White" FontSize="13" Cursor="Hand"
+                            VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="KAPWAKUHA  /  My Account"
+                               FontSize="14" FontWeight="Bold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Outer card — identical dimensions to Donor -->
+            <Border Grid.Row="1" CornerRadius="16" Margin="30,20" Padding="30"
+                    BorderThickness="1.5">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                        <GradientStop Color="#88FFFFFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="White" Offset="0"/>
+                        <GradientStop Color="#33FFFF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Border.Effect>
+                    <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
+                </Border.Effect>
+
+                <!-- Same two-column Grid as Donor: 140 | 24 | * -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="24"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ───────────────────────────────────────────
+                         Left column: profile picture square + label
+                         Exactly mirrors DonorProfileWindow
+                         ─────────────────────────────────────────── -->
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+
+                        <!-- 110×110 clickable picture square — same as Donor -->
+                        <Border Width="110" Height="110" CornerRadius="10"
+                                ClipToBounds="True" Margin="0,0,0,10" Cursor="Hand">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick"
+                                              Command="{Binding BrowsePictureCommand}"/>
+                            </Border.InputBindings>
+                            <Grid>
+                                <!-- Always-visible light-blue placeholder background -->
+                                <Border Background="#EBF7FB"/>
+
+                                <!-- Default icon when no picture chosen -->
+                                <TextBlock Text="👤" FontSize="48"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <!-- Actual picture fills the square -->
+                                <Image Source="{Binding PicturePath}" Stretch="UniformToFill">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                            </Grid>
+                        </Border>
+
+                        <!-- "📷 Change" label under the picture — same as Donor -->
+                        <Button Command="{Binding BrowsePictureCommand}"
+                                BorderThickness="0" Background="Transparent"
+                                Cursor="Hand" HorizontalAlignment="Center">
+                            <TextBlock Text="📷 Change" FontSize="11" Foreground="#0077B6"/>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- ───────────────────────────────────────────
+                         Right column: form fields — matches Donor style
+                         Additional fields: Organisation + Beneficiary ID (read-only)
+                         ─────────────────────────────────────────── -->
+                    <StackPanel Grid.Column="2">
+
+                        <TextBlock Text="My Account" FontSize="18" FontWeight="Bold"
+                                   Foreground="#03045E" Margin="0,0,0,20"/>
+
+                        <!-- Full Name — read-only, same grey style as Donor -->
+                        <TextBlock Text="Full Name" FontSize="12" Foreground="#5E7A8A"
+                                   Margin="0,0,0,4"/>
+                        <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1"
+                                Padding="12,0" Background="White" Margin="0,0,0,14">
+                            <TextBox Text="{Binding FullName}" Height="38"
+                                     Background="Transparent" BorderThickness="0"
+                                     FontSize="13" IsReadOnly="True"
+                                     Foreground="#888888" VerticalContentAlignment="Center"/>
+                        </Border>
+
+                        <!-- Username — editable, same as Donor -->
+                        <TextBlock Text="Username" FontSize="12" Foreground="#5E7A8A"
+                                   Margin="0,0,0,4"/>
+                        <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1"
+                                Padding="12,0" Background="White" Margin="0,0,0,14">
+                            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="38" Background="Transparent" BorderThickness="0"
+                                     FontSize="13" Foreground="#03045E"
+                                     VerticalContentAlignment="Center"/>
+                        </Border>
+
+                        <!-- Organisation — read-only (beneficiary-specific) -->
+                        <TextBlock Text="Organisation" FontSize="12" Foreground="#5E7A8A"
+                                   Margin="0,0,0,4"/>
+                        <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1"
+                                Padding="12,0" Background="White" Margin="0,0,0,14">
+                            <TextBox Text="{Binding OrgName}" Height="38"
+                                     Background="Transparent" BorderThickness="0"
+                                     FontSize="13" IsReadOnly="True"
+                                     Foreground="#888888" VerticalContentAlignment="Center"/>
+                        </Border>
+
+                        <!-- Contact Number — read-only, same as Donor -->
+                        <TextBlock Text="Contact Number" FontSize="12" Foreground="#5E7A8A"
+                                   Margin="0,0,0,4"/>
+                        <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1"
+                                Padding="12,0" Background="White" Margin="0,0,0,20">
+                            <TextBox Text="{Binding Contact}" Height="38"
+                                     Background="Transparent" BorderThickness="0"
+                                     FontSize="13" IsReadOnly="True"
+                                     Foreground="#888888" VerticalContentAlignment="Center"/>
+                        </Border>
+
+                        <!-- Save button — identical style to Donor -->
+                        <Button Command="{Binding SaveCommand}" Height="44"
+                                FontSize="13" FontWeight="Bold" Foreground="White"
+                                BorderThickness="0" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="10"
+                                            Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.9"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Button.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#00B4D8" Offset="0"/>
+                                    <GradientStop Color="#0077B6" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Button.Background>
+                            <TextBlock Text="💾  Save Changes"/>
+                        </Button>
+
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

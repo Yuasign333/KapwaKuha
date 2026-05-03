@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿// FILE: View/PostItemWindow.xaml.cs
+using System.Windows;
 using KapwaKuha.Services;
 using KapwaKuha.ViewModels;
 
@@ -6,12 +7,11 @@ namespace KapwaKuha.View
 {
     public partial class PostItemWindow : Window
     {
-        public PostItemWindow(string donorId, string prefillTitle = "")
+        public PostItemWindow(string donorId, string prefillTitle = "",
+                              string lockedOrgId = "", bool lockDirect = false)
         {
             InitializeComponent();
-            var vm = new PostItemViewModel(donorId);
-            if (!string.IsNullOrEmpty(prefillTitle)) vm.ItemName = prefillTitle;
-            DataContext = vm;
+            DataContext = new PostItemViewModel(donorId, prefillTitle, lockedOrgId, lockDirect);
             Loaded += (s, e) => NavigationService.SetCurrent(this);
         }
     }

@@ -129,17 +129,23 @@
                                                            VerticalAlignment="Center"/>
                                             </Border>
                                             <!-- Name + username/org + last message -->
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <!-- Inside the contact list StackPanel, ensure VerticalAlignment is set: -->
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,2,0,2">
                                                 <TextBlock Text="{Binding DisplayName}"
-                                                           FontSize="13" FontWeight="SemiBold"
-                                                           Foreground="#03045E"/>
+                                             FontSize="13" FontWeight="SemiBold"
+                                            Foreground="#03045E"
+                                            TextWrapping="NoWrap"
+                                            TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding SubText}"
-                                                           FontSize="10" Foreground="#0077B6"
-                                                           Margin="0,1,0,2"/>
+                                             FontSize="10" Foreground="#0077B6"
+                                            Margin="0,1,0,2"
+                                            TextWrapping="NoWrap"
+                                            TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding LastMessage}"
-                                                           FontSize="11" Foreground="#5E7A8A"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           MaxWidth="300"/>
+                                             FontSize="11" Foreground="#5E7A8A"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap"
+                                            MaxWidth="260"/>
                                             </StackPanel>
                                             <!-- Unread badge -->
                                             <Border Grid.Column="3" Width="22" Height="22"

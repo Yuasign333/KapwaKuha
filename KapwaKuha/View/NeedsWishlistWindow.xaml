@@ -5,7 +5,6 @@
           Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI">
-
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Window.Resources>
@@ -94,7 +93,53 @@
                              MaxLength="1000"/>
                 </Border>
 
-                <TextBlock Text="Urgency Level" FontSize="13" FontWeight="SemiBold"
+                            <!-- Image Upload Section — insert AFTER Description Border, BEFORE Urgency TextBlock -->
+
+                            <TextBlock Text="Attach a Photo (optional)" FontSize="13" FontWeight="SemiBold"
+           Foreground="#0A2540" Margin="4,0,0,8"/>
+
+                            <Grid Margin="0,0,0,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Show selected path or placeholder -->
+                                <Border Grid.Column="0" CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+            Padding="12,0" Background="White">
+                                    <TextBox Text="{Binding ImagePath}" Height="40"
+                 Background="Transparent" BorderThickness="0"
+                 Foreground="#5E7A8A" FontSize="12"
+                 IsReadOnly="True" VerticalContentAlignment="Center"/>
+                                </Border>
+
+                                <!-- Browse button -->
+                                <Button Grid.Column="2" Command="{Binding BrowseImageCommand}"
+            Height="40" Padding="14,0" BorderThickness="0" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="10" Background="#0077B6">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Opacity" Value="0.85"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <TextBlock Text="📷 Browse" Foreground="White" FontSize="12" FontWeight="SemiBold"/>
+                                </Button>
+                            </Grid>
+
+                            <!-- Image preview (shown only when image is selected) -->
+                            <Border CornerRadius="10" ClipToBounds="True" Height="140" Margin="0,0,0,20"
+        Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}">
+                                <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                            </Border>
+
+                            <TextBlock Text="Urgency Level" FontSize="13" FontWeight="SemiBold"
                            Foreground="#0A2540" Margin="4,0,0,10"/>
                 <StackPanel Orientation="Horizontal" Margin="4,0,0,24">
                     <RadioButton Content="Low" GroupName="Urgency" IsChecked="{Binding IsLow}"

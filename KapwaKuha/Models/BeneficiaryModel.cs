@@ -21,6 +21,8 @@ namespace KapwaKuha.Models
         public string Beneficiary_Username { get; set; } = string.Empty;
         public string Beneficiary_Password { get; set; } = string.Empty;
 
+        public string ProfilePicturePath { get; set; } = string.Empty;
+
         private string _status = "Active";
         public string Beneficiaries_Status
         {

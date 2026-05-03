@@ -65,9 +65,9 @@
 
                         <StackPanel Orientation="Horizontal">
                             <Grid Width="38" Height="38" Margin="0,0,4,0">
-                                <Image Source="https://i.imgur.com/FHFRQxB.png"
-                           Width="60" Height="60"
-                           HorizontalAlignment="Center"
+                                <Image Source="https://i.imgur.com/FHFRQxB.png" 
+                           Width="60" Height="60" 
+                           HorizontalAlignment="Center" 
                            VerticalAlignment="Center"/>
                             </Grid>
                             <TextBlock FontSize="18" FontWeight="Bold" VerticalAlignment="Center">
@@ -185,9 +185,18 @@
                         <TextBlock Grid.Column="1" Text="{Binding WelcomeText}"
                                    Foreground="#03045E" FontSize="16" FontWeight="Bold"
                                    VerticalAlignment="Center" Margin="14,0,0,0"/>
-                        <Border Grid.Column="2" CornerRadius="16" Padding="12,6" VerticalAlignment="Center"
-                                Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1">
-                            <TextBlock Text="{Binding UserLabel}" FontSize="11" Foreground="#03045E" FontWeight="SemiBold"/>
+                        <!-- Replace the existing Border Grid.Column="2" in the top bar -->
+                        <Border Grid.Column="2" CornerRadius="16" Padding="10,6" VerticalAlignment="Center"
+        Background="#4DFFFFFF" BorderBrush="#B390E0EF" BorderThickness="1"
+        Cursor="Hand">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding MyAccountCommand}"/>
+                            </Border.InputBindings>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="" FontSize="14" Foreground="#0077B6" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding UserLabel}" FontSize="11"
+                   Foreground="#03045E" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Border>
                     </Grid>
                 </Border>
@@ -242,6 +251,15 @@
                                         <TextBlock Text="📋" FontSize="30" Margin="0,0,0,10"/>
                                         <TextBlock Text="Active Listings" FontSize="15" FontWeight="Bold" Foreground="#03045E"/>
                                         <TextBlock Text="View and manage your posted items" FontSize="11" Foreground="#5E7A8A" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                            <Button Command="{Binding ClaimTrackerCommand}" Style="{StaticResource CardHoverBtn}">
+                                <Border Style="{StaticResource GlassCard}">
+                                    <StackPanel>
+                                        <TextBlock Text="📦" FontSize="30" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Claim Tracker" FontSize="15" FontWeight="Bold" Foreground="#03045E"/>
+                                        <TextBlock Text="Track and advance item handoffs" FontSize="11" Foreground="#5E7A8A" TextWrapping="Wrap" Margin="0,4,0,0"/>
                                     </StackPanel>
                                 </Border>
                             </Button>

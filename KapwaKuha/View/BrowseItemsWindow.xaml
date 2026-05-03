@@ -79,6 +79,7 @@
                         <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1.5"
                                 Background="#F0F8FB">
                             <ComboBox SelectedValue="{Binding FilterCategory}"
+                                      SelectedValuePath="Content"
                                       Width="180" Height="34" Background="Transparent"
                                       BorderThickness="0" Padding="10,0" FontSize="12">
                                 <ComboBoxItem Content="All" IsSelected="True"/>
@@ -118,16 +119,16 @@
                     <ItemsControl ItemsSource="{Binding Items}" Margin="0,4,0,0">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel/>
+                                <StackPanel/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="220" CornerRadius="16" Margin="0,0,14,14"
+                                <Border CornerRadius="16" Margin="0,0,0,14"
                                         Background="White" Cursor="Hand">
                                     <Border.Effect>
                                         <DropShadowEffect Color="#00B4D8" BlurRadius="18"
-                                                          ShadowDepth="0" Opacity="0.14"/>
+                                                          ShadowDepth="0" Opacity="0.12"/>
                                     </Border.Effect>
                                     <Border.InputBindings>
                                         <MouseBinding MouseAction="LeftClick"
@@ -135,11 +136,17 @@
                                                           RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                       CommandParameter="{Binding}"/>
                                     </Border.InputBindings>
-                                    <StackPanel>
-                                        <!-- Item image: real photo if available, else placeholder -->
-                                        <Border Height="130" CornerRadius="16,16,0,0" ClipToBounds="True">
+                                    <!-- Horizontal marketplace card layout -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="220"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Left: Big image -->
+                                        <Border Grid.Column="0" Height="160" CornerRadius="16,0,0,16" ClipToBounds="True">
                                             <Grid>
-                                                <!-- Placeholder gradient shown when no image -->
                                                 <Border>
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -148,7 +155,7 @@
                                                         </LinearGradientBrush>
                                                     </Border.Background>
                                                 </Border>
-                                                <TextBlock Text="📦" FontSize="44"
+                                                <TextBlock Text="📦" FontSize="56"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center">
                                                     <TextBlock.Style>
@@ -162,7 +169,6 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                                <!-- Actual image -->
                                                 <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Image.Style>
@@ -176,21 +182,29 @@
                                                         </Style>
                                                     </Image.Style>
                                                 </Image>
+                                                <!-- Category badge overlay -->
+                                                <Border VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                                                        Margin="8,0,0,8" CornerRadius="6" Padding="7,3"
+                                                        Background="#CC0077B6">
+                                                    <TextBlock Text="{Binding Category_Name}"
+                                                               FontSize="10" Foreground="White" FontWeight="SemiBold"/>
+                                                </Border>
                                             </Grid>
                                         </Border>
-                                        <!-- Info -->
-                                        <StackPanel Margin="12,10,12,12">
+
+                                        <!-- Center: Info -->
+                                        <StackPanel Grid.Column="1" Margin="18,14,12,14" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Item_Name}"
-                                                       FontSize="13" FontWeight="Bold"
+                                                       FontSize="16" FontWeight="Bold"
                                                        Foreground="#03045E" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding Donor_Name, StringFormat='by {0}'}"
-                                                       FontSize="10" Foreground="#5E7A8A" Margin="0,2,0,4"/>
-                                            <!-- Description caption -->
+                                            <TextBlock Text="{Binding Donor_Name, StringFormat='Donated by {0}'}"
+                                                       FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,6"/>
+                                            <!-- Caption/Description -->
                                             <TextBlock Text="{Binding Item_Description}"
-                                                       FontSize="11" Foreground="#445566"
-                                                       TextWrapping="Wrap" MaxHeight="36"
+                                                       FontSize="12" Foreground="#445566"
+                                                       TextWrapping="Wrap" MaxHeight="44"
                                                        TextTrimming="CharacterEllipsis"
-                                                       Margin="0,0,0,6">
+                                                       Margin="0,0,0,10">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Visible"/>
@@ -202,31 +216,51 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
-                                            <!-- Badges row -->
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                                <Border CornerRadius="6" Padding="6,3" Margin="0,0,5,0"
-                                                        Background="#EBF7FB">
-                                                    <TextBlock Text="{Binding Category_Name}"
-                                                               FontSize="9" Foreground="#0077B6"/>
-                                                </Border>
-                                                <Border CornerRadius="6" Padding="6,3"
+                                            <!-- Condition + Days badges -->
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border CornerRadius="6" Padding="8,3" Margin="0,0,6,0"
                                                         Background="{Binding StatusBadgeBackground}">
                                                     <TextBlock Text="{Binding Item_Condition}"
-                                                               FontSize="9"
+                                                               FontSize="10" FontWeight="SemiBold"
                                                                Foreground="{Binding StatusBadgeColor}"/>
                                                 </Border>
+                                                <Border CornerRadius="6" Padding="8,3"
+                                                        Background="#F5F5F5">
+                                                    <TextBlock Text="{Binding StorageDaysDisplay}"
+                                                               FontSize="10" Foreground="#666"/>
+                                                </Border>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding StorageDaysDisplay}"
-                                                       FontSize="10" Foreground="#5E7A8A"/>
-                                            <!-- Claim button -->
-                                            <Border Background="#00B4D8" CornerRadius="8"
-                                                    Margin="0,8,0,0" Padding="0,7">
-                                                <TextBlock Text="Claim This Item →" FontSize="11"
-                                                           FontWeight="SemiBold" Foreground="White"
-                                                           HorizontalAlignment="Center"/>
-                                            </Border>
                                         </StackPanel>
-                                    </StackPanel>
+
+                                        <!-- Right: Claim button -->
+                                        <Border Grid.Column="2" VerticalAlignment="Center" Margin="0,0,18,0">
+                                            <Button Command="{Binding DataContext.SelectItemCommand,
+                                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Height="44" Width="130" BorderThickness="0" Cursor="Hand">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border CornerRadius="10" Background="{TemplateBinding Background}">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="0.85"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                                <Button.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#00B4D8" Offset="0"/>
+                                                        <GradientStop Color="#0077B6" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Button.Background>
+                                                <TextBlock Text="🤲 Claim →" FontSize="12"
+                                                           FontWeight="Bold" Foreground="White"/>
+                                            </Button>
+                                        </Border>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

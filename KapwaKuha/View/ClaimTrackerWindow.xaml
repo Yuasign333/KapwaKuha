@@ -2,9 +2,13 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="KapwaKuha — Claim Tracker"
-          Height="720" Width="1280"
+        Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
 
     <Grid>
         <Rectangle>
@@ -15,8 +19,9 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-
-        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.07" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.07"
+               Width="1980" Height="2808"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
         <Grid>
             <Grid.RowDefinitions>
@@ -49,26 +54,24 @@
                 </Grid>
             </Border>
 
-            <!-- Claims DataGrid -->
+            <!-- Main content -->
             <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5">
-
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="#CCFFFFFF" Offset="0"/>
                         <GradientStop Color="#66FFFFFF" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
-
                 <Border.BorderBrush>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="White" Offset="0"/>
                         <GradientStop Color="#33FFFF" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.BorderBrush>
-
                 <Border.Effect>
                     <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
                 </Border.Effect>
+
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -76,10 +79,19 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Margin="20,16,20,10">
-                        <TextBlock Text="📦 My Claim Tracker" FontSize="16" FontWeight="Bold"
-                                   Foreground="#03045E"/>
-                        <TextBlock Text="Items donated directly to you or claimed from marketplace"
-                                   FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0"/>
+                        <TextBlock Text="📦 My Claim Tracker" FontSize="16" FontWeight="Bold" Foreground="#03045E"/>
+                        <TextBlock FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Items donated directly to you or claimed from marketplace"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ShowDonorActions}" Value="True">
+                                            <Setter Property="Text" Value="Claims on items you have donated — advance status here"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </StackPanel>
 
                     <DataGrid Grid.Row="1" ItemsSource="{Binding Claims}"
@@ -89,8 +101,9 @@
                               BorderThickness="0" GridLinesVisibility="Horizontal"
                               HorizontalGridLinesBrush="#EBF7FB"
                               RowBackground="White" AlternatingRowBackground="#F7FBFD"
-                              ColumnHeaderHeight="38" RowHeight="48" FontSize="13"
+                              ColumnHeaderHeight="38" RowHeight="68" FontSize="13"
                               Margin="0,0,0,8">
+
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="#EBF7FB"/>
@@ -102,8 +115,51 @@
                         </DataGrid.ColumnHeaderStyle>
 
                         <DataGrid.Columns>
+
+                            <!-- Photo -->
+                            <DataGridTemplateColumn Header="Photo" Width="70">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Width="50" Height="50" CornerRadius="8"
+                                                ClipToBounds="True" Margin="6,4">
+                                            <Grid>
+                                                <Border Background="#EBF7FB"/>
+                                                <TextBlock Text="📦" FontSize="22"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasItemImage}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <Image Source="{Binding Item_ImagePath}"
+                                                       Stretch="UniformToFill">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasItemImage}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                             <DataGridTextColumn Header="Claim ID" Binding="{Binding Claim_ID}"
                                                 Width="80" IsReadOnly="True"/>
+
                             <DataGridTextColumn Header="Item Name" Binding="{Binding Item_Name}"
                                                 Width="*" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
@@ -113,9 +169,25 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Handoff" Binding="{Binding Handoff_Type}"
-                                                Width="100" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Claim Date" Binding="{Binding ClaimDateDisplay}"
+
+                            <DataGridTextColumn Header="Beneficiary"
+                                                Binding="{Binding Beneficiary_Name}"
+                                                Width="130" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontSize" Value="12"/>
+                                        <Setter Property="Foreground" Value="#03045E"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Handoff"
+                                                Binding="{Binding Handoff_Type}"
+                                                Width="110" IsReadOnly="True"/>
+
+                            <DataGridTextColumn Header="Claim Date"
+                                                Binding="{Binding ClaimDateDisplay}"
                                                 Width="150" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
@@ -125,6 +197,7 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
+
                             <!-- Status badge -->
                             <DataGridTemplateColumn Header="Status" Width="110">
                                 <DataGridTemplateColumn.CellTemplate>
@@ -139,6 +212,104 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
+
+                            <!-- Action buttons — Donor only -->
+                            <!-- Donor-only: Approve Handoff button -->
+                            <DataGridTemplateColumn Header="Approve" Width="120"
+    Visibility="{Binding DataContext.ShowDonorActions,
+        RelativeSource={RelativeSource AncestorType=DataGrid},
+        Converter={StaticResource BoolToVis}}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <!-- Pending → Verified -->
+                                            <Button Content="✔ Verify"
+                        FontSize="10" FontWeight="SemiBold"
+                        Foreground="White" BorderThickness="0"
+                        Cursor="Hand" Margin="2,4"
+                        Command="{Binding DataContext.ApproveHandoffCommand,
+                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                        CommandParameter="{Binding}">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border CornerRadius="8" Background="#0077B6" Padding="7,4">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="0.85"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                            <!-- Verified → Released -->
+                                            <Button Content="🚀 Release"
+                        FontSize="10" FontWeight="SemiBold"
+                        Foreground="White" BorderThickness="0"
+                        Cursor="Hand" Margin="2,4"
+                        Command="{Binding DataContext.MarkReleasedCommand,
+                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                        CommandParameter="{Binding}">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border CornerRadius="8" Background="#2E7D52" Padding="7,4">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="0.85"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Beneficiary-only: Confirm Receipt button -->
+                            <DataGridTemplateColumn Header="Action" Width="150"
+    Visibility="{Binding DataContext.ShowConfirmReceiptButton,
+        RelativeSource={RelativeSource AncestorType=DataGrid},
+        Converter={StaticResource BoolToVis}}">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="✔ Confirm Receipt"
+                    FontSize="11" FontWeight="SemiBold"
+                    Foreground="White" BorderThickness="0"
+                    Cursor="Hand" Margin="4,6"
+                    Command="{Binding DataContext.ConfirmReceiptCommand,
+                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                    CommandParameter="{Binding}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border CornerRadius="8" Padding="8,4">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="#2E7D52"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                                        <Setter Property="Background" Value="#AAAAAA"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Opacity" Value="0.85"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

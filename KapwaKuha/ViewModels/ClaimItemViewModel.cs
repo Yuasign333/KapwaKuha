@@ -33,27 +33,57 @@ namespace KapwaKuha.ViewModels
                 OnPropertyChanged(nameof(IsPickup));
                 OnPropertyChanged(nameof(IsDelivery));
                 OnPropertyChanged(nameof(IsDonationDrive));
-                // Show/hide the EventName field only for Donation Drive
                 OnPropertyChanged(nameof(ShowEventName));
             }
         }
-        public bool IsPickup { get => _handoffType == "Pickup"; set { if (value) HandoffType = "Pickup"; } }
-        public bool IsDelivery { get => _handoffType == "Delivery"; set { if (value) HandoffType = "Delivery"; } }
-        public bool IsDonationDrive { get => _handoffType == "Donation Drive"; set { if (value) HandoffType = "Donation Drive"; } }
 
-        /// <summary>Collapses the EventName row unless Donation Drive is selected.</summary>
-        public System.Windows.Visibility ShowEventName =>
-            IsDonationDrive ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        public bool IsPickup
+        {
+            get => _handoffType == "Pickup";
+            set { if (value) HandoffType = "Pickup"; }
+        }
+        public bool IsDelivery
+        {
+            get => _handoffType == "Delivery";
+            set { if (value) HandoffType = "Delivery"; }
+        }
+        public bool IsDonationDrive
+        {
+            get => _handoffType == "Donation Drive";
+            set { if (value) HandoffType = "Donation Drive"; }
+        }
 
-        public string Location { get => _location; set { _location = value; OnPropertyChanged(); } }
-        public string EventName { get => _eventName; set { _eventName = value; OnPropertyChanged(); } }
-        public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
-        public string ErrorMessage { get => _errorMessage; set { _errorMessage = value; OnPropertyChanged(); } }
-        public bool ErrorVisible { get => _errorVisible; set { _errorVisible = value; OnPropertyChanged(); } }
+        public Visibility ShowEventName =>
+            IsDonationDrive ? Visibility.Visible : Visibility.Collapsed;
+
+        public string Location
+        {
+            get => _location;
+            set { _location = value; OnPropertyChanged(); }
+        }
+        public string EventName
+        {
+            get => _eventName;
+            set { _eventName = value; OnPropertyChanged(); }
+        }
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set { _isBusy = value; OnPropertyChanged(); }
+        }
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set { _errorMessage = value; OnPropertyChanged(); }
+        }
+        public bool ErrorVisible
+        {
+            get => _errorVisible;
+            set { _errorVisible = value; OnPropertyChanged(); }
+        }
 
         public ICommand BackCommand { get; }
         public ICommand ConfirmClaimCommand { get; }
-        // ── NEW: explicit handoff-mode commands for XAML button bindings ───────
         public ICommand SetPickupCommand { get; }
         public ICommand SetDeliveryCommand { get; }
         public ICommand SetDonationDriveCommand { get; }
@@ -66,7 +96,6 @@ namespace KapwaKuha.ViewModels
             BackCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.BrowseItemsWindow(_beneficiaryId)));
 
-            // Handoff mode toggles
             SetPickupCommand = new RelayCommand(_ => HandoffType = "Pickup");
             SetDeliveryCommand = new RelayCommand(_ => HandoffType = "Delivery");
             SetDonationDriveCommand = new RelayCommand(_ => HandoffType = "Donation Drive");
@@ -75,11 +104,19 @@ namespace KapwaKuha.ViewModels
             {
                 ErrorVisible = false;
 
+                // ── Local validation ──────────────────────────────────────────
                 if (string.IsNullOrWhiteSpace(Location))
-                { ErrorMessage = "Please enter a pickup/delivery location."; ErrorVisible = true; return; }
-
+                {
+                    ErrorMessage = "Please enter a pickup/delivery location.";
+                    ErrorVisible = true;
+                    return;
+                }
                 if (IsDonationDrive && string.IsNullOrWhiteSpace(EventName))
-                { ErrorMessage = "Please enter the event name for a Donation Drive."; ErrorVisible = true; return; }
+                {
+                    ErrorMessage = "Please enter the event name for a Donation Drive.";
+                    ErrorVisible = true;
+                    return;
+                }
 
                 var confirm = MessageBox.Show(
                     $"Claim this item?\n\nItem: {Item.Item_Name}\n" +
@@ -91,12 +128,14 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     IsBusy = true;
+
                     string claimId = await KapwaDataService.GetNextClaimId();
                     var claim = new ClaimModel
                     {
                         Claim_ID = claimId,
                         Item_ID = Item.Item_ID,
                         Item_Name = Item.Item_Name,
+                        Item_ImagePath = Item.Item_ImagePath,
                         Beneficiary_ID = _beneficiaryId,
                         Beneficiary_Name = UserSession.FullName,
                         Claim_Date = DateTime.Now,
@@ -106,11 +145,26 @@ namespace KapwaKuha.ViewModels
                                              (IsDonationDrive ? $" | Event: {EventName}" : "")
                     };
 
-                    await KapwaDataService.SaveClaim(claim);
+                    // ── SaveClaim now returns (bool Success, string Error) ─────
+                    // trg_PreventDuplicateClaim fires here inside SQL Server:
+                    //   50010 → item no longer available
+                    //   50011 → beneficiary already has a claim on this item
+                    //   50012 → item is reserved for another beneficiary
+                    var (success, error) = await KapwaDataService.SaveClaim(claim);
+
+                    if (!success)
+                    {
+                        // Show the trigger's friendly error — no crash, no generic message
+                        ErrorMessage = error;
+                        ErrorVisible = true;
+                        return;
+                    }
+
                     KapwaDataService.GenerateClaimReport(claim);
 
                     MessageBox.Show($"✅ Claimed! Your Claim ID: {claimId}",
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
                     NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId));
                 }
                 catch { }

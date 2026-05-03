@@ -9,12 +9,16 @@ namespace KapwaKuha.Models
         public string Claim_ID { get; set; } = string.Empty;
         public string Item_ID { get; set; } = string.Empty;
         public string Item_Name { get; set; } = string.Empty;
-        public string Item_ImagePath { get; set; } = string.Empty;   // NEW
+        public string Item_ImagePath { get; set; } = string.Empty;   
         public string Beneficiary_ID { get; set; } = string.Empty;
         public string Beneficiary_Name { get; set; } = string.Empty;
         public DateTime Claim_Date { get; set; } = DateTime.Now;
 
         private string _status = "Pending";
+
+        public bool HasItemImage =>
+            !string.IsNullOrEmpty(Item_ImagePath) &&
+            System.IO.File.Exists(Item_ImagePath);
         public string Claim_Status
         {
             get => _status;

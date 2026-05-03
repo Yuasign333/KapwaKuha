@@ -47,14 +47,21 @@
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Command="{Binding RefreshCommand}"
-                                Content="⟳" Background="Transparent" BorderThickness="0"
-                                Foreground="#CAF0F8" FontSize="16" Cursor="Hand"
-                                VerticalAlignment="Center" Margin="0,0,10,0"/>
+            Content="⟳" Background="Transparent" BorderThickness="0"
+            Foreground="#CAF0F8" FontSize="16" Cursor="Hand"
+            VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Button Command="{Binding EditPostCommand}"
+            IsEnabled="{Binding CanEditSelected}"
+            Background="Transparent" BorderThickness="0"
+            Foreground="#90E0EF" FontSize="12" Cursor="Hand"
+            VerticalAlignment="Center" Margin="0,0,10,0">
+                            <TextBlock Text="✏ Edit"/>
+                        </Button>
                         <Button Command="{Binding DeleteItemCommand}"
-                                IsEnabled="{Binding IsItemSelected}"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="#FF8A80" FontSize="12" Cursor="Hand"
-                                VerticalAlignment="Center">
+            IsEnabled="{Binding IsItemSelected}"
+            Background="Transparent" BorderThickness="0"
+            Foreground="#FF8A80" FontSize="12" Cursor="Hand"
+            VerticalAlignment="Center">
                             <TextBlock Text="🗑 Delete"/>
                         </Button>
                     </StackPanel>

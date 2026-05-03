@@ -4,10 +4,14 @@
         Title="KapwaKuha — Post Item"
         Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
+    
         FontFamily="Segoe UI">
+    
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+     
+      
     </Window.Resources>
 
     <Grid>
@@ -269,17 +273,55 @@
                             </Grid>
 
                             <!-- Direct Target beneficiary picker -->
+                            <!-- Direct Target beneficiary picker — smart swap -->
                             <StackPanel Margin="0,0,0,20"
-                                        Visibility="{Binding IsDirectTarget, Converter={StaticResource BoolToVis}}">
+            Visibility="{Binding IsDirectTarget, Converter={StaticResource BoolToVis}}">
+
                                 <TextBlock Text="Target Beneficiary" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="#0A2540" Margin="4,0,0,8"/>
+               Foreground="#0A2540" Margin="4,0,0,8"/>
+
+                                <!-- READ-ONLY TextBox: shown when called from HighPriorityNeeds (mode is locked) -->
                                 <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
-                                        Background="White">
+            Background="#F0F8FB">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsModeLocked}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel Orientation="Horizontal" Margin="12,0">
+                                        <TextBlock Text="🎯 " FontSize="15" VerticalAlignment="Center"
+                       Foreground="#0077B6"/>
+                                        <TextBox Text="{Binding LockedBeneficiaryDisplay, Mode=OneWay}"
+                     Height="40" Background="Transparent" BorderThickness="0"
+                     FontSize="13" FontWeight="SemiBold" Foreground="#0077B6"
+                     IsReadOnly="True" IsTabStop="False"
+                     VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- COMBOBOX: shown for free selection when NOT locked -->
+                                <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+            Background="White">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsModeLocked}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
                                     <ComboBox ItemsSource="{Binding Beneficiaries}"
-                                              SelectedItem="{Binding SelectedBeneficiary}"
-                                              DisplayMemberPath="DisplayName"
-                                              Height="40" Background="Transparent" BorderThickness="0"
-                                              Foreground="#0A2540" FontSize="13" Padding="10,0"/>
+                  SelectedItem="{Binding SelectedBeneficiary}"
+                  DisplayMemberPath="DisplayName"
+                  Height="40" Background="Transparent" BorderThickness="0"
+                  Foreground="#0A2540" FontSize="13" Padding="10,0"/>
                                 </Border>
                             </StackPanel>
 

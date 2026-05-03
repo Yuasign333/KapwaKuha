@@ -1,7 +1,4 @@
-﻿// FILE: PostItemViewModel.cs
-// Window: PostItemWindow.xaml
-// Two-mode posting: DirectTarget or GeneralPost
-// Parallel to RentCarViewModel in CarRentals
+﻿// FILE: ViewModels/PostItemViewModel.cs
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -15,8 +12,8 @@ namespace KapwaKuha.ViewModels
     public class PostItemViewModel : ObservableObject
     {
         private readonly string _donorId;
+        private readonly bool _lockDirect;
 
-        // ── Form fields ───────────────────────────────────────────────────────
         private string _itemName = string.Empty;
         private string _selectedCategory = string.Empty;
         private string _selectedCondition = "Good";
@@ -49,6 +46,7 @@ namespace KapwaKuha.ViewModels
             get => _postType;
             set
             {
+                if (_lockDirect) return;   // lock prevents switching
                 _postType = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDirectTarget));
@@ -66,12 +64,14 @@ namespace KapwaKuha.ViewModels
             set { if (value) PostType = "GeneralPost"; }
         }
 
+        // When navigated from HighPriorityNeeds — mode buttons are disabled
+        public bool IsModeLocked => _lockDirect;
+
         public string SelectedBeneficiaryId
         {
             get => _selectedBeneficiaryId;
             set { _selectedBeneficiaryId = value; OnPropertyChanged(); }
         }
-
         public BeneficiaryRow? SelectedBeneficiary
         {
             get => _selectedBeneficiary;
@@ -80,51 +80,58 @@ namespace KapwaKuha.ViewModels
                 _selectedBeneficiary = value;
                 OnPropertyChanged();
                 SelectedBeneficiaryId = value?.Id ?? string.Empty;
+                OnPropertyChanged(nameof(LockedBeneficiaryDisplay)); 
             }
         }
-
         public string Description
         {
             get => _description;
             set { _description = value; OnPropertyChanged(); }
         }
-
         public string ImagePath
         {
             get => _imagePath;
             set { _imagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasImage)); }
         }
-
         public bool HasImage => !string.IsNullOrEmpty(_imagePath);
-
         public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
         public string ErrorMessage { get => _errorMessage; set { _errorMessage = value; OnPropertyChanged(); } }
         public bool ErrorVisible { get => _errorVisible; set { _errorVisible = value; OnPropertyChanged(); } }
 
-        // ── Label shown in header badge ────────────────────────────────────────
+        public bool IsComboLocked => _lockDirect;
+
         public string DonorLabel => $"Donor: {UserSession.Username}";
 
+        // Shown in read-only TextBox when mode is locked (from HighPriorityNeeds)
+        // Updates whenever SelectedBeneficiary changes
+        public string LockedBeneficiaryDisplay =>
+            _lockDirect && _selectedBeneficiary != null
+                ? _selectedBeneficiary.DisplayName
+                : string.Empty;
+
         public ObservableCollection<string> Categories { get; } = new();
-        public ObservableCollection<string> Conditions { get; } =
-            new() { "New", "Good", "Fair", "Poor" };
+        public ObservableCollection<string> Conditions { get; } = new() { "New", "Good", "Fair", "Poor" };
         public ObservableCollection<BeneficiaryRow> Beneficiaries { get; } = new();
 
         public ICommand BackCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand BrowseImageCommand { get; }
-        // ── NEW: explicit mode-switch commands for XAML button bindings ────────
         public ICommand SetGeneralPostCommand { get; }
         public ICommand SetDirectTargetCommand { get; }
 
-        public PostItemViewModel(string donorId, string prefillTitle = "")
+        public PostItemViewModel(string donorId, string prefillTitle = "",
+                                 string lockedOrgId = "", bool lockDirect = false)
         {
             _donorId = donorId;
+            _lockDirect = lockDirect;
+
+            // If called from HighPriorityNeeds, force DirectTarget immediately
+            if (lockDirect) _postType = "DirectTarget";
 
             BackCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.DonorDashboardWindow(_donorId)));
 
-            // Mode toggles — called by the two mode-picker buttons in PostItemWindow.xaml
-            SetGeneralPostCommand = new RelayCommand(_ => PostType = "GeneralPost");
+            SetGeneralPostCommand = new RelayCommand(_ => { if (!_lockDirect) PostType = "GeneralPost"; });
             SetDirectTargetCommand = new RelayCommand(_ => PostType = "DirectTarget");
 
             BrowseImageCommand = new RelayCommand(_ =>
@@ -134,20 +141,18 @@ namespace KapwaKuha.ViewModels
                     Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
                     Title = "Select Item Image"
                 };
-                if (dlg.ShowDialog() == true)
-                    ImagePath = dlg.FileName;
+                if (dlg.ShowDialog() == true) ImagePath = dlg.FileName;
             });
 
             SaveCommand = new AsyncRelayCommand(async _ =>
             {
                 ErrorVisible = false;
-
                 if (string.IsNullOrWhiteSpace(ItemName))
                 { ErrorMessage = "Item name is required."; ErrorVisible = true; return; }
                 if (string.IsNullOrWhiteSpace(SelectedCategory))
                 { ErrorMessage = "Please select a category."; ErrorVisible = true; return; }
                 if (IsDirectTarget && string.IsNullOrWhiteSpace(SelectedBeneficiaryId))
-                { ErrorMessage = "Please select a target beneficiary for Direct Target post."; ErrorVisible = true; return; }
+                { ErrorMessage = "Please select a target beneficiary."; ErrorVisible = true; return; }
                 if (string.IsNullOrWhiteSpace(ImagePath))
                 { ErrorMessage = "Please attach an image of the item."; ErrorVisible = true; return; }
 
@@ -183,18 +188,16 @@ namespace KapwaKuha.ViewModels
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     NavigationService.Navigate(new View.DonorDashboardWindow(_donorId));
                 }
-                catch { /* service already showed error */ }
+                catch { }
                 finally { IsBusy = false; }
             });
 
-            // Pre-fill title when navigated from HighPriorityNeedsWindow
-            if (!string.IsNullOrEmpty(prefillTitle))
-                ItemName = prefillTitle;
+            if (!string.IsNullOrEmpty(prefillTitle)) ItemName = prefillTitle;
 
-            LoadData();
+            LoadData(lockedOrgId);
         }
 
-        private async void LoadData()
+        private async void LoadData(string lockedOrgId = "")
         {
             var cats = await KapwaDataService.GetAllCategories();
             Application.Current.Dispatcher.Invoke(() =>
@@ -210,6 +213,20 @@ namespace KapwaKuha.ViewModels
                 Beneficiaries.Clear();
                 foreach (var (id, name) in benes)
                     Beneficiaries.Add(new BeneficiaryRow { Id = id, DisplayName = name });
+
+                // If locked to a specific org, pre-select matching beneficiary
+                if (!string.IsNullOrEmpty(lockedOrgId))
+                {
+                    foreach (var b in Beneficiaries)
+                    {
+                        // Match first beneficiary from that org
+                        if (b.Id.StartsWith("B") || b.DisplayName.Contains(lockedOrgId))
+                        {
+                            SelectedBeneficiary = b;
+                            break;
+                        }
+                    }
+                }
             });
         }
     }

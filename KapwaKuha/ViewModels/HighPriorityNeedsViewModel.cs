@@ -1,6 +1,4 @@
-﻿// FILE: HighPriorityNeedsViewModel.cs
-// Window: HighPriorityNeedsWindow.xaml
-// Donor view of open NeedsPosts ordered by urgency
+﻿// FILE: ViewModels/HighPriorityNeedsViewModel.cs
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -33,8 +31,12 @@ namespace KapwaKuha.ViewModels
 
             DonateToNeedCommand = new RelayCommand(post =>
             {
-                if (post is NeedsPostModel selected)
-                    NavigationService.Navigate(new View.PostItemWindow(_donorId, selected.Title));
+                if (post is not NeedsPostModel selected) return;
+
+                // Force DirectTarget and lock the beneficiary to the org's post
+                // Navigate to PostItem with the need pre-filled and locked
+                NavigationService.Navigate(
+                    new View.PostItemWindow(_donorId, selected.Title, selected.Org_ID, lockDirect: true));
             });
 
             LoadPostsAsync();
@@ -49,7 +51,9 @@ namespace KapwaKuha.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     NeedsPosts.Clear();
-                    foreach (var p in posts) NeedsPosts.Add(p);
+                    // Only show Open posts — Fulfilled ones auto-removed here
+                    foreach (var p in posts)
+                        if (p.Status == "Open") NeedsPosts.Add(p);
                 });
             }
             catch { }

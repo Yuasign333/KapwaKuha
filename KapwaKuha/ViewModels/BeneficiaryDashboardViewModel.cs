@@ -1,6 +1,4 @@
-﻿// FILE: BeneficiaryDashboardViewModel.cs
-// Window: BeneficiaryDashboardWindow.xaml
-// Parallel to CustomerDashboardViewModel in CarRentals
+﻿// FILE: ViewModels/BeneficiaryDashboardViewModel.cs
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -19,7 +17,6 @@ namespace KapwaKuha.ViewModels
             set { _isSidebarOpen = value; OnPropertyChanged(); }
         }
 
-
         public string WelcomeText { get; }
         public string UserLabel { get; }
 
@@ -30,6 +27,8 @@ namespace KapwaKuha.ViewModels
         public ICommand ChatCommand { get; }
         public ICommand LogoutCommand { get; }
 
+        public ICommand MyAccountCommand { get; }
+
         public BeneficiaryDashboardViewModel(string beneficiaryId)
         {
             _beneficiaryId = beneficiaryId;
@@ -38,8 +37,9 @@ namespace KapwaKuha.ViewModels
 
             HamburgerCommand = new RelayCommand(_ => IsSidebarOpen = !IsSidebarOpen);
 
+            // Beneficiary sees only their own claims — pass "Beneficiary" role
             ClaimTrackerCommand = new RelayCommand(_ =>
-                NavigationService.Navigate(new View.ClaimTrackerWindow(_beneficiaryId)));
+                NavigationService.Navigate(new View.ClaimTrackerWindow(_beneficiaryId, "Beneficiary")));
 
             BrowseItemsCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.BrowseItemsWindow(_beneficiaryId)));
@@ -60,7 +60,12 @@ namespace KapwaKuha.ViewModels
                     NavigationService.Navigate(new View.ChooseRoleWindow());
                 }
             });
+
+            MyAccountCommand = new RelayCommand(_ =>
+        NavigationService.Navigate(new View.BeneficiaryClaimTrackerWindow(_beneficiaryId)));
+            ;
         }
+
         public class BeneficiaryDashboardDesignViewModel : ObservableObject
         {
             public string WelcomeText { get; } = "Welcome, Ana Reyes!";
