@@ -6,6 +6,7 @@ using System.Windows.Input;
 using KapwaKuha.Commands;
 using KapwaKuha.Models;
 using KapwaKuha.Services;
+using System.Linq;
 
 namespace KapwaKuha.ViewModels
 {
@@ -25,6 +26,8 @@ namespace KapwaKuha.ViewModels
         private bool _isBusy;
         private string _errorMessage = string.Empty;
         private bool _errorVisible;
+
+
 
         public string ItemName
         {
@@ -105,9 +108,9 @@ namespace KapwaKuha.ViewModels
         // Shown in read-only TextBox when mode is locked (from HighPriorityNeeds)
         // Updates whenever SelectedBeneficiary changes
         public string LockedBeneficiaryDisplay =>
-            _lockDirect && _selectedBeneficiary != null
-                ? _selectedBeneficiary.DisplayName
-                : string.Empty;
+     _lockDirect && _selectedBeneficiary != null
+         ? $"{_selectedBeneficiary.DisplayName}  (ID: {_selectedBeneficiary.Id})"
+         : string.Empty;
 
         public ObservableCollection<string> Categories { get; } = new();
         public ObservableCollection<string> Conditions { get; } = new() { "New", "Good", "Fair", "Poor" };
@@ -120,10 +123,13 @@ namespace KapwaKuha.ViewModels
         public ICommand SetDirectTargetCommand { get; }
 
         public PostItemViewModel(string donorId, string prefillTitle = "",
-                                 string lockedOrgId = "", bool lockDirect = false)
+                         string lockedOrgId = "", bool lockDirect = false,
+                         string lockedBeneficiaryId = "")
         {
             _donorId = donorId;
             _lockDirect = lockDirect;
+            if (lockDirect) _postType = "DirectTarget";
+            if (!string.IsNullOrEmpty(prefillTitle)) ItemName = prefillTitle;
 
             // If called from HighPriorityNeeds, force DirectTarget immediately
             if (lockDirect) _postType = "DirectTarget";
@@ -194,10 +200,10 @@ namespace KapwaKuha.ViewModels
 
             if (!string.IsNullOrEmpty(prefillTitle)) ItemName = prefillTitle;
 
-            LoadData(lockedOrgId);
+            LoadData(lockedOrgId, lockedBeneficiaryId);  // pass through
         }
 
-        private async void LoadData(string lockedOrgId = "")
+        private async void LoadData(string lockedOrgId = "", string lockedBeneficiaryId = "")
         {
             var cats = await KapwaDataService.GetAllCategories();
             Application.Current.Dispatcher.Invoke(() =>
@@ -207,25 +213,30 @@ namespace KapwaKuha.ViewModels
                 if (Categories.Count > 0) SelectedCategory = Categories[0];
             });
 
-            var benes = await KapwaDataService.GetActiveBeneficiaries();
+            // Load beneficiaries:
+            // If locked to a specific org — load only that org's members
+            // If a specific beneficiary ID is provided — pre-select it exactly
+            var benes = string.IsNullOrEmpty(lockedOrgId)
+                ? await KapwaDataService.GetActiveBeneficiaries()
+                : (await KapwaDataService.GetBeneficiariesByOrg(lockedOrgId))
+                      .Select(b => (b.Id, b.DisplayName)).ToList();
+
             Application.Current.Dispatcher.Invoke(() =>
             {
                 Beneficiaries.Clear();
                 foreach (var (id, name) in benes)
                     Beneficiaries.Add(new BeneficiaryRow { Id = id, DisplayName = name });
 
-                // If locked to a specific org, pre-select matching beneficiary
-                if (!string.IsNullOrEmpty(lockedOrgId))
+                // Exact match on the provided ID (fully dynamic — no hardcoding)
+                if (!string.IsNullOrEmpty(lockedBeneficiaryId))
                 {
-                    foreach (var b in Beneficiaries)
-                    {
-                        // Match first beneficiary from that org
-                        if (b.Id.StartsWith("B") || b.DisplayName.Contains(lockedOrgId))
-                        {
-                            SelectedBeneficiary = b;
-                            break;
-                        }
-                    }
+                    var match = Beneficiaries.FirstOrDefault(b => b.Id == lockedBeneficiaryId);
+                    if (match != null) SelectedBeneficiary = match;
+                    else if (Beneficiaries.Count > 0) SelectedBeneficiary = Beneficiaries[0];
+                }
+                else if (Beneficiaries.Count > 0 && _lockDirect)
+                {
+                    SelectedBeneficiary = Beneficiaries[0];
                 }
             });
         }

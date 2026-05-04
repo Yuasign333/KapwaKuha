@@ -24,7 +24,6 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Top bar -->
             <Border Grid.Row="0" Background="#0077B6">
                 <Grid Margin="20,0">
                     <Grid.ColumnDefinitions>
@@ -43,7 +42,6 @@
                 </Grid>
             </Border>
 
-            <!-- Chat list panel -->
             <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -64,13 +62,11 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Header + search -->
                     <StackPanel Grid.Row="0" Margin="20,16,20,10">
                         <TextBlock Text="Conversations" FontSize="15" FontWeight="Bold"
                                    Foreground="#03045E"/>
                         <TextBlock Text="Search beneficiaries by name or username, then click to chat."
                                    FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,10"/>
-                        <!-- Search bar -->
                         <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
                                 Background="White" Padding="10,0">
                             <Grid>
@@ -88,7 +84,6 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- Contact list -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding ChatUsers}">
                             <ItemsControl.ItemTemplate>
@@ -97,7 +92,7 @@
                                         <Border.InputBindings>
                                             <MouseBinding MouseAction="LeftClick"
                                                           Command="{Binding DataContext.OpenChatCommand,
-                                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                           CommandParameter="{Binding}"/>
                                         </Border.InputBindings>
                                         <Border.Style>
@@ -116,38 +111,64 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <!-- Avatar circle -->
-                                            <Border Grid.Column="0" Width="46" Height="46" CornerRadius="23">
-                                                <Border.Background>
-                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                        <GradientStop Color="#00B4D8" Offset="0"/>
-                                                        <GradientStop Color="#0077B6" Offset="1"/>
-                                                    </LinearGradientBrush>
-                                                </Border.Background>
-                                                <TextBlock Text="👤" FontSize="22"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"/>
-                                            </Border>
-                                            <!-- Name + username/org + last message -->
-                                            <!-- Inside the contact list StackPanel, ensure VerticalAlignment is set: -->
+
+                                            <Grid Grid.Column="0" Width="46" Height="46">
+                                                <Border CornerRadius="23">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasProfilePicture}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Border.Background>
+                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                            <GradientStop Color="#00B4D8" Offset="0"/>
+                                                            <GradientStop Color="#0077B6" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Border.Background>
+                                                    <TextBlock Text="👤" FontSize="22" Foreground="White"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+
+                                                <Border CornerRadius="23">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasProfilePicture}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Border.Background>
+                                                        <ImageBrush ImageSource="{Binding ProfilePicturePath}" Stretch="UniformToFill"/>
+                                                    </Border.Background>
+                                                </Border>
+                                            </Grid>
+
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,2,0,2">
                                                 <TextBlock Text="{Binding DisplayName}"
-                                             FontSize="13" FontWeight="SemiBold"
-                                            Foreground="#03045E"
-                                            TextWrapping="NoWrap"
-                                            TextTrimming="CharacterEllipsis"/>
+                                                           FontSize="13" FontWeight="SemiBold"
+                                                           Foreground="#03045E"
+                                                           TextWrapping="NoWrap"
+                                                           TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding SubText}"
-                                             FontSize="10" Foreground="#0077B6"
-                                            Margin="0,1,0,2"
-                                            TextWrapping="NoWrap"
-                                            TextTrimming="CharacterEllipsis"/>
+                                                           FontSize="10" Foreground="#0077B6"
+                                                           Margin="0,1,0,2"
+                                                           TextWrapping="NoWrap"
+                                                           TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding LastMessage}"
-                                             FontSize="11" Foreground="#5E7A8A"
-                                            TextTrimming="CharacterEllipsis"
-                                            TextWrapping="NoWrap"
-                                            MaxWidth="260"/>
+                                                           FontSize="11" Foreground="#5E7A8A"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           TextWrapping="NoWrap"
+                                                           MaxWidth="260"/>
                                             </StackPanel>
-                                            <!-- Unread badge -->
+
                                             <Border Grid.Column="3" Width="22" Height="22"
                                                     CornerRadius="11" Background="#C0304A"
                                                     VerticalAlignment="Center"

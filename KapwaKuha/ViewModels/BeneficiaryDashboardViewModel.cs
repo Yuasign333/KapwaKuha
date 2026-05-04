@@ -1,7 +1,9 @@
 ﻿// FILE: ViewModels/BeneficiaryDashboardViewModel.cs
+using System;
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
+using KapwaKuha.Models;
 using KapwaKuha.Services;
 
 namespace KapwaKuha.ViewModels
@@ -20,6 +22,23 @@ namespace KapwaKuha.ViewModels
         public string WelcomeText { get; }
         public string UserLabel { get; }
 
+        // --- Profile Picture Properties for the Top Bar Avatar ---
+        private string _profilePicturePath = string.Empty;
+        public string ProfilePicturePath
+        {
+            get => _profilePicturePath;
+            set
+            {
+                _profilePicturePath = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasPicture));
+            }
+        }
+
+        public bool HasPicture =>
+            !string.IsNullOrEmpty(_profilePicturePath) && System.IO.File.Exists(_profilePicturePath);
+
+
         public ICommand HamburgerCommand { get; }
         public ICommand ClaimTrackerCommand { get; }
         public ICommand BrowseItemsCommand { get; }
@@ -27,7 +46,8 @@ namespace KapwaKuha.ViewModels
         public ICommand ChatCommand { get; }
         public ICommand LogoutCommand { get; }
 
-        public ICommand MyAccountCommand { get; }
+        // MUST MATCH YOUR XAML BINDING
+        public ICommand MyBAccountCommand { get; }
 
         public BeneficiaryDashboardViewModel(string beneficiaryId)
         {
@@ -61,22 +81,27 @@ namespace KapwaKuha.ViewModels
                 }
             });
 
-            MyAccountCommand = new RelayCommand(_ =>
-        NavigationService.Navigate(new View.BeneficiaryClaimTrackerWindow(_beneficiaryId)));
-            ;
+            // FIX 1: Name matches XAML
+            // FIX 2: Navigates to the Profile Window, NOT the Claim Tracker
+            MyBAccountCommand = new RelayCommand(_ =>
+                NavigationService.Navigate(new View.BeneficiaryProfileWindow(_beneficiaryId)));
+
+            // Load the profile picture when the dashboard opens
+            LoadProfileDataAsync();
         }
 
-        public class BeneficiaryDashboardDesignViewModel : ObservableObject
+        // Fetch the beneficiary's picture from the database
+        private async void LoadProfileDataAsync()
         {
-            public string WelcomeText { get; } = "Welcome, Ana Reyes!";
-            public string UserLabel { get; } = "Beneficiary: B001";
-            public bool IsSidebarOpen { get; } = false;
-            public ICommand HamburgerCommand { get; } = new RelayCommand(_ => { });
-            public ICommand ClaimTrackerCommand { get; } = new RelayCommand(_ => { });
-            public ICommand BrowseItemsCommand { get; } = new RelayCommand(_ => { });
-            public ICommand NeedsWishlistCommand { get; } = new RelayCommand(_ => { });
-            public ICommand ChatCommand { get; } = new RelayCommand(_ => { });
-            public ICommand LogoutCommand { get; } = new RelayCommand(_ => { });
+            try
+            {
+                var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
+                if (bene != null)
+                {
+                    ProfilePicturePath = bene.ProfilePicturePath ?? string.Empty;
+                }
+            }
+            catch { /* Ignore error silently for dashboard */ }
         }
     }
 }

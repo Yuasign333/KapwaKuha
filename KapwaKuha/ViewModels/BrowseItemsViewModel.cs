@@ -55,7 +55,7 @@ namespace KapwaKuha.ViewModels
                     NavigationService.Navigate(new View.ClaimItemWindow(_beneficiaryId, selected));
             });
 
-            LoadItemsAsync();
+            _ = LoadItemsAsync();
         }
 
         private async System.Threading.Tasks.Task LoadItemsAsync()

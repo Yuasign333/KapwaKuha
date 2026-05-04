@@ -11,11 +11,13 @@ namespace KapwaKuha.ViewModels
     public class BeneficiaryProfileViewModel : ObservableObject
     {
         private readonly string _beneficiaryId;
+
         private string _fullName = string.Empty;
         private string _username = string.Empty;
         private string _contact = string.Empty;
         private string _orgName = string.Empty;
         private string _picturePath = string.Empty;
+        private bool _isBusy;
 
         public string FullName
         {
@@ -40,34 +42,32 @@ namespace KapwaKuha.ViewModels
         public string PicturePath
         {
             get => _picturePath;
-            set
-            {
-                _picturePath = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasPicture));
-            }
+            set { _picturePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasPicture)); }
+        }
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set { _isBusy = value; OnPropertyChanged(); }
         }
 
-        // HasPicture: true only when path is set AND file actually exists
         public bool HasPicture =>
-            !string.IsNullOrEmpty(_picturePath) &&
-            System.IO.File.Exists(_picturePath);
+            !string.IsNullOrEmpty(_picturePath) && System.IO.File.Exists(_picturePath);
 
         public string BeneficiaryIdLabel => $"ID: {_beneficiaryId}";
 
         public ICommand BackCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand BrowsePictureCommand { get; }
+        public ICommand DeactivateCommand { get; }
+        public ICommand MyBAccountCommand { get; } // Kept so XAML binding doesn't break
 
         public BeneficiaryProfileViewModel(string beneficiaryId)
         {
             _beneficiaryId = beneficiaryId;
 
             BackCommand = new RelayCommand(_ =>
-                NavigationService.Navigate(
-                    new View.BeneficiaryDashboardWindow(_beneficiaryId)));
+                NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId)));
 
-            // File picker — identical logic to DonorProfileViewModel
             BrowsePictureCommand = new RelayCommand(_ =>
             {
                 var dlg = new Microsoft.Win32.OpenFileDialog
@@ -75,14 +75,14 @@ namespace KapwaKuha.ViewModels
                     Filter = "Images (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
                     Title = "Select Profile Picture"
                 };
-                if (dlg.ShowDialog() == true)
-                    PicturePath = dlg.FileName;
+                if (dlg.ShowDialog() == true) PicturePath = dlg.FileName;
             });
 
             SaveCommand = new AsyncRelayCommand(async _ =>
             {
                 try
                 {
+                    IsBusy = true;
                     await KapwaDataService.UpdateBeneficiaryProfile(
                         _beneficiaryId, Username, PicturePath);
                     MessageBox.Show("✅ Profile updated!",
@@ -93,6 +93,37 @@ namespace KapwaKuha.ViewModels
                     MessageBox.Show("Save failed: " + ex.Message,
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+                finally { IsBusy = false; }
+            });
+
+            DeactivateCommand = new AsyncRelayCommand(async _ =>
+            {
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to deactivate your account?\n\n" +
+                    "You will be logged out and cannot log in until reactivated.",
+                    "Deactivate Account",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (confirm != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    IsBusy = true;
+                    await KapwaDataService.DeactivateAccount(_beneficiaryId);
+                    MessageBox.Show("Your account has been deactivated.",
+                        "Account Deactivated", MessageBoxButton.OK, MessageBoxImage.Information);
+                    UserSession.Clear();
+                    NavigationService.Navigate(new View.ChooseRoleWindow());
+                }
+                catch { }
+                finally { IsBusy = false; }
+            });
+
+            // THE FIX: We make this empty. 
+            // If the user clicks the "My Account" avatar while already ON the "My Account" page,
+            // it will safely do nothing instead of crashing or opening a duplicate window.
+            MyBAccountCommand = new RelayCommand(_ =>
+            {
+                // Intentionally left blank. 
             });
 
             LoadProfile();
@@ -104,14 +135,13 @@ namespace KapwaKuha.ViewModels
             {
                 var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
                 if (bene == null) return;
-
                 FullName = bene.Beneficiary_FullName;
                 Username = bene.Beneficiary_Username;
                 Contact = bene.Beneficiary_Contact;
                 OrgName = bene.Organization_Name;
                 PicturePath = bene.ProfilePicturePath ?? string.Empty;
             }
-            catch { /* silently handled — form stays empty */ }
+            catch { }
         }
     }
 }

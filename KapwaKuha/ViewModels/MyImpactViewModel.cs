@@ -56,7 +56,7 @@ namespace KapwaKuha.ViewModels
 
             RefreshCommand = new AsyncRelayCommand(async _ => await LoadMetricsAsync());
 
-            LoadMetricsAsync();
+            _ = LoadMetricsAsync();
         }
 
         private async System.Threading.Tasks.Task LoadMetricsAsync()

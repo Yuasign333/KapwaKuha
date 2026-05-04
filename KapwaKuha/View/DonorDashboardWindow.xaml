@@ -201,14 +201,14 @@
                     </Grid>
                 </Border>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,28,28,0">
                     <StackPanel>
                         <TextBlock Text="What would you like to do today?"
                                    FontSize="20" FontWeight="Bold" Foreground="#03045E" Margin="0,0,0,6"/>
                         <TextBlock Text="Post items, track impact, or respond to community needs."
                                    FontSize="12" Foreground="#5E7A8A" Margin="0,0,0,24"/>
 
-                        <UniformGrid Rows="2" Columns="3" HorizontalAlignment="Stretch">
+                        <UniformGrid Rows="2" Columns="3" HorizontalAlignment="Stretch" Margin="0,0,0,28">
                             <Button Command="{Binding PostItemCommand}" Style="{StaticResource CardHoverBtn}" Margin="0,0,14,14">
                                 <Border Style="{StaticResource GlassCard}">
                                     <StackPanel>
@@ -264,6 +264,186 @@
                                 </Border>
                             </Button>
                         </UniformGrid>
+                        <Border CornerRadius="16" Margin="0,0,0,28" BorderThickness="1.5">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                                    <GradientStop Color="#66FFFFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="White" Offset="0"/>
+                                    <GradientStop Color="#33FFFF" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#00B4D8" BlurRadius="14" ShadowDepth="0" Opacity="0.10"/>
+                            </Border.Effect>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Section header -->
+                                <StackPanel Grid.Row="0" Margin="20,16,20,10">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📋 " FontSize="16" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Transaction History" FontSize="16" FontWeight="Bold"
+                                   Foreground="#03045E" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding TransactionStatus}"
+                               FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0"/>
+                                </StackPanel>
+
+                                <!-- DataGrid — Released donations -->
+                                <DataGrid Grid.Row="1" ItemsSource="{Binding Transactions}"
+                          AutoGenerateColumns="False" CanUserAddRows="False"
+                          CanUserDeleteRows="False" CanUserResizeRows="False"
+                          IsReadOnly="True" SelectionMode="Single"
+                          Background="Transparent" BorderThickness="0"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#EBF7FB"
+                          RowBackground="White" AlternatingRowBackground="#F7FBFD"
+                          ColumnHeaderHeight="36" RowHeight="60" FontSize="12"
+                          MaxHeight="320" Margin="0,0,0,8">
+
+                                    <DataGrid.ColumnHeaderStyle>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="#EBF7FB"/>
+                                            <Setter Property="Foreground" Value="#0077B6"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="FontSize" Value="11"/>
+                                            <Setter Property="Padding" Value="12,0"/>
+                                        </Style>
+                                    </DataGrid.ColumnHeaderStyle>
+
+                                    <DataGrid.Columns>
+
+                                        <!-- Thumbnail -->
+                                        <DataGridTemplateColumn Header="Photo" Width="60" IsReadOnly="True">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border Width="44" Height="44" CornerRadius="6"
+                                            ClipToBounds="True" Margin="4,4">
+                                                        <Grid>
+                                                            <Border Background="#EBF7FB"/>
+                                                            <TextBlock Text="📦" FontSize="20"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasImage}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                            <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill">
+                                                                <Image.Style>
+                                                                    <Style TargetType="Image">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasImage}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Image.Style>
+                                                            </Image>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                        <DataGridTextColumn Header="Item" Binding="{Binding Item_Name}"
+                                            Width="*" IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Category" Binding="{Binding Category_Name}"
+                                            Width="100" IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontSize" Value="11"/>
+                                                    <Setter Property="Foreground" Value="#0077B6"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Recipient" Binding="{Binding Beneficiary_Name}"
+                                            Width="130" IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                    <Setter Property="FontSize" Value="12"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Organisation" Binding="{Binding Organization_Name}"
+                                            Width="140" IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontSize" Value="11"/>
+                                                    <Setter Property="Foreground" Value="#5E7A8A"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Handoff" Binding="{Binding Handoff_Type}"
+                                            Width="100" IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Completed" Binding="{Binding ClaimDateDisplay}"
+                                            Width="155" IsReadOnly="True">
+                                            <DataGridTextColumn.ElementStyle>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="FontSize" Value="11"/>
+                                                    <Setter Property="Foreground" Value="#5E7A8A"/>
+                                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                                </Style>
+                                            </DataGridTextColumn.ElementStyle>
+                                        </DataGridTextColumn>
+
+                                        <!-- Status badge: always Released in this grid -->
+                                        <DataGridTemplateColumn Header="Status" Width="100" IsReadOnly="True">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Border CornerRadius="10" Padding="10,4"
+                                            HorizontalAlignment="Left" Margin="4,0"
+                                            Background="#E6F7EE">
+                                                        <TextBlock Text="✅ Released" FontSize="10"
+                                                   FontWeight="SemiBold" Foreground="#2E7D52"
+                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

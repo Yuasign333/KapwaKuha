@@ -11,11 +11,9 @@ namespace KapwaKuha.Models
         public string Text { get; set; } = string.Empty;
         public string Time { get; set; } = string.Empty;
 
-        // Linked item for DirectTarget system messages
         public string LinkedItemId { get; set; } = string.Empty;
         public string LinkedItemPath { get; set; } = string.Empty;
 
-        // True = buttons show. False = user already responded, hide them immediately.
         private bool _isActionable = true;
         public bool IsActionable
         {
@@ -24,17 +22,13 @@ namespace KapwaKuha.Models
             {
                 _isActionable = value;
                 OnPropertyChanged();
-                // Recompute the compound visibility property
                 OnPropertyChanged(nameof(IsAcceptableByReceiver));
             }
         }
 
-        // True when: system DirectTarget notify AND current viewer is the receiver
-        // AND they have not yet responded
         public bool IsAcceptableByReceiver =>
             IsSystemDirectTarget && !IsFromUser && IsActionable;
 
-        // True when message is an auto-notify from the trigger
         public bool IsSystemDirectTarget =>
             !string.IsNullOrEmpty(LinkedItemId) && Text.Contains("reserved for you");
 
@@ -52,7 +46,6 @@ namespace KapwaKuha.Models
             }
         }
 
-        // Image message support
         public bool IsImageMessage => Text.StartsWith("[IMG]");
         public string ImagePath => IsImageMessage ? Text[5..] : string.Empty;
 

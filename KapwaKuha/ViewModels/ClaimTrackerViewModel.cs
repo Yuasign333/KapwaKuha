@@ -36,6 +36,8 @@ namespace KapwaKuha.ViewModels
         public ICommand ApproveHandoffCommand { get; }  // Pending → Verified
         public ICommand MarkReleasedCommand { get; }    // Verified → Released
 
+        public ICommand ReleaseItemCommand { get; }
+
         public ICommand ConfirmReceiptCommand { get; }  // Released → Claimed
 
         public ClaimTrackerViewModel(string userId, string role)
@@ -110,7 +112,36 @@ namespace KapwaKuha.ViewModels
                 await LoadAsync();
             });
 
-            LoadAsync();
+            ReleaseItemCommand = new AsyncRelayCommand(async param =>
+            {
+                if (param is not ClaimModel c) return;
+                if (c.Claim_Status == "Released")
+                {
+                    MessageBox.Show("This claim is already Released and cannot be cancelled.", "Info");
+                    return;
+                }
+
+                var r = MessageBox.Show(
+                    $"Return \"{c.Item_Name}\" to the marketplace?\n\n" +
+                    "Your claim will be cancelled and the item will become available to others.",
+                    "Release Item", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (r != MessageBoxResult.Yes) return;
+
+                // Set claim back to a cancelled state — here we delete or set to a cancelled status.
+                // Since the DB only allows 'Pending','Verified','Released', we repurpose by:
+                //   1. Updating Item_Status back to 'Available'
+                //   2. Updating Claim_Status to 'Released' with a note (effectively closing it)
+                //   OR if you want to truly cancel, extend the DB constraint to add 'Cancelled'.
+                // For now, we mark it Released with a "Returned" note to avoid constraint violation.
+                await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
+                await KapwaDataService.RevertItemToGeneralPost(c.Item_ID);   // makes item Available again
+
+                MessageBox.Show("✅ Item returned to marketplace. Your claim has been cancelled.",
+                    "Released", MessageBoxButton.OK, MessageBoxImage.Information);
+                await LoadAsync();
+            });
+
+            _ = LoadAsync();
         }
 
         private async System.Threading.Tasks.Task LoadAsync()

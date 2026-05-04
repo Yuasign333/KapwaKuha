@@ -78,11 +78,9 @@
                                 <ColumnDefinition Width="12"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="70" Height="70" CornerRadius="10"
-                                    Background="#EBF7FB">
-                                <TextBlock Text="📦" FontSize="36"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
+                            <Border Grid.Column="0" Width="70" Height="70" CornerRadius="10" 
+        Background="{Binding Item_ImagePath }" />
+
                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Item.Item_Name}"
                                            FontSize="16" FontWeight="Bold" Foreground="#03045E"/>

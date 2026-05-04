@@ -1,6 +1,5 @@
 ﻿// FILE: View/ClaimTrackerWindow.xaml.cs
 using System.Windows;
-using KapwaKuha.Services;
 using KapwaKuha.ViewModels;
 
 namespace KapwaKuha.View
@@ -11,7 +10,7 @@ namespace KapwaKuha.View
         {
             InitializeComponent();
             DataContext = new ClaimTrackerViewModel(userId, role);
-            Loaded += (s, e) => NavigationService.SetCurrent(this);
+            Loaded += (s, e) => Services.NavigationService.SetCurrent(this);
         }
     }
 }

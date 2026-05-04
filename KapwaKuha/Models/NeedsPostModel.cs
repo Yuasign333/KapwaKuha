@@ -15,6 +15,7 @@ namespace KapwaKuha.Models
         public string Description { get; set; } = string.Empty;
 
         private string _urgency = "Medium";
+        public string RequesterBeneficiaryId { get; set; } = string.Empty;
 
         public string ImagePath { get; set; } = string.Empty;
         public bool HasImage => !string.IsNullOrEmpty(ImagePath) && System.IO.File.Exists(ImagePath);

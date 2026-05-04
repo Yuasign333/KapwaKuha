@@ -81,7 +81,6 @@ namespace KapwaKuha.ViewModels
             // FIXED: null-safe, checks IsBeneficiary, validates LinkedItemId
             AcceptCommand = new AsyncRelayCommand(async param =>
             {
-                // Guard: only beneficiaries can accept
                 if (!IsBeneficiary) return;
                 if (param is not ChatMessage msg) return;
                 if (string.IsNullOrEmpty(msg.LinkedItemId))
@@ -97,6 +96,9 @@ namespace KapwaKuha.ViewModels
                     "Accept Donation", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (confirm != MessageBoxResult.Yes) return;
 
+                // ── HIDE BUTTONS IMMEDIATELY on UI thread before async work ──
+                Application.Current.Dispatcher.Invoke(() => msg.IsActionable = false);
+
                 try
                 {
                     IsBusy = true;
@@ -105,27 +107,23 @@ namespace KapwaKuha.ViewModels
                     var claim = new ClaimModel
                     {
                         Claim_ID = claimId,
-                        Item_ID = msg.LinkedItemId,   // safe — checked above
+                        Item_ID = msg.LinkedItemId,
                         Item_Name = "",
                         Beneficiary_ID = _myId,
                         Beneficiary_Name = UserSession.FullName,
-                        Claim_Date = System.DateTime.Now,
+                        Claim_Date = DateTime.Now,
                         Claim_Status = "Pending",
                         Handoff_Type = "Pickup",
                         Verification_Notes = "Accepted via chat notification"
                     };
 
-             
-                    var liveMsg = Messages.FirstOrDefault(m => m.LinkedItemId == msg.LinkedItemId
-                                                            && m.IsSystemDirectTarget);
-                    if (liveMsg != null) liveMsg.IsActionable = false;  // ← hides buttons immediately
-
                     var (success, error) = await KapwaDataService.SaveClaim(claim);
                     if (!success)
                     {
-                        // If save failed, restore buttons
-                        if (liveMsg != null) liveMsg.IsActionable = true;
-                        MessageBox.Show(error, "Cannot Accept", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        // Restore buttons if save actually failed
+                        Application.Current.Dispatcher.Invoke(() => msg.IsActionable = true);
+                        MessageBox.Show(error, "Cannot Accept",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                     else
                     {
@@ -134,11 +132,12 @@ namespace KapwaKuha.ViewModels
                             "Please confirm the handoff details.");
                         MessageBox.Show("✅ Donation accepted! Check your Claim Tracker.",
                             "Accepted", MessageBoxButton.OK, MessageBoxImage.Information);
-                        await LoadMessages();   // reload resets the collection — buttons stay hidden via DB state
+                        await LoadMessages();
                     }
                 }
                 catch (Exception ex)
                 {
+                    Application.Current.Dispatcher.Invoke(() => msg.IsActionable = true);
                     MessageBox.Show("Accept failed: " + ex.Message,
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
@@ -151,20 +150,32 @@ namespace KapwaKuha.ViewModels
                 if (param is not ChatMessage msg) return;
                 if (string.IsNullOrEmpty(msg.LinkedItemId)) return;
 
-                // In DeclineCommand — after confirm == Yes:
-                var liveMsg = Messages.FirstOrDefault(m => m.LinkedItemId == msg.LinkedItemId
-                                                        && m.IsSystemDirectTarget);
-                if (liveMsg != null) liveMsg.IsActionable = false;  // ← hides buttons immediately
+                var confirm = MessageBox.Show(
+                    "Decline this donation? The item will be returned to the general marketplace.",
+                    "Decline Donation", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (confirm != MessageBoxResult.Yes) return;
 
-                await KapwaDataService.RevertItemToGeneralPost(msg.LinkedItemId);
-                await KapwaDataService.SaveChatMessage(_myId, _otherId,
-                    "❌ I have declined the donation. The item has been returned to the marketplace.");
-                MessageBox.Show("Item returned to marketplace.", "Declined",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                await LoadMessages();
+                // ── HIDE BUTTONS IMMEDIATELY ──
+                Application.Current.Dispatcher.Invoke(() => msg.IsActionable = false);
+
+                try
+                {
+                    IsBusy = true;
+                    await KapwaDataService.RevertItemToGeneralPost(msg.LinkedItemId);
+                    await KapwaDataService.SaveChatMessage(_myId, _otherId,
+                        "❌ I have declined the donation. The item has been returned to the marketplace.");
+                    MessageBox.Show("Item returned to marketplace.", "Declined",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    await LoadMessages();
+                }
+                catch
+                {
+                    Application.Current.Dispatcher.Invoke(() => msg.IsActionable = true);
+                }
+                finally { IsBusy = false; }
             });
 
-            LoadMessages();
+            _ = LoadMessages();
         }
 
         private async System.Threading.Tasks.Task LoadMessages()

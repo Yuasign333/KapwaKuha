@@ -33,13 +33,32 @@ namespace KapwaKuha.ViewModels
             {
                 if (post is not NeedsPostModel selected) return;
 
-                // Force DirectTarget and lock the beneficiary to the org's post
-                // Navigate to PostItem with the need pre-filled and locked
+                // Guard: must have a resolved beneficiary to target
+                if (string.IsNullOrEmpty(selected.RequesterBeneficiaryId))
+                {
+                    MessageBox.Show(
+                        $"No active beneficiary found in \"{selected.Org_Name}\".\n\n" +
+                        "Please ensure the organization has at least one active member registered.",
+                        "Cannot Fulfill",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Navigate to PostItem:
+                //   - Pre-fill title from the need
+                //   - Lock to DirectTarget mode
+                //   - Pass the DYNAMIC Org_ID so the VM can filter beneficiaries
+                //   - Also pass the specific RequesterBeneficiaryId so it pre-selects correctly
                 NavigationService.Navigate(
-                    new View.PostItemWindow(_donorId, selected.Title, selected.Org_ID, lockDirect: true));
+                    new View.PostItemWindow(
+                        _donorId,
+                        prefillTitle: selected.Title,
+                        lockedOrgId: selected.Org_ID,
+                        lockDirect: true,
+                        lockedBeneficiaryId: selected.RequesterBeneficiaryId));  // ← dynamic
             });
 
-            LoadPostsAsync();
+            _ = LoadPostsAsync();
         }
 
         private async System.Threading.Tasks.Task LoadPostsAsync()

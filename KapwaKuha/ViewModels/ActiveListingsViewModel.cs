@@ -131,7 +131,7 @@ namespace KapwaKuha.ViewModels
                 finally { IsBusy = false; }
             });
 
-            LoadItemsAsync();
+            _ = LoadItemsAsync();
         }
 
         private async System.Threading.Tasks.Task LoadItemsAsync()

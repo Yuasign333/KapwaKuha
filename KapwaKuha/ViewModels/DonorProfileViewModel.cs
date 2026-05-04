@@ -49,6 +49,8 @@ namespace KapwaKuha.ViewModels
         public ICommand BrowsePictureCommand { get; }
         public ICommand SaveCommand { get; }
 
+        public ICommand DeactivateCommand { get; }
+
         public DonorProfileViewModel(string donorId)
         {
             _donorId = donorId;
@@ -81,6 +83,28 @@ namespace KapwaKuha.ViewModels
                     UserSession.Username = Username;
                     MessageBox.Show("✅ Profile updated!", "Saved",
                         MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch { }
+                finally { IsBusy = false; }
+            });
+
+            DeactivateCommand = new AsyncRelayCommand(async _ =>
+            {
+                var confirm = MessageBox.Show(
+                    "Are you sure you want to deactivate your account?\n\n" +
+                    "You will be logged out and will not be able to log in again until reactivated.",
+                    "Deactivate Account",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (confirm != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    IsBusy = true;
+                    await KapwaDataService.DeactivateAccount(_donorId);
+                    MessageBox.Show("Your account has been deactivated.",
+                        "Account Deactivated", MessageBoxButton.OK, MessageBoxImage.Information);
+                    UserSession.Clear();
+                    NavigationService.Navigate(new View.ChooseRoleWindow());
                 }
                 catch { }
                 finally { IsBusy = false; }

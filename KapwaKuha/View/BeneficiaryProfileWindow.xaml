@@ -87,14 +87,12 @@
                                 <MouseBinding MouseAction="LeftClick"
                                               Command="{Binding BrowsePictureCommand}"/>
                             </Border.InputBindings>
-                            <Grid>
-                                <!-- Always-visible light-blue placeholder background -->
-                                <Border Background="#EBF7FB"/>
+                            <Grid Width="100" Height="100">
+                                <Ellipse Fill="#EBF7FB" Stroke="#D1E8F0" StrokeThickness="1"/>
 
-                                <!-- Default icon when no picture chosen -->
                                 <TextBlock Text="👤" FontSize="48"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center">
+               HorizontalAlignment="Center" 
+               VerticalAlignment="Center">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Visible"/>
@@ -107,10 +105,9 @@
                                     </TextBlock.Style>
                                 </TextBlock>
 
-                                <!-- Actual picture fills the square -->
-                                <Image Source="{Binding PicturePath}" Stretch="UniformToFill">
-                                    <Image.Style>
-                                        <Style TargetType="Image">
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
                                             <Setter Property="Visibility" Value="Collapsed"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding HasPicture}" Value="True">
@@ -118,8 +115,11 @@
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </Image.Style>
-                                </Image>
+                                    </Ellipse.Style>
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="{Binding PicturePath}" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
                             </Grid>
                         </Border>
 
@@ -209,6 +209,34 @@
                                 </LinearGradientBrush>
                             </Button.Background>
                             <TextBlock Text="💾  Save Changes"/>
+                        </Button>
+                      
+
+                        <Button Command="{Binding DeactivateCommand}" Height="40"
+        FontSize="12" FontWeight="SemiBold" Foreground="White"
+        BorderThickness="0" Cursor="Hand" Margin="0,20,0,10">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="8" Background="{TemplateBinding Background}" Padding="0,0">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.85"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Button.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#C0304A" Offset="0"/>
+                                    <GradientStop Color="#8B0000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠ " FontSize="13"/>
+                                <TextBlock Text="Deactivate Account" FontSize="12" FontWeight="SemiBold"/>
+                            </StackPanel>
                         </Button>
 
                     </StackPanel>

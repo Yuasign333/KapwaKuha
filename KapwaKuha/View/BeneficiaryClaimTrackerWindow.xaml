@@ -202,61 +202,116 @@
                             </DataGridTemplateColumn>
 
                             <!-- Beneficiary action: Confirm Receipt -->
-                            <DataGridTemplateColumn Header="Action" Width="160" IsReadOnly="True">
+                            <!-- ─────────────────────────────────────────────────────────────
+     Action column — TWO buttons only:
+       1. "Release Item"   = cancel/return the claim (only if Pending)
+       2. "Confirm Receipt" = finalize the handoff (Pending → Released)
+     No Verify button is present in this view.
+     ───────────────────────────────────────────────────────────── -->
+                            <DataGridTemplateColumn Header="Action" Width="220" IsReadOnly="True">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button FontSize="11" FontWeight="SemiBold"
-                                                Foreground="White" BorderThickness="0"
-                                                Cursor="Hand" Margin="6,8" Height="36"
-                                                Command="{Binding DataContext.ConfirmReceiptCommand,
-                                                    RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border CornerRadius="10" Padding="10,0">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <!-- Pending = green — can confirm -->
-                                                                <Setter Property="Background" Value="#2E7D52"/>
-                                                                <Style.Triggers>
-                                                                    <!-- Released = grey — already done -->
-                                                                    <DataTrigger Binding="{Binding Claim_Status}"
-                                                                                 Value="Released">
-                                                                        <Setter Property="Background" Value="#BBBBBB"/>
-                                                                    </DataTrigger>
-                                                                    <!-- Verified = teal — almost done -->
-                                                                    <DataTrigger Binding="{Binding Claim_Status}"
-                                                                                 Value="Verified">
-                                                                        <Setter Property="Background" Value="#0077B6"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <ContentPresenter HorizontalAlignment="Center"
-                                                                          VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Opacity" Value="0.85"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                            <!-- Button label changes with status -->
-                                            <TextBlock VerticalAlignment="Center">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Text" Value="✔ Confirm Receipt"/>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                        HorizontalAlignment="Center" Margin="4,6">
+
+                                            <!-- Button 1: Release Item (cancel claim) -->
+                                            <!-- Visible only when status is Pending or Verified -->
+                                            <!-- Coloured orange/red to signal it is a destructive action -->
+                                            <Button Height="34" Margin="0,0,6,0"
+                        FontSize="11" FontWeight="SemiBold"
+                        Foreground="White" BorderThickness="0" Cursor="Hand"
+                        Command="{Binding DataContext.ReleaseItemCommand,
+                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                        CommandParameter="{Binding}">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border CornerRadius="8" Padding="10,0"
+                                    Background="{TemplateBinding Background}">
+                                                            <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="0.85"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <!-- Active = orange while claim can still be cancelled -->
+                                                        <Setter Property="Background" Value="#D4580A"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Claim_Status}"
-                                                                         Value="Released">
-                                                                <Setter Property="Text" Value="✅ Received"/>
+                                                            <!-- Grey out once Released — cannot un-release -->
+                                                            <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                                <Setter Property="Background" Value="#BBBBBB"/>
+                                                                <Setter Property="IsEnabled" Value="False"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Button>
+                                                </Button.Style>
+                                                <TextBlock VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="↩ Release Item"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                                    <Setter Property="Text" Value="↩ Released"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Button>
+
+                                            <!-- Button 2: Confirm Receipt (finalise) -->
+                                            <!-- Green while actionable; grey once already Released -->
+                                            <Button Height="34"
+                        FontSize="11" FontWeight="SemiBold"
+                        Foreground="White" BorderThickness="0" Cursor="Hand"
+                        Command="{Binding DataContext.ConfirmReceiptCommand,
+                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                        CommandParameter="{Binding}">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border CornerRadius="8" Padding="10,0"
+                                    Background="{TemplateBinding Background}">
+                                                            <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="0.85"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#2E7D52"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                                <Setter Property="Background" Value="#BBBBBB"/>
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                                <TextBlock VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="✔ Confirm Receipt"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                                    <Setter Property="Text" Value="✅ Received"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Button>
+
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

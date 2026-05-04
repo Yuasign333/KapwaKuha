@@ -76,7 +76,8 @@ namespace KapwaKuha.ViewModels
                             DisplayName = b.Beneficiary_FullName,
                             SubText = $"@{b.Beneficiary_Username}  ·  {b.Organization_Name}",
                             LastMessage = "",
-                            UnreadCount = 0
+                            UnreadCount = 0,
+                            ProfilePicturePath = b.ProfilePicturePath ?? string.Empty
                         });
                     ApplySearch();
                 });
@@ -85,18 +86,22 @@ namespace KapwaKuha.ViewModels
             {
                 // Beneficiaries see only donors they have active chats with
                 var donors = await KapwaDataService.GetChatDonorsForBeneficiary(_myId);
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     _allUsers.Clear();
-                    foreach (var (userId, fullName, lastMsg, unread) in donors)
+
+                    foreach (var (userId, fullName, lastMsg, unread, picPath) in donors)
                         _allUsers.Add(new ChatUserRow
                         {
                             UserId = userId,
                             DisplayName = fullName,
                             SubText = "Donor",
                             LastMessage = lastMsg,
-                            UnreadCount = unread
+                            UnreadCount = unread,
+                            ProfilePicturePath = picPath ?? string.Empty
                         });
+
                     ApplySearch();
                 });
             }
@@ -122,6 +127,22 @@ namespace KapwaKuha.ViewModels
         public string DisplayName { get; set; } = string.Empty;
         public string SubText { get; set; } = string.Empty;
         public string LastMessage { get; set; } = string.Empty;
+
+        // --- PROFILE PICTURE FIXES ---
+        private string _profilePicturePath = string.Empty;
+        public string ProfilePicturePath
+        {
+            get => _profilePicturePath;
+            set
+            {
+                _profilePicturePath = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasProfilePicture));
+            }
+        }
+
+        // System.IO.File.Exists removed so URL links load correctly!
+        public bool HasProfilePicture => !string.IsNullOrEmpty(ProfilePicturePath);
 
         private int _unreadCount;
         public int UnreadCount

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using KapwaKuha.Models;
 using Microsoft.Data.SqlClient;
+using System.Linq;
 
 namespace KapwaKuha.Services
 {
@@ -441,6 +442,40 @@ namespace KapwaKuha.Services
             Item_ImagePath = r["Item_ImagePath"].ToString() ?? ""
         };
 
+        public static async Task<List<TransactionRow>> GetDonorTransactionHistory(string donorId)
+        {
+            var list = new List<TransactionRow>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_GetDonorTransactionHistory", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@DonorId", donorId);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    list.Add(new TransactionRow
+                    {
+                        Claim_ID = r["Claim_ID"].ToString() ?? "",
+                        Item_ID = r["Item_ID"].ToString() ?? "",
+                        Item_Name = r["Item_Name"].ToString() ?? "",
+                        Item_ImagePath = r["Item_ImagePath"].ToString() ?? "",
+                        Item_Description = r["Item_Description"].ToString() ?? "",
+                        Category_Name = r["Category_Name"].ToString() ?? "",
+                        Item_Condition = r["Item_Condition"].ToString() ?? "",
+                        Beneficiary_Name = r["Beneficiary_Name"].ToString() ?? "",
+                        Organization_Name = r["Organization_Name"].ToString() ?? "",
+                        Claim_Date = Convert.ToDateTime(r["Claim_Date"]),
+                        Claim_Status = r["Claim_Status"].ToString() ?? "",
+                        Handoff_Type = r["Handoff_Type"].ToString() ?? "",
+                        DaysToRelease = Convert.ToInt32(r["DaysToRelease"])
+                    });
+            }
+            catch (Exception ex)
+            { MessageBox.Show("GetDonorTransactionHistory failed: " + ex.Message); }
+            return list;
+        }
+
         // ══════════════════════════════════════════════════════════════════════
         // CLAIMS  (Weak Entity — parallel to Rentals)
         // ══════════════════════════════════════════════════════════════════════
@@ -693,47 +728,51 @@ namespace KapwaKuha.Services
 public static Task<List<BeneficiaryModel>> GetAllBeneficiariesForChat()
     => GetActiveBeneficiariesFull();
 
-/// <summary>
-/// For beneficiary side: returns donors who have exchanged messages with this beneficiary.
-/// </summary>
-public static async Task<List<(string UserId, string FullName, string LastMessage, int UnreadCount)>>
-    GetChatDonorsForBeneficiary(string beneficiaryId)
-{
-    var list = new List<(string, string, string, int)>();
-    try
-    {
-        using var conn = new SqlConnection(_conn);
-        await conn.OpenAsync();
-        using var cmd = new SqlCommand(@"
-                    SELECT DISTINCT d.Donor_ID, d.Donor_FullName,
-                        (SELECT TOP 1 Message FROM ChatMessages
-                         WHERE (SenderId = d.Donor_ID AND ReceiverId = @bid)
-                            OR (SenderId = @bid AND ReceiverId = d.Donor_ID)
-                         ORDER BY SentAt DESC) AS LastMessage,
-                        (SELECT COUNT(*) FROM ChatMessages
-                         WHERE SenderId = d.Donor_ID AND ReceiverId = @bid AND IsRead = 0) AS UnreadCount
-                    FROM Donors d
-                    WHERE d.Donor_ID IN (
-                        SELECT DISTINCT SenderId   FROM ChatMessages WHERE ReceiverId = @bid
-                        UNION
-                        SELECT DISTINCT ReceiverId FROM ChatMessages WHERE SenderId = @bid
-                    )", conn);
-        cmd.Parameters.AddWithValue("@bid", beneficiaryId);
-        using var r = await cmd.ExecuteReaderAsync();
-        while (await r.ReadAsync())
-            list.Add((
-                r["Donor_ID"].ToString() ?? "",
-                r["Donor_FullName"].ToString() ?? "",
-                r["LastMessage"].ToString() ?? "",
-                Convert.ToInt32(r["UnreadCount"])
-            ));
-    }
-    catch (Exception ex) { MessageBox.Show("GetChatDonorsForBeneficiary failed: " + ex.Message); }
-    return list;
-}
+        /// <summary>
+        /// For beneficiary side: returns donors who have exchanged messages with this beneficiary.
+        /// </summary>
+        // In KapwaDataService.cs — update signature:
+        public static async Task<List<(string UserId, string FullName, string LastMessage,
+                                        int UnreadCount, string ProfilePicturePath)>>
+            GetChatDonorsForBeneficiary(string beneficiaryId)
+        {
+            var list = new List<(string, string, string, int, string)>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(@"
+            SELECT DISTINCT d.Donor_ID, d.Donor_FullName,
+                ISNULL(d.ProfilePicturePath,'') AS ProfilePicturePath,
+                (SELECT TOP 1 Message FROM ChatMessages
+                 WHERE (SenderId = d.Donor_ID AND ReceiverId = @bid)
+                    OR (SenderId = @bid AND ReceiverId = d.Donor_ID)
+                 ORDER BY SentAt DESC) AS LastMessage,
+                (SELECT COUNT(*) FROM ChatMessages
+                 WHERE SenderId = d.Donor_ID AND ReceiverId = @bid AND IsRead = 0) AS UnreadCount
+            FROM Donors d
+            WHERE d.Donor_ID IN (
+                SELECT DISTINCT SenderId   FROM ChatMessages WHERE ReceiverId = @bid
+                UNION
+                SELECT DISTINCT ReceiverId FROM ChatMessages WHERE SenderId = @bid
+            )", conn);
+                cmd.Parameters.AddWithValue("@bid", beneficiaryId);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    list.Add((
+                        r["Donor_ID"].ToString() ?? "",
+                        r["Donor_FullName"].ToString() ?? "",
+                        r["LastMessage"].ToString() ?? "",
+                        Convert.ToInt32(r["UnreadCount"]),
+                        r["ProfilePicturePath"].ToString() ?? ""
+                    ));
+            }
+            catch (Exception ex) { MessageBox.Show("GetChatDonorsForBeneficiary failed: " + ex.Message); }
+            return list;
+        }
 
-// Legacy tuple version used by ClaimProcessViewModel
-public static async Task<List<(string Id, string DisplayName)>> GetActiveBeneficiaries()
+        // Legacy tuple version used by ClaimProcessViewModel
+        public static async Task<List<(string Id, string DisplayName)>> GetActiveBeneficiaries()
 {
     var full = await GetActiveBeneficiariesFull();
     var result = new List<(string, string)>();
@@ -810,20 +849,13 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
         public static async Task<List<NeedsPostModel>> GetOpenNeedsPosts()
         {
             var list = new List<NeedsPostModel>();
-            const string sql = @"
-        SELECT n.NeedsPost_ID, n.Org_ID, n.Title, n.Description,
-               n.Urgency, n.Status, n.Post_Date,
-               ISNULL(n.ImagePath,'') AS ImagePath,
-               o.Organization_Name AS Org_Name
-        FROM NeedsPosts n
-        LEFT JOIN Organization o ON o.Organization_ID = n.Org_ID
-        WHERE n.Status = 'Open'
-        ORDER BY CASE n.Urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END";
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(sql, conn);
+                // Use the stored procedure so RequesterBeneficiaryId is populated
+                using var cmd = new SqlCommand("sp_GetOpenNeedsPosts", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync()) list.Add(MapNeedsPost(r));
             }
@@ -875,8 +907,9 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
             Description = r["Description"].ToString() ?? "",
             Urgency = r["Urgency"].ToString() ?? "Medium",
             Status = r["Status"].ToString() ?? "Open",
+            Post_Date = Convert.ToDateTime(r["Post_Date"]),
             ImagePath = r["ImagePath"].ToString() ?? "",
-            Post_Date = Convert.ToDateTime(r["Post_Date"])
+            RequesterBeneficiaryId = r["RequesterBeneficiaryId"].ToString() ?? ""  // ← ADD
         };
 
         // ══════════════════════════════════════════════════════════════════════
@@ -949,7 +982,11 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
                 }
             }
             catch (Exception ex) { MessageBox.Show("GetChatMessages failed: " + ex.Message); }
-            return list;
+            return list
+        .GroupBy(m => m.Id)
+        .Select(g => g.First())
+        .OrderBy(m => m.Time)
+        .ToList();
         }
 
         public static async Task<List<(string UserId, string FullName, string LastMessage, int UnreadCount)>>
@@ -1111,6 +1148,21 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
             catch (Exception ex)
             { MessageBox.Show("GetBeneficiaryById failed: " + ex.Message); }
             return null;
+        }
+
+        public static async Task DeactivateAccount(string userId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_DeactivateAccount", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            { MessageBox.Show("DeactivateAccount failed: " + ex.Message); throw; }
         }
 
         // ══════════════════════════════════════════════════════════════════════
