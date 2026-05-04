@@ -24,21 +24,35 @@ namespace KapwaKuha.ViewModels
             set { _statusMessage = value; OnPropertyChanged(); }
         }
 
-    
-        // For Donor action column (Approve + Mark Released) — visible to DONOR only
-        public bool ShowDonorActions => _role == "Donor";
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
+        }
 
-        // For Beneficiary Confirm Receipt button — visible to BENEFICIARY only
-        public bool ShowConfirmReceiptButton => _role == "Beneficiary";
+        // FIX: FilterCategory filters by CATEGORY_NAME (not Claim_Status)
+        // FilterStatus filters by claim status separately
+        private string _filterCategory = "All";
+        public string FilterCategory
+        {
+            get => _filterCategory;
+            set { _filterCategory = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        private string _filterStatus = "All";
+        public string FilterStatus
+        {
+            get => _filterStatus;
+            set { _filterStatus = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        private List<ClaimModel> _allClaims = new();
 
         public ICommand BackCommand { get; }
         public ICommand RefreshCommand { get; }
-        public ICommand ApproveHandoffCommand { get; }  // Pending → Verified
-        public ICommand MarkReleasedCommand { get; }    // Verified → Released
-
-        public ICommand ReleaseItemCommand { get; }
-
-        public ICommand ConfirmReceiptCommand { get; }  // Released → Claimed
+        // Renamed command — beneficiary marks their item as received
+        public ICommand ConfirmReceiptCommand { get; }
 
         public ClaimTrackerViewModel(string userId, string role)
         {
@@ -55,90 +69,46 @@ namespace KapwaKuha.ViewModels
 
             RefreshCommand = new AsyncRelayCommand(async _ => await LoadAsync());
 
-            ApproveHandoffCommand = new AsyncRelayCommand(async param =>
-            {
-                if (param is not ClaimModel c) return;
-                if (c.Claim_Status != "Pending")
-                {
-                    MessageBox.Show("Only Pending claims can be approved.", "Info");
-                    return;
-                }
-                var r = MessageBox.Show(
-                    $"Approve handoff for \"{c.Item_Name}\"?\nThis moves it to Verified.",
-                    "Approve Handoff", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (r != MessageBoxResult.Yes) return;
-
-                await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Verified");
-                MessageBox.Show("✅ Claim marked Verified.", "Updated",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                await LoadAsync();
-            });
-
-            MarkReleasedCommand = new AsyncRelayCommand(async param =>
-            {
-                if (param is not ClaimModel c) return;
-                if (c.Claim_Status != "Verified")
-                {
-                    MessageBox.Show("Only Verified claims can be marked Released.", "Info");
-                    return;
-                }
-                var r = MessageBox.Show(
-                    $"Mark \"{c.Item_Name}\" as Released?\nThis completes the donation.",
-                    "Mark Released", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (r != MessageBoxResult.Yes) return;
-
-                await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
-                MessageBox.Show("✅ Claim marked Released. Item is now Claimed.",
-                    "Completed", MessageBoxButton.OK, MessageBoxImage.Information);
-                await LoadAsync();
-            });
-
             ConfirmReceiptCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not ClaimModel c) return;
+
                 if (c.Claim_Status == "Released")
                 {
-                    MessageBox.Show("This claim is already Released.", "Info");
-                    return;
-                }
-                var r = MessageBox.Show(
-                    $"Confirm you received \"{c.Item_Name}\"?\nThis marks the donation as complete.",
-                    "Confirm Receipt", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (r != MessageBoxResult.Yes) return;
-
-                await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
-                MessageBox.Show("✅ Receipt confirmed! Donation is now complete.",
-                    "Done", MessageBoxButton.OK, MessageBoxImage.Information);
-                await LoadAsync();
-            });
-
-            ReleaseItemCommand = new AsyncRelayCommand(async param =>
-            {
-                if (param is not ClaimModel c) return;
-                if (c.Claim_Status == "Released")
-                {
-                    MessageBox.Show("This claim is already Released and cannot be cancelled.", "Info");
+                    MessageBox.Show("✅ This item is already marked as received.",
+                        "Already Done", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
-                var r = MessageBox.Show(
-                    $"Return \"{c.Item_Name}\" to the marketplace?\n\n" +
-                    "Your claim will be cancelled and the item will become available to others.",
-                    "Release Item", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (r != MessageBoxResult.Yes) return;
+                var confirm = MessageBox.Show(
+                    $"Confirm that you received \"{c.Item_Name}\"?\n\n" +
+                    "This will mark the claim as complete in the system.",
+                    "Confirm Receipt",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-                // Set claim back to a cancelled state — here we delete or set to a cancelled status.
-                // Since the DB only allows 'Pending','Verified','Released', we repurpose by:
-                //   1. Updating Item_Status back to 'Available'
-                //   2. Updating Claim_Status to 'Released' with a note (effectively closing it)
-                //   OR if you want to truly cancel, extend the DB constraint to add 'Cancelled'.
-                // For now, we mark it Released with a "Returned" note to avoid constraint violation.
-                await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
-                await KapwaDataService.RevertItemToGeneralPost(c.Item_ID);   // makes item Available again
+                if (confirm != MessageBoxResult.Yes) return;
 
-                MessageBox.Show("✅ Item returned to marketplace. Your claim has been cancelled.",
-                    "Released", MessageBoxButton.OK, MessageBoxImage.Information);
-                await LoadAsync();
+                try
+                {
+                    await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
+
+                    // Update in-memory immediately for instant UI feedback
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        c.Claim_Status = "Released";
+                    });
+
+                    MessageBox.Show("✅ Item marked as received! Thank you.",
+                        "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // Full reload to sync with DB
+                    await LoadAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Update failed: " + ex.Message,
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             });
 
             _ = LoadAsync();
@@ -156,12 +126,37 @@ namespace KapwaKuha.ViewModels
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Claims.Clear();
-                    foreach (var c in claims) Claims.Add(c);
-                    StatusMessage = $"{Claims.Count} claim(s) found.";
+                    _allClaims = claims;
+                    ApplyFilter();
                 });
             }
             catch { }
+        }
+
+        private void ApplyFilter()
+        {
+            Claims.Clear();
+            var q = _searchText?.Trim().ToLower() ?? string.Empty;
+
+            foreach (var c in _allClaims)
+            {
+                bool matchSearch = string.IsNullOrEmpty(q) ||
+                                   (c.Item_Name?.ToLower().Contains(q) ?? false) ||
+                                   (c.Beneficiary_Name?.ToLower().Contains(q) ?? false) ||
+                                   (c.Claim_ID?.ToLower().Contains(q) ?? false);
+
+                // Filter by Category_Name (Fix 3 — category filter)
+                bool matchCat = _filterCategory == "All" ||
+                                string.Equals(c.Category_Name, _filterCategory,
+                                    StringComparison.OrdinalIgnoreCase);
+
+                // Separate status filter
+                bool matchStatus = _filterStatus == "All" ||
+                                   c.Claim_Status == _filterStatus;
+
+                if (matchSearch && matchCat && matchStatus) Claims.Add(c);
+            }
+            StatusMessage = $"{Claims.Count} claim(s) shown.";
         }
     }
 }

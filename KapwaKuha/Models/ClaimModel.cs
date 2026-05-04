@@ -14,6 +14,8 @@ namespace KapwaKuha.Models
         public string Beneficiary_Name { get; set; } = string.Empty;
         public DateTime Claim_Date { get; set; } = DateTime.Now;
 
+        public string Category_Name { get; set; } = string.Empty;
+
         public bool HasItemImage =>
             !string.IsNullOrEmpty(Item_ImagePath) &&
             System.IO.File.Exists(Item_ImagePath);

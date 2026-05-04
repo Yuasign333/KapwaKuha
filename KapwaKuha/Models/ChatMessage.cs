@@ -11,9 +11,11 @@ namespace KapwaKuha.Models
         public string Text { get; set; } = string.Empty;
         public string Time { get; set; } = string.Empty;
 
+        // Stored per-message — never shared between messages
         public string LinkedItemId { get; set; } = string.Empty;
         public string LinkedItemPath { get; set; } = string.Empty;
 
+        // Controls button visibility — set to false after Accept or Decline
         private bool _isActionable = true;
         public bool IsActionable
         {
@@ -23,14 +25,23 @@ namespace KapwaKuha.Models
                 _isActionable = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsAcceptableByReceiver));
+                OnPropertyChanged(nameof(ShowActionButtons));
             }
         }
+
+        // True only when: system direct-target message + receiver is viewing + not yet acted on
+        public bool IsSystemDirectTarget =>
+            !string.IsNullOrEmpty(LinkedItemId) && Text.Contains("reserved for you");
 
         public bool IsAcceptableByReceiver =>
             IsSystemDirectTarget && !IsFromUser && IsActionable;
 
-        public bool IsSystemDirectTarget =>
-            !string.IsNullOrEmpty(LinkedItemId) && Text.Contains("reserved for you");
+        // Alias used by XAML BoolToVis for the button panel
+        public bool ShowActionButtons => IsAcceptableByReceiver;
+
+        // Is this an image-only message (sent via Send Image button)
+        public bool IsImageMessage => Text.StartsWith("[IMG]");
+        public string ImagePath => IsImageMessage ? Text[5..] : string.Empty;
 
         private bool _isFromUser;
         public bool IsFromUser
@@ -43,11 +54,9 @@ namespace KapwaKuha.Models
                 OnPropertyChanged(nameof(Alignment));
                 OnPropertyChanged(nameof(BubbleBackground));
                 OnPropertyChanged(nameof(IsAcceptableByReceiver));
+                OnPropertyChanged(nameof(ShowActionButtons));
             }
         }
-
-        public bool IsImageMessage => Text.StartsWith("[IMG]");
-        public string ImagePath => IsImageMessage ? Text[5..] : string.Empty;
 
         public string Alignment => IsFromUser ? "Right" : "Left";
         public string BubbleBackground => IsFromUser ? "#00B4D8" : "#FFFFFF";

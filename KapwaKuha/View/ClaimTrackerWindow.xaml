@@ -30,7 +30,6 @@
                 <RowDefinition Height="36"/>
             </Grid.RowDefinitions>
 
-            <!-- Top bar -->
             <Border Grid.Row="0" Background="#0077B6">
                 <Grid Margin="20,0">
                     <Grid.ColumnDefinitions>
@@ -54,7 +53,6 @@
                 </Grid>
             </Border>
 
-            <!-- Main content -->
             <Border Grid.Row="1" CornerRadius="16" Margin="20,14,20,20" BorderThickness="1.5">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -79,19 +77,64 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Row="0" Margin="20,16,20,10">
-                        <TextBlock Text="📦 My Claim Tracker" FontSize="16" FontWeight="Bold" Foreground="#03045E"/>
-                        <TextBlock FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="Items donated directly to you or claimed from marketplace"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ShowDonorActions}" Value="True">
-                                            <Setter Property="Text" Value="Claims on items you have donated — advance status here"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <TextBlock Text="📦 My Claims" FontSize="16" FontWeight="Bold" Foreground="#03045E"/>
+                        <TextBlock Text="Items claimed from the marketplace or donated directly to you."
+                                   FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="160"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" CornerRadius="8" BorderBrush="#90E0EF"
+                                    BorderThickness="1.5" Background="White" Padding="10,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="🔍" VerticalAlignment="Center"
+                                               Margin="0,0,6,0" Foreground="#5E7A8A"/>
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="34" Background="Transparent" BorderThickness="0"
+                                             FontSize="12" VerticalContentAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2" CornerRadius="8" BorderBrush="#90E0EF"
+                                    BorderThickness="1.5" Background="White">
+                                <ComboBox SelectedValue="{Binding FilterCategory}"
+                                          SelectedValuePath="Content"
+                                          Height="34" Background="Transparent" BorderThickness="0"
+                                          FontSize="12" Padding="10,0">
+                                    <ComboBoxItem Content="All" IsSelected="True"/>
+                                    <ComboBoxItem Content="Clothing"/>
+                                    <ComboBoxItem Content="Food"/>
+                                    <ComboBoxItem Content="Electronics"/>
+                                    <ComboBoxItem Content="Medicine"/>
+                                    <ComboBoxItem Content="School Supplies"/>
+                                </ComboBox>
+                            </Border>
+
+                            <Border Grid.Column="4" CornerRadius="8" BorderBrush="#90E0EF"
+                                    BorderThickness="1.5" Background="White">
+                                <ComboBox SelectedValue="{Binding FilterStatus}"
+                                          SelectedValuePath="Content"
+                                          Height="34" Background="Transparent" BorderThickness="0"
+                                          FontSize="12" Padding="10,0">
+                                    <ComboBoxItem Content="All" IsSelected="True"/>
+                                    <ComboBoxItem Content="Pending"/>
+                                    <ComboBoxItem Content="Verified"/>
+                                    <ComboBoxItem Content="Released"/>
+                                    <ComboBoxItem Content="Cancelled"/>
+                                </ComboBox>
+                            </Border>
+                        </Grid>
                     </StackPanel>
 
                     <DataGrid Grid.Row="1" ItemsSource="{Binding Claims}"
@@ -115,17 +158,13 @@
                         </DataGrid.ColumnHeaderStyle>
 
                         <DataGrid.Columns>
-
-                            <!-- Photo -->
-                            <DataGridTemplateColumn Header="Photo" Width="70">
+                            <DataGridTemplateColumn Header="Photo" Width="70" IsReadOnly="True">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border Width="50" Height="50" CornerRadius="8"
-                                                ClipToBounds="True" Margin="6,4">
+                                        <Border Width="52" Height="52" CornerRadius="8" ClipToBounds="True" Margin="6,4">
                                             <Grid>
                                                 <Border Background="#EBF7FB"/>
-                                                <TextBlock Text="📦" FontSize="22"
-                                                           HorizontalAlignment="Center"
+                                                <TextBlock Text="📦" FontSize="24" HorizontalAlignment="Center"
                                                            VerticalAlignment="Center">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
@@ -138,8 +177,7 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                                <Image Source="{Binding Item_ImagePath}"
-                                                       Stretch="UniformToFill">
+                                                <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill">
                                                     <Image.Style>
                                                         <Style TargetType="Image">
                                                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -158,7 +196,7 @@
                             </DataGridTemplateColumn>
 
                             <DataGridTextColumn Header="Claim ID" Binding="{Binding Claim_ID}"
-                                                Width="80" IsReadOnly="True"/>
+                                                Width="90" IsReadOnly="True"/>
 
                             <DataGridTextColumn Header="Item Name" Binding="{Binding Item_Name}"
                                                 Width="*" IsReadOnly="True">
@@ -166,29 +204,33 @@
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Beneficiary"
-                                                Binding="{Binding Beneficiary_Name}"
-                                                Width="130" IsReadOnly="True">
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category_Name}"
+                                                Width="120" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="FontSize" Value="12"/>
-                                        <Setter Property="Foreground" Value="#03045E"/>
+                                        <Setter Property="FontSize" Value="11"/>
+                                        <Setter Property="Foreground" Value="#0077B6"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Handoff"
-                                                Binding="{Binding Handoff_Type}"
-                                                Width="110" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Handoff" Binding="{Binding Handoff_Type}"
+                                                Width="110" IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Claim Date"
-                                                Binding="{Binding ClaimDateDisplay}"
-                                                Width="150" IsReadOnly="True">
+                            <DataGridTextColumn Header="Claim Date" Binding="{Binding ClaimDateDisplay}"
+                                                Width="160" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontSize" Value="11"/>
@@ -198,105 +240,33 @@
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
 
-                            <!-- Status badge -->
-                            <DataGridTemplateColumn Header="Status" Width="110">
+                            <DataGridTemplateColumn Header="Status" Width="120" IsReadOnly="True">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border CornerRadius="10" Padding="10,4"
-                                                HorizontalAlignment="Left" Margin="4,0"
-                                                Background="{Binding StatusBadgeBackground}">
-                                            <TextBlock Text="{Binding Claim_Status}"
-                                                       FontSize="11" FontWeight="SemiBold"
-                                                       Foreground="{Binding StatusBadgeColor}"/>
+                                        <Border CornerRadius="10" Padding="12,5" HorizontalAlignment="Left"
+                                                Margin="6,0" Background="{Binding StatusBadgeBackground}">
+                                            <TextBlock Text="{Binding Claim_Status}" FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{Binding StatusBadgeColor}" VerticalAlignment="Center"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <!-- Action buttons — Donor only -->
-                            <!-- Donor-only: Approve Handoff button -->
-                            <DataGridTemplateColumn Header="Approve" Width="120"
-    Visibility="{Binding DataContext.ShowDonorActions,
-        RelativeSource={RelativeSource AncestorType=DataGrid},
-        Converter={StaticResource BoolToVis}}">
+                            <DataGridTemplateColumn Header="Action" Width="150" IsReadOnly="True">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <!-- Pending → Verified -->
-                                            <Button Content="✔ Verify"
-                        FontSize="10" FontWeight="SemiBold"
-                        Foreground="White" BorderThickness="0"
-                        Cursor="Hand" Margin="2,4"
-                        Command="{Binding DataContext.ApproveHandoffCommand,
-                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                        CommandParameter="{Binding}">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border CornerRadius="8" Background="#0077B6" Padding="7,4">
-                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Opacity" Value="0.85"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                            </Button>
-                                            <!-- Verified → Released -->
-                                            <Button Content="🚀 Release"
-                        FontSize="10" FontWeight="SemiBold"
-                        Foreground="White" BorderThickness="0"
-                        Cursor="Hand" Margin="2,4"
-                        Command="{Binding DataContext.MarkReleasedCommand,
-                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                        CommandParameter="{Binding}">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border CornerRadius="8" Background="#2E7D52" Padding="7,4">
-                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Opacity" Value="0.85"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                            </Button>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-
-                            <!-- Beneficiary-only: Confirm Receipt button -->
-                            <DataGridTemplateColumn Header="Action" Width="150"
-    Visibility="{Binding DataContext.ShowConfirmReceiptButton,
-        RelativeSource={RelativeSource AncestorType=DataGrid},
-        Converter={StaticResource BoolToVis}}">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="✔ Confirm Receipt"
-                    FontSize="11" FontWeight="SemiBold"
-                    Foreground="White" BorderThickness="0"
-                    Cursor="Hand" Margin="4,6"
-                    Command="{Binding DataContext.ConfirmReceiptCommand,
-                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                    CommandParameter="{Binding}">
+                                        <Button Height="34" Margin="6,6"
+                                                FontSize="11" FontWeight="SemiBold"
+                                                Foreground="White" BorderThickness="0" Cursor="Hand"
+                                                Command="{Binding DataContext.ConfirmReceiptCommand,
+                                                    RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
-                                                    <Border CornerRadius="8" Padding="8,4">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Background" Value="#2E7D52"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
-                                                                        <Setter Property="Background" Value="#AAAAAA"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    <Border CornerRadius="8" Padding="10,0"
+                                                            Background="{TemplateBinding Background}">
+                                                        <ContentPresenter HorizontalAlignment="Center"
+                                                                          VerticalAlignment="Center"/>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
@@ -305,6 +275,36 @@
                                                     </ControlTemplate.Triggers>
                                                 </ControlTemplate>
                                             </Button.Template>
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Background" Value="#2E7D52"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                            <Setter Property="Background" Value="#BBBBBB"/>
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Claim_Status}" Value="Cancelled">
+                                                            <Setter Property="Background" Value="#BBBBBB"/>
+                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                            <TextBlock VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="✔ Item Received"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Claim_Status}" Value="Released">
+                                                                <Setter Property="Text" Value="✅ Received"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Claim_Status}" Value="Cancelled">
+                                                                <Setter Property="Text" Value="❌ Cancelled"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Button>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -315,7 +315,6 @@
                 </Grid>
             </Border>
 
-            <!-- Status bar -->
             <Border Grid.Row="2" Background="#03045E" Padding="20,0">
                 <TextBlock Text="{Binding StatusMessage}"
                            Foreground="#90E0EF" FontSize="11" VerticalAlignment="Center"/>

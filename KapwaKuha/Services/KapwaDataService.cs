@@ -44,27 +44,50 @@ namespace KapwaKuha.Services
         // ══════════════════════════════════════════════════════════════════════
 
         public static async Task<(bool OK, string UserId, string FullName, string Username)>
-            LoginDonor(string username, string password)
+     LoginDonor(string username, string password)
         {
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-                    SELECT d.Donor_ID, d.Donor_FullName, d.Donor_Username
-                    FROM Donors d
-                    INNER JOIN Users u ON u.UserID = d.Donor_ID
-                    WHERE d.Donor_Username = @uname AND u.Password = @pw", conn);
+            SELECT d.Donor_ID, d.Donor_FullName, d.Donor_Username,
+                   u.IsActive
+            FROM Donors d
+            INNER JOIN Users u ON u.UserID = d.Donor_ID
+            WHERE d.Donor_Username = @uname AND u.Password = @pw", conn);
                 cmd.Parameters.AddWithValue("@uname", username);
                 cmd.Parameters.AddWithValue("@pw", password);
                 using var r = await cmd.ExecuteReaderAsync();
                 if (await r.ReadAsync())
-                    return (true,
-                        r["Donor_ID"].ToString() ?? "",
-                        r["Donor_FullName"].ToString() ?? "",
-                        r["Donor_Username"].ToString() ?? "");
+                {
+                    string userId = r["Donor_ID"].ToString() ?? "";
+                    string fullName = r["Donor_FullName"].ToString() ?? "";
+                    string uname = r["Donor_Username"].ToString() ?? "";
+                    bool isActive = Convert.ToBoolean(r["IsActive"]);
+                    r.Close();
+
+                    if (!isActive)
+                    {
+                        var reactivate = System.Windows.MessageBox.Show(
+                            "Your account is currently deactivated.\n\nWould you like to reactivate it?",
+                            "Account Deactivated",
+                            System.Windows.MessageBoxButton.YesNo,
+                            System.Windows.MessageBoxImage.Question);
+
+                        if (reactivate != System.Windows.MessageBoxResult.Yes)
+                            return (false, "", "", "");
+
+                        using var c2 = new SqlCommand(
+                            "UPDATE Users SET IsActive = 1 WHERE UserID = @id", conn);
+                        c2.Parameters.AddWithValue("@id", userId);
+                        await c2.ExecuteNonQueryAsync();
+                    }
+
+                    return (true, userId, fullName, uname);
+                }
             }
-            catch (Exception ex) { MessageBox.Show("LoginDonor failed: " + ex.Message); }
+            catch (Exception ex) { System.Windows.MessageBox.Show("LoginDonor failed: " + ex.Message); }
             return (false, "", "", "");
         }
 
@@ -76,22 +99,45 @@ namespace KapwaKuha.Services
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-                    SELECT b.Beneficiary_ID,
-                           b.Beneficiary_FullName AS FullName,
-                           b.Beneficiary_Username AS Username
-                    FROM Beneficiaries b
-                    INNER JOIN Users u ON u.UserID = b.Beneficiary_ID
-                    WHERE b.Beneficiary_Username = @uname AND u.Password = @pw", conn);
+            SELECT b.Beneficiary_ID,
+                   b.Beneficiary_FullName AS FullName,
+                   b.Beneficiary_Username AS Username,
+                   u.IsActive
+            FROM Beneficiaries b
+            INNER JOIN Users u ON u.UserID = b.Beneficiary_ID
+            WHERE b.Beneficiary_Username = @uname AND u.Password = @pw", conn);
                 cmd.Parameters.AddWithValue("@uname", username);
                 cmd.Parameters.AddWithValue("@pw", password);
                 using var r = await cmd.ExecuteReaderAsync();
                 if (await r.ReadAsync())
-                    return (true,
-                        r["Beneficiary_ID"].ToString() ?? "",
-                        r["FullName"].ToString() ?? "",
-                        r["Username"].ToString() ?? "");
+                {
+                    string userId = r["Beneficiary_ID"].ToString() ?? "";
+                    string fullName = r["FullName"].ToString() ?? "";
+                    string uname = r["Username"].ToString() ?? "";
+                    bool isActive = Convert.ToBoolean(r["IsActive"]);
+                    r.Close();
+
+                    if (!isActive)
+                    {
+                        var reactivate = System.Windows.MessageBox.Show(
+                            "Your account is currently deactivated.\n\nWould you like to reactivate it?",
+                            "Account Deactivated",
+                            System.Windows.MessageBoxButton.YesNo,
+                            System.Windows.MessageBoxImage.Question);
+
+                        if (reactivate != System.Windows.MessageBoxResult.Yes)
+                            return (false, "", "", "");
+
+                        using var c2 = new SqlCommand(
+                            "UPDATE Users SET IsActive = 1 WHERE UserID = @id", conn);
+                        c2.Parameters.AddWithValue("@id", userId);
+                        await c2.ExecuteNonQueryAsync();
+                    }
+
+                    return (true, userId, fullName, uname);
+                }
             }
-            catch (Exception ex) { MessageBox.Show("LoginBeneficiary failed: " + ex.Message); }
+            catch (Exception ex) { System.Windows.MessageBox.Show("LoginBeneficiary failed: " + ex.Message); }
             return (false, "", "", "");
         }
 
@@ -658,6 +704,7 @@ namespace KapwaKuha.Services
             Item_ID = r["Item_ID"].ToString() ?? "",
             Item_Name = r["Item_Name"].ToString() ?? "",
             Item_ImagePath = r["Item_ImagePath"].ToString() ?? "",
+            Category_Name = r["Category_Name"].ToString() ?? "",  // ADD
             Beneficiary_ID = r["Beneficiary_ID"].ToString() ?? "",
             Beneficiary_Name = r["Beneficiary_Name"].ToString() ?? "",
             Claim_Date = Convert.ToDateTime(r["Claim_Date"]),
@@ -666,7 +713,84 @@ namespace KapwaKuha.Services
             Handoff_Type = r["Handoff_Type"].ToString() ?? "Pickup"
         };
 
-     
+        public static async Task UpdateNeedsPost(NeedsPostModel post)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(@"
+            UPDATE NeedsPosts
+            SET Title       = @title,
+                Description = @desc,
+                Urgency     = @urg,
+                ImagePath   = @img
+            WHERE NeedsPost_ID = @id", conn);
+                cmd.Parameters.AddWithValue("@title", post.Title);
+                cmd.Parameters.AddWithValue("@desc", post.Description);
+                cmd.Parameters.AddWithValue("@urg", post.Urgency);
+                cmd.Parameters.AddWithValue("@img", post.ImagePath ?? "");
+                cmd.Parameters.AddWithValue("@id", post.NeedsPost_ID);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            { MessageBox.Show("UpdateNeedsPost failed: " + ex.Message); throw; }
+        }
+
+        public static async Task DeleteNeedsPost(string postId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(
+                    "DELETE FROM NeedsPosts WHERE NeedsPost_ID = @id", conn);
+                cmd.Parameters.AddWithValue("@id", postId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            { MessageBox.Show("DeleteNeedsPost failed: " + ex.Message); throw; }
+        }
+
+        public static async Task<List<NeedsPostModel>> GetNeedsPostsByOrg(string orgId)
+        {
+            var list = new List<NeedsPostModel>();
+            if (string.IsNullOrEmpty(orgId)) return list;
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(@"
+            SELECT n.NeedsPost_ID, n.Org_ID, n.Title, n.Description,
+                   n.Urgency, n.Status, n.Post_Date,
+                   ISNULL(n.ImagePath,'') AS ImagePath,
+                   ISNULL(o.Organization_Name,'') AS Org_Name
+            FROM NeedsPosts n
+            LEFT JOIN Organization o ON o.Organization_ID = n.Org_ID
+            WHERE n.Org_ID = @oid
+            ORDER BY n.Post_Date DESC", conn);
+                cmd.Parameters.AddWithValue("@oid", orgId);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    list.Add(new NeedsPostModel
+                    {
+                        NeedsPost_ID = r["NeedsPost_ID"].ToString() ?? "",
+                        Org_ID = r["Org_ID"].ToString() ?? "",
+                        Org_Name = r["Org_Name"].ToString() ?? "",
+                        Title = r["Title"].ToString() ?? "",
+                        Description = r["Description"].ToString() ?? "",
+                        Urgency = r["Urgency"].ToString() ?? "Medium",
+                        Status = r["Status"].ToString() ?? "Open",
+                        Post_Date = Convert.ToDateTime(r["Post_Date"]),
+                        ImagePath = r["ImagePath"].ToString() ?? ""
+                    });
+            }
+            catch (Exception ex)
+            { MessageBox.Show("GetNeedsPostsByOrg failed: " + ex.Message); }
+            return list;
+        }
+
+
 
         public static async Task UpdateItem(ItemModel item)
         {
@@ -936,28 +1060,11 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
         {
             var list = new List<ChatMessage>();
             const string sql = @"
-        SELECT cm.Id, cm.SenderId, cm.ReceiverId, cm.Message, cm.SentAt,
-               -- Try to find a DirectTarget item linked to this sender/receiver pair
-               ISNULL((
-                   SELECT TOP 1 i.Item_ID
-                   FROM Items i
-                   WHERE i.Donor_ID = cm.SenderId
-                     AND i.TargetBeneficiary_ID = cm.ReceiverId
-                     AND i.PostType = 'DirectTarget'
-                     AND cm.Message LIKE N'%reserved for you%'
-               ), '') AS LinkedItemId,
-               ISNULL((
-                   SELECT TOP 1 i.Item_ImagePath
-                   FROM Items i
-                   WHERE i.Donor_ID = cm.SenderId
-                     AND i.TargetBeneficiary_ID = cm.ReceiverId
-                     AND i.PostType = 'DirectTarget'
-                     AND cm.Message LIKE N'%reserved for you%'
-               ), '') AS LinkedItemPath
-        FROM ChatMessages cm
-        WHERE (cm.SenderId = @u1 AND cm.ReceiverId = @u2)
-           OR (cm.SenderId = @u2 AND cm.ReceiverId = @u1)
-        ORDER BY cm.SentAt ASC";
+SELECT cm.Id, cm.SenderId, cm.ReceiverId, cm.Message, cm.SentAt
+FROM ChatMessages cm
+WHERE (cm.SenderId = @u1 AND cm.ReceiverId = @u2)
+   OR (cm.SenderId = @u2 AND cm.ReceiverId = @u1)
+ORDER BY cm.SentAt ASC";
             try
             {
                 using var conn = new SqlConnection(_conn);
@@ -966,27 +1073,88 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
                 cmd.Parameters.AddWithValue("@u1", userId1);
                 cmd.Parameters.AddWithValue("@u2", userId2);
                 using var r = await cmd.ExecuteReaderAsync();
+
+                var rawMessages = new System.Collections.Generic.List<(int Id, string SenderId,
+                    string ReceiverId, string Message, System.DateTime SentAt)>();
                 while (await r.ReadAsync())
+                    rawMessages.Add((
+                        Convert.ToInt32(r["Id"]),
+                        r["SenderId"].ToString() ?? "",
+                        r["ReceiverId"].ToString() ?? "",
+                        r["Message"].ToString() ?? "",
+                        Convert.ToDateTime(r["SentAt"])
+                    ));
+                r.Close(); // Close reader so the connection is freed for subsequent queries
+
+                // For each DirectTarget system message, extract the item name from the message text
+                // then look up the specific item (only items between THIS sender and receiver pair)
+                foreach (var raw in rawMessages)
                 {
+                    string linkedItemId = string.Empty;
+                    string linkedItemPath = string.Empty;
+
+                    if (raw.Message.Contains("reserved for you") &&
+                        raw.Message.Contains("Item: \""))
+                    {
+                        // Extract item name from message: Item: "NAME" (
+                        int start = raw.Message.IndexOf("Item: \"") + 7;
+                        int end = raw.Message.IndexOf("\"", start);
+                        if (start > 6 && end > start)
+                        {
+                            string itemName = raw.Message[start..end];
+                            // Find the specific item for this donor->beneficiary pair with that name
+                            using var c2 = new SqlCommand(@"
+                SELECT TOP 1 Item_ID, ISNULL(Item_ImagePath,'') AS Item_ImagePath
+                FROM Items
+                WHERE Donor_ID = @sid
+                  AND TargetBeneficiary_ID = @rid
+                  AND Item_Name = @iname
+                  AND PostType = 'DirectTarget'
+                ORDER BY Date_Found DESC", conn);
+                            c2.Parameters.AddWithValue("@sid", raw.SenderId);
+                            c2.Parameters.AddWithValue("@rid", raw.ReceiverId);
+                            c2.Parameters.AddWithValue("@iname", itemName);
+                            using var r2 = await c2.ExecuteReaderAsync();
+                            if (await r2.ReadAsync())
+                            {
+                                linkedItemId = r2["Item_ID"].ToString() ?? "";
+                                linkedItemPath = r2["Item_ImagePath"].ToString() ?? "";
+                            }
+                        }
+                    }
+
+                    bool alreadyActioned = false;
+                    if (!string.IsNullOrEmpty(linkedItemId) && raw.ReceiverId == userId1)
+                    {
+                        // Check if beneficiary (userId1) already has a claim on this item
+                        using var c3 = new SqlCommand(@"
+        SELECT COUNT(*) FROM Claims
+        WHERE Item_ID        = @iid
+          AND Beneficiary_ID = @bid", conn);
+    c3.Parameters.AddWithValue("@iid", linkedItemId);
+    c3.Parameters.AddWithValue("@bid", userId1);
+    var countObj = await c3.ExecuteScalarAsync();
+    var count = (countObj is DBNull || countObj == null) ? 0 : Convert.ToInt32(countObj);
+    alreadyActioned = count > 0;
+}
+
                     list.Add(new ChatMessage
                     {
-                        Id = Convert.ToInt32(r["Id"]),
-                        SenderId = r["SenderId"].ToString() ?? "",
-                        ReceiverId = r["ReceiverId"].ToString() ?? "",
-                        Text = r["Message"].ToString() ?? "",
-                        Time = Convert.ToDateTime(r["SentAt"]).ToString("HH:mm"),
-                        LinkedItemId = r["LinkedItemId"].ToString() ?? "",
-                        LinkedItemPath = r["LinkedItemPath"].ToString() ?? "",
-                        IsFromUser = r["SenderId"].ToString() == userId1
+                        Id = raw.Id,
+                        SenderId = raw.SenderId,
+                        ReceiverId = raw.ReceiverId,
+                        Text = raw.Message,
+                        Time = raw.SentAt.ToString("HH:mm"),
+                        LinkedItemId = linkedItemId,
+                        LinkedItemPath = linkedItemPath,
+                        IsFromUser = raw.SenderId == userId1,
+                        // KEY FIX: if claim already exists → IsActionable=false → buttons stay hidden
+                        IsActionable = !alreadyActioned
                     });
                 }
             }
             catch (Exception ex) { MessageBox.Show("GetChatMessages failed: " + ex.Message); }
-            return list
-        .GroupBy(m => m.Id)
-        .Select(g => g.First())
-        .OrderBy(m => m.Time)
-        .ToList();
+            return list;
         }
 
         public static async Task<List<(string UserId, string FullName, string LastMessage, int UnreadCount)>>
