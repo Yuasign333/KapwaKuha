@@ -74,79 +74,85 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="280" CornerRadius="16" Margin="0,0,14,14"
-                                        Background="White" Padding="0,0,0,14">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#000000" BlurRadius="16"
-                                                          ShadowDepth="0" Opacity="0.08"/>
-                                    </Border.Effect>
-                                    <StackPanel>
-                                        <!-- Urgency color bar -->
-                                        <Border Height="6" CornerRadius="16,16,0,0"
-                                                Background="{Binding UrgencyTextColor}"/>
+                                <Button Command="{Binding DataContext.DonateToNeedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+            CommandParameter="{Binding}" Width="260" Margin="0,0,14,14"
+            BorderThickness="0" Padding="0" Background="Transparent" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="16" Background="White" x:Name="CardBorder">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="0" Opacity="0.08"/>
+                                                </Border.Effect>
+                                                <StackPanel>
+                                                    <Border Height="5" CornerRadius="16,16,0,0" Background="{Binding UrgencyTextColor}"/>
 
-                                        <StackPanel Margin="16,12,16,0">
-                                            <!-- Urgency badge -->
-                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                                <Border CornerRadius="6" Padding="8,3"
-                                                        Background="{Binding UrgencyColor}">
-                                                    <TextBlock Text="{Binding Urgency}"
-                                                               FontSize="10" FontWeight="Bold"
-                                                               Foreground="{Binding UrgencyTextColor}"/>
-                                                </Border>
-                                                <Border CornerRadius="6" Padding="8,3" Margin="6,0,0,0"
-                                                        Background="#F0F8FF">
-                                                    <TextBlock Text="{Binding Status}"
-                                                               FontSize="10" Foreground="#0077B6"/>
-                                                </Border>
-                                            </StackPanel>
+                                                    <Border Height="160" ClipToBounds="True">
+                                                        <Grid>
+                                                            <Border>
+                                                                <Border.Background>
+                                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                        <GradientStop Color="#FFF0F0" Offset="0"/>
+                                                                        <GradientStop Color="#FFE4E4" Offset="1"/>
+                                                                    </LinearGradientBrush>
+                                                                </Border.Background>
+                                                            </Border>
+                                                            <TextBlock Text="🆘" FontSize="54" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasImage}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                            <Image Source="{Binding ImagePath}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Image.Style>
+                                                                    <Style TargetType="Image">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasImage}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Image.Style>
+                                                            </Image>
+                                                            <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,8,8,0" CornerRadius="6" Padding="8,3" Background="{Binding UrgencyColor}">
+                                                                <TextBlock Text="{Binding Urgency}" FontSize="10" FontWeight="Bold" Foreground="{Binding UrgencyTextColor}"/>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Border>
 
-                                            <TextBlock Text="{Binding Title}"
-                                                       FontSize="14" FontWeight="Bold"
-                                                       Foreground="#03045E" TextWrapping="Wrap"
-                                                       Margin="0,0,0,6"/>
-                                            <TextBlock Text="{Binding Org_Name}"
-                                                       FontSize="11" Foreground="#0077B6"
-                                                       Margin="0,0,0,6"/>
-                                            <TextBlock Text="{Binding Description}"
-                                                       FontSize="11" Foreground="#5E7A8A"
-                                                       TextWrapping="Wrap" MaxHeight="48"
-                                                       Margin="0,0,0,10"/>
-                                            <TextBlock Text="{Binding PostDateDisplay}"
-                                                       FontSize="10" Foreground="#AAAAAA"
-                                                       Margin="0,0,0,12"/>
+                                                    <StackPanel Margin="14,10,14,14">
+                                                        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="#03045E" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="40" Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding Org_Name}" FontSize="11" Foreground="#0077B6" Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#5E7A8A" TextWrapping="Wrap" MaxHeight="36" TextTrimming="CharacterEllipsis" Margin="0,0,0,6"/>
+                                                        <TextBlock Text="{Binding PostDateDisplay}" FontSize="10" Foreground="#AAAAAA" Margin="0,0,0,10"/>
 
-                                            <!-- Donate to this need button -->
-                                            <Button Command="{Binding DataContext.DonateToNeedCommand,
-                                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Height="36" FontSize="12" FontWeight="SemiBold"
-                                                    Foreground="White" BorderThickness="0" Cursor="Hand">
-                                                <Button.Template>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Border CornerRadius="8"
-                                                                Background="{TemplateBinding Background}">
-                                                            <ContentPresenter HorizontalAlignment="Center"
-                                                                              VerticalAlignment="Center"/>
+                                                        <Border CornerRadius="8" Padding="0,8">
+                                                            <Border.Background>
+                                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                    <GradientStop Color="#00B4D8" Offset="0"/>
+                                                                    <GradientStop Color="#0077B6" Offset="1"/>
+                                                                </LinearGradientBrush>
+                                                            </Border.Background>
+                                                            <TextBlock Text="🤲  Donate for This Need" FontSize="12" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center"/>
                                                         </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Opacity" Value="0.85"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Button.Template>
-                                                <Button.Background>
-                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                        <GradientStop Color="#00B4D8" Offset="0"/>
-                                                        <GradientStop Color="#0077B6" Offset="1"/>
-                                                    </LinearGradientBrush>
-                                                </Button.Background>
-                                                <TextBlock Text="🤲  Donate for This Need"/>
-                                            </Button>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="CardBorder" Property="BorderBrush" Value="#00B4D8"/>
+                                                    <Setter TargetName="CardBorder" Property="BorderThickness" Value="1.5"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

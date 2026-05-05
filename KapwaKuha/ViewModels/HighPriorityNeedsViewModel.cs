@@ -61,6 +61,7 @@ namespace KapwaKuha.ViewModels
             _ = LoadPostsAsync();
         }
 
+        // REPLACE LoadPostsAsync entirely:
         private async System.Threading.Tasks.Task LoadPostsAsync()
         {
             IsBusy = true;
@@ -70,9 +71,9 @@ namespace KapwaKuha.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     NeedsPosts.Clear();
-                    // Only show Open posts — Fulfilled ones auto-removed here
+                    // Auto-fulfillment trigger is REMOVED — only beneficiary delete removes a post.
                     foreach (var p in posts)
-                        if (p.Status == "Open") NeedsPosts.Add(p);
+                        NeedsPosts.Add(p);
                 });
             }
             catch { }

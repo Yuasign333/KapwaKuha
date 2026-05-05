@@ -54,6 +54,8 @@ namespace KapwaKuha.ViewModels
         // Renamed command — beneficiary marks their item as received
         public ICommand ConfirmReceiptCommand { get; }
 
+        public ICommand UpdateClaimStatusCommand { get; }
+
         public ClaimTrackerViewModel(string userId, string role)
         {
             _userId = userId;
@@ -102,6 +104,47 @@ namespace KapwaKuha.ViewModels
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     // Full reload to sync with DB
+                    await LoadAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Update failed: " + ex.Message,
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            });
+
+            UpdateClaimStatusCommand = new AsyncRelayCommand(async param =>
+            {
+                if (param is not ClaimModel c) return;
+
+                string newStatus = c.SelectedStatusOption switch
+                {
+                    "Released/Received" => "Released",
+                    "Cancelled" => "Cancelled",
+                    _ => "Pending"
+                };
+
+                if (newStatus == c.Claim_Status)
+                {
+                    MessageBox.Show("Status is already " + c.Claim_Status + ".",
+                        "No Change", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var confirm = MessageBox.Show(
+                    $"Update claim \"{c.Item_Name}\" to {newStatus}?",
+                    "Confirm Status Update", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (confirm != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    await KapwaDataService.UpdateClaimStatus(c.Claim_ID, newStatus);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        c.Claim_Status = newStatus;
+                    });
+                    MessageBox.Show($"✅ Status updated to {newStatus}.",
+                        "Done", MessageBoxButton.OK, MessageBoxImage.Information);
                     await LoadAsync();
                 }
                 catch (Exception ex)

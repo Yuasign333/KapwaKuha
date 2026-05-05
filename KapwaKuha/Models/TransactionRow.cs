@@ -19,6 +19,7 @@ namespace KapwaKuha.Models
         public string Claim_Status { get; set; } = string.Empty;
         public string Handoff_Type { get; set; } = string.Empty;
         public int DaysToRelease { get; set; }
+        public string Donor_FullName { get; set; } = string.Empty;
 
         public string ClaimDateDisplay => Claim_Date.ToString("MMM dd, yyyy  HH:mm");
         public bool HasImage =>

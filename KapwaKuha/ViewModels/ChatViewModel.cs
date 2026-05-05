@@ -127,12 +127,29 @@ namespace KapwaKuha.ViewModels
                     }
                     else
                     {
+                        // Task 6 Fix 1: Auto-send a default coordination message
                         await KapwaDataService.SaveChatMessage(_myId, _otherId,
-                            $"✅ I have accepted the donation! Claim ID: {claimId}. " +
-                            "Please confirm the handoff details.");
-                        MessageBox.Show("✅ Donation accepted! Check your Claim Tracker.",
-                            "Accepted", MessageBoxButton.OK, MessageBoxImage.Information);
-                        await LoadMessages();
+                            "✅ I've accepted your donation! How would you like to arrange the handoff? " +
+                            "Please let me know if you prefer: 📦 Pickup, 🚚 Delivery, or 🎪 Donation Drive event.");
+
+                        // Buttons permanently hidden (IsActionable already false)
+
+                        // Task 6 Fix 2: Navigate directly to ClaimItemWindow with the linked item
+                        // so the beneficiary can immediately complete the handoff details
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            // Build a lightweight ItemModel from what we know
+                            var itemForClaim = new ItemModel
+                            {
+                                Item_ID = msg.LinkedItemId,
+                                Item_Name = msg.LinkedItemId, // ID shown until full load
+                                Donor_ID = _otherId,
+                                Item_ImagePath = msg.LinkedItemPath ?? string.Empty
+                            };
+
+                            NavigationService.Navigate(
+                                new View.ClaimItemWindow(_myId, itemForClaim));
+                        });
                     }
                 }
                 catch (Exception ex)

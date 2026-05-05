@@ -522,6 +522,58 @@ namespace KapwaKuha.Services
             return list;
         }
 
+        public static async Task<List<TransactionRow>> GetBeneficiaryTransactionHistory(string beneficiaryId)
+        {
+            var list = new List<TransactionRow>();
+            try
+            {
+                using var conn = new SqlConnection(_conn); // Uses your class-level connection string
+                await conn.OpenAsync();
+
+                using var cmd = new SqlCommand("sp_GetBeneficiaryTransactionHistory", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@BeneficiaryId", beneficiaryId);
+
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                {
+                    list.Add(new TransactionRow
+                    {
+                        Claim_ID = r["Claim_ID"].ToString() ?? "",
+                        Item_ID = r["Item_ID"].ToString() ?? "",
+                        Item_Name = r["Item_Name"].ToString() ?? "",
+                        Item_ImagePath = r["Item_ImagePath"].ToString() ?? "",
+                        Item_Description = r["Item_Description"].ToString() ?? "",
+                        Category_Name = r["Category_Name"].ToString() ?? "",
+                        Item_Condition = r["Item_Condition"].ToString() ?? "",
+
+                        // Note: You might want to add Donor_Name to TransactionRow if you haven't already, 
+                        // since Beneficiaries usually want to see who donated it!
+                        Donor_FullName = r["Donor_Name"].ToString() ?? "",
+                        Organization_Name = r["Organization_Name"].ToString() ?? "",
+
+                        Claim_Date = r["Claim_Date"] != DBNull.Value ? Convert.ToDateTime(r["Claim_Date"]) : DateTime.MinValue,
+                        Claim_Status = r["Claim_Status"].ToString() ?? "",
+                        Handoff_Type = r["Handoff_Type"].ToString() ?? "",
+
+                        // Safe check in case DaysToRelease comes back null
+                        DaysToRelease = r["DaysToRelease"] != DBNull.Value ? Convert.ToInt32(r["DaysToRelease"]) : 0
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("GetBeneficiaryTransactionHistory failed: " + ex.Message);
+            }
+            return list;
+        }
+
+        public static async Task<ItemModel?> GetItemById(string itemId)
+        {
+            var all = await GetAllItems();
+            return all.FirstOrDefault(i => i.Item_ID == itemId);
+        }
+
         // ══════════════════════════════════════════════════════════════════════
         // CLAIMS  (Weak Entity — parallel to Rentals)
         // ══════════════════════════════════════════════════════════════════════
@@ -532,12 +584,14 @@ namespace KapwaKuha.Services
             const string sql = @"
         SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
                cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
-               ISNULL(cl.Handoff_Type,'Pickup') AS Handoff_Type,
-               ISNULL(i.Item_Name,'') AS Item_Name,
-               ISNULL(i.Item_ImagePath,'') AS Item_ImagePath,
-               ISNULL(b.Beneficiary_FullName,'') AS Beneficiary_Name
+               ISNULL(cl.Handoff_Type,'Pickup')        AS Handoff_Type,
+               ISNULL(i.Item_Name,'')                  AS Item_Name,
+               ISNULL(i.Item_ImagePath,'')             AS Item_ImagePath,
+               ISNULL(c.Category_Name,'')              AS Category_Name,
+               ISNULL(b.Beneficiary_FullName,'')       AS Beneficiary_Name
         FROM Claims cl
         LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
+        LEFT JOIN Category      c ON c.Category_ID    = i.Category_ID
         LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID";
             try
             {
@@ -555,6 +609,36 @@ namespace KapwaKuha.Services
         {
             var all = await GetAllClaims();
             return all.FindAll(c => c.Beneficiary_ID == beneficiaryId);
+        }
+        // Beneficiary transaction history — all claims by this beneficiary with full item details
+        public static async Task<List<ClaimModel>> GetClaimHistoryByBeneficiary(string beneficiaryId)
+        {
+            var list = new List<ClaimModel>();
+            const string sql = @"
+        SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
+               cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
+               ISNULL(cl.Handoff_Type,'Pickup')        AS Handoff_Type,
+               ISNULL(i.Item_Name,'')                  AS Item_Name,
+               ISNULL(i.Item_ImagePath,'')             AS Item_ImagePath,
+               ISNULL(c.Category_Name,'')              AS Category_Name,
+               ISNULL(b.Beneficiary_FullName,'')       AS Beneficiary_Name
+        FROM Claims cl
+        LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
+        LEFT JOIN Category      c ON c.Category_ID    = i.Category_ID
+        LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID
+        WHERE cl.Beneficiary_ID = @bid
+        ORDER BY cl.Claim_Date DESC";
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@bid", beneficiaryId);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync()) list.Add(MapClaim(r));
+            }
+            catch (Exception ex) { MessageBox.Show("GetClaimHistoryByBeneficiary failed: " + ex.Message); }
+            return list;
         }
 
         public static async Task<(bool Success, string Error)> SaveClaim(ClaimModel claim)
@@ -663,12 +747,14 @@ namespace KapwaKuha.Services
             const string sql = @"
         SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
                cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
-               ISNULL(cl.Handoff_Type,'Pickup') AS Handoff_Type,
-               ISNULL(i.Item_Name,'') AS Item_Name,
-               ISNULL(i.Item_ImagePath,'') AS Item_ImagePath,
-               ISNULL(b.Beneficiary_FullName,'') AS Beneficiary_Name
+               ISNULL(cl.Handoff_Type,'Pickup')        AS Handoff_Type,
+               ISNULL(i.Item_Name,'')                  AS Item_Name,
+               ISNULL(i.Item_ImagePath,'')             AS Item_ImagePath,
+               ISNULL(c.Category_Name,'')              AS Category_Name,
+               ISNULL(b.Beneficiary_FullName,'')       AS Beneficiary_Name
         FROM Claims cl
         LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
+        LEFT JOIN Category      c ON c.Category_ID    = i.Category_ID
         LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID
         WHERE i.Donor_ID = @did
         ORDER BY cl.Claim_Date DESC";
@@ -736,6 +822,24 @@ namespace KapwaKuha.Services
             catch (Exception ex)
             { MessageBox.Show("UpdateNeedsPost failed: " + ex.Message); throw; }
         }
+
+        // Updates only the urgency level of an existing NeedsPost
+        public static async Task UpdateNeedsPostUrgency(string postId, string newUrgency)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(
+                    "UPDATE NeedsPosts SET Urgency = @urg WHERE NeedsPost_ID = @id", conn);
+                cmd.Parameters.AddWithValue("@urg", newUrgency);
+                cmd.Parameters.AddWithValue("@id", postId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex) { MessageBox.Show("UpdateNeedsPostUrgency failed: " + ex.Message); throw; }
+        }
+
+
 
         public static async Task DeleteNeedsPost(string postId)
         {

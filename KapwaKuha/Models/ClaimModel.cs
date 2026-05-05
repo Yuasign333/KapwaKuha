@@ -16,6 +16,9 @@ namespace KapwaKuha.Models
 
         public string Category_Name { get; set; } = string.Empty;
 
+        // Maps Claim_Status to the ComboBox human-readable option
+        private string _selectedStatusOption = "Pending";
+
         public bool HasItemImage =>
             !string.IsNullOrEmpty(Item_ImagePath) &&
             System.IO.File.Exists(Item_ImagePath);
@@ -33,6 +36,28 @@ namespace KapwaKuha.Models
             }
         }
 
+        // Add to ClaimModel.cs after Claim_Status property:
+
+
+        public string SelectedStatusOption
+        {
+            get => _status switch
+            {
+                "Released" => "Released/Received",
+                "Cancelled" => "Cancelled",
+                _ => "Pending"
+            };
+            set
+            {
+                // Map back from human-readable to DB value
+                Claim_Status = value switch
+                {
+                    "Released/Received" => "Released",
+                    "Cancelled" => "Cancelled",
+                    _ => "Pending"
+                };
+            }
+        }
         public string Verification_Notes { get; set; } = string.Empty;
         public string Handoff_Type { get; set; } = "Pickup";
 

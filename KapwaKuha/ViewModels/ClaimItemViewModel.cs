@@ -165,6 +165,21 @@ namespace KapwaKuha.ViewModels
                     MessageBox.Show($"✅ Claimed! Your Claim ID: {claimId}",
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
+                    // Auto-confirm back to donor in chat
+                    try
+                    {
+                        // _donorId not available directly — get from Item.Donor_ID
+                        await KapwaDataService.SaveChatMessage(
+                            _beneficiaryId,
+                            Item.Donor_ID,
+                            $"✅ Claim confirmed! Claim ID: {claimId}. " +
+                            $"Handoff: {HandoffType}" +
+                            (string.IsNullOrEmpty(Location) ? "" : $" at {Location}") +
+                            (IsDonationDrive && !string.IsNullOrEmpty(EventName) ? $" — Event: {EventName}" : "") +
+                            ". Thank you for your generosity! 🙏");
+                    }
+                    catch { /* chat message optional — don't block the claim */ }
+
                     NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId));
                 }
                 catch { }
