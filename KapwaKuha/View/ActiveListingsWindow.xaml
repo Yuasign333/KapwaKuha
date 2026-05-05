@@ -14,12 +14,15 @@
         <Rectangle>
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#CAF0F8" Offset="0"/>
-                    <GradientStop Color="#90E0EF" Offset="1"/>
+                    <GradientStop Color="White" Offset="0"/>
+                    <GradientStop Color="LightSkyBlue" Offset="1"/>
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity ="0.10" Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center" Height="2808" RenderTransformOrigin="0.5,0.5" />
+        <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.05"
+               Width="1980" Height="2808"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="56"/>
@@ -27,7 +30,6 @@
                 <RowDefinition Height="36"/>
             </Grid.RowDefinitions>
 
-            <!-- Top bar -->
             <Border Grid.Row="0" Background="#0077B6">
                 <Grid Margin="20,0">
                     <Grid.ColumnDefinitions>
@@ -35,9 +37,11 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+
                     <Button Grid.Column="0" Command="{Binding BackCommand}"
                             Content="← Back" Background="Transparent" BorderThickness="0"
                             Foreground="White" FontSize="13" Cursor="Hand" VerticalAlignment="Center"/>
+
                     <StackPanel Grid.Column="1" Orientation="Horizontal"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="KAPWAKUHA  /  " FontSize="12" FontWeight="Black"
@@ -45,138 +49,233 @@
                         <TextBlock Text="Active Listings" FontSize="14" FontWeight="Bold"
                                    Foreground="White" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <Button Command="{Binding RefreshCommand}"
-            Content="⟳" Background="Transparent" BorderThickness="0"
-            Foreground="#CAF0F8" FontSize="16" Cursor="Hand"
-            VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <Button Command="{Binding EditPostCommand}"
-            IsEnabled="{Binding CanEditSelected}"
-            Background="Transparent" BorderThickness="0"
-            Foreground="#90E0EF" FontSize="12" Cursor="Hand"
-            VerticalAlignment="Center" Margin="0,0,10,0">
-                            <TextBlock Text="✏ Edit"/>
-                        </Button>
-                        <Button Command="{Binding DeleteItemCommand}"
-            IsEnabled="{Binding IsItemSelected}"
-            Background="Transparent" BorderThickness="0"
-            Foreground="#FF8A80" FontSize="12" Cursor="Hand"
-            VerticalAlignment="Center">
-                            <TextBlock Text="🗑 Delete"/>
-                        </Button>
-                    </StackPanel>
+
+                    <Button Grid.Column="2" Command="{Binding RefreshCommand}"
+                            Content="⟳ Refresh" Background="Transparent" BorderThickness="0"
+                            Foreground="#CAF0F8" FontSize="12" Cursor="Hand"
+                            VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
-            <!-- Main: DataGrid -->
-           <Border Grid.Row="1" Margin="20,16" CornerRadius="22" Padding="24" BorderThickness="1.5">
-    
-    <Border.BorderBrush>
-        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="White" Offset="0"/>
-            <GradientStop Color="#33FFFFFF" Offset="1"/>
-        </LinearGradientBrush>
-    </Border.BorderBrush>
+            <Grid Grid.Row="1" Margin="20,14,20,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="380"/>
+                </Grid.ColumnDefinitions>
 
-    <Border.Background>
-        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#CCFFFFFF" Offset="0"/>
-            <GradientStop Color="#66FFFFFF" Offset="1"/>
-        </LinearGradientBrush>
-    </Border.Background>
+                <Border Grid.Column="0" CornerRadius="16" BorderThickness="1.5" Padding="0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                            <GradientStop Color="#66FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="White" Offset="0"/>
+                            <GradientStop Color="#33FFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                    <Border.Effect>
+                        <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
+                    </Border.Effect>
 
-    <Border.Effect>
-        <DropShadowEffect Color="#0077B6" BlurRadius="40" ShadowDepth="2" Opacity="0.2"/>
-    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Margin="20,16,20,12">
+                            <TextBlock Text="📋 My Posted Items" FontSize="15"
+                                       FontWeight="Bold" Foreground="#03045E"/>
+                            <TextBlock Text="All items you have donated. Select an item on the list to edit or delete it."
+                                       FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0"/>
+                        </StackPanel>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="📋 My Posted Items" FontSize="20" FontWeight="Bold" Foreground="#03045E"/>
-            <TextBlock Text="All items you have donated. Select an item then click Delete to remove Available items."
-                       FontSize="12" Foreground="#5E7A8A" Margin="0,4,0,0" TextWrapping="Wrap"/>
-        </StackPanel>
+                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding Items}"
+                                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                 Background="Transparent" BorderThickness="0"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#EBF7FB"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F0F8FB"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
 
-        <ListView Grid.Row="1" ItemsSource="{Binding Items}"
-                  SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                  Background="Transparent" BorderThickness="0"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  HorizontalContentAlignment="Stretch">
-            
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Padding" Value="0"/>
-                    <Setter Property="Margin" Value="0,0,0,12"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListViewItem">
-                                <Border x:Name="Bd" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
-                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
-                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#1AFFFFFF"/>
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#3300B4D8"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListView.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="16,12" BorderBrush="#EBF7FB" BorderThickness="0,0,0,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2*"/>
+                                                <ColumnDefinition Width="1.5*"/>
+                                                <ColumnDefinition Width="120"/>
+                                                <ColumnDefinition Width="100"/>
+                                            </Grid.ColumnDefinitions>
 
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border CornerRadius="12" BorderBrush="#B390E0EF" BorderThickness="1.2" 
-                            Background="#4DFFFFFF" Padding="16,14">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/> <ColumnDefinition Width="1.5*"/> <ColumnDefinition Width="120"/> <ColumnDefinition Width="100"/> </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Item_Name}" FontSize="14" FontWeight="Bold" 
+                                                           Foreground="#03045E" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Item_ID, StringFormat='ID: {0}'}" 
+                                                           FontSize="11" Foreground="#5E7A8A" Margin="0,2,0,0"/>
+                                            </StackPanel>
 
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Item_Name}" FontSize="15" FontWeight="Bold" Foreground="#03045E" TextTrimming="CharacterEllipsis"/>
-                                <TextBlock Text="{Binding Item_ID, StringFormat='ID: {0}'}" FontSize="11" Foreground="#5E7A8A" Margin="0,2,0,0"/>
-                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                <TextBlock Text="{Binding Category_Name}" FontSize="12" FontWeight="SemiBold" Foreground="#0077B6"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                    <TextBlock Text="{Binding Item_Condition}" FontSize="11" Foreground="#5E7A8A"/>
+                                                    <TextBlock Text=" • " FontSize="11" Foreground="#90E0EF"/>
+                                                    <TextBlock Text="{Binding PostType}" FontSize="11" Foreground="#5E7A8A"/>
+                                                </StackPanel>
+                                            </StackPanel>
 
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                <TextBlock Text="{Binding Category_Name}" FontSize="13" FontWeight="SemiBold" Foreground="#0077B6"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                    <TextBlock Text="{Binding Item_Condition}" FontSize="11" Foreground="#5E7A8A"/>
-                                    <TextBlock Text=" • " FontSize="11" Foreground="#90E0EF"/>
-                                    <TextBlock Text="{Binding PostType}" FontSize="11" Foreground="#5E7A8A"/>
+                                            <Border Grid.Column="2" CornerRadius="8" Padding="12,4" 
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                    Background="{Binding StatusBadgeBackground}">
+                                                <TextBlock Text="{Binding Item_Status}" FontSize="11" FontWeight="Bold" 
+                                                           Foreground="{Binding StatusBadgeColor}" HorizontalAlignment="Center"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <TextBlock Text="Posted" FontSize="10" Foreground="#5E7A8A" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding StorageDaysDisplay}" FontSize="12" FontWeight="SemiBold" 
+                                                           Foreground="#03045E" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2" CornerRadius="16" BorderThickness="1.5" Padding="24">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                            <GradientStop Color="#66FFFFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.BorderBrush>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="White" Offset="0"/>
+                            <GradientStop Color="#33FFFF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.BorderBrush>
+                    <Border.Effect>
+                        <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
+                    </Border.Effect>
+
+                    <StackPanel>
+                        <TextBlock Text="⚙️ Manage Selected Item" FontSize="15"
+                                   FontWeight="Bold" Foreground="#03045E" Margin="0,0,0,6"/>
+                        <TextBlock Text="Edit details or remove the item from listings."
+                                   FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,24"/>
+
+                        <TextBlock Text="← Select an item to manage it"
+                                   FontSize="13" Foreground="#90A4AE"
+                                   HorizontalAlignment="Center" Margin="0,40,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsItemSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <StackPanel Visibility="{Binding IsItemSelected, Converter={StaticResource BoolToVis}}">
+
+                            <TextBlock Text="Selected Item" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="#0A2540" Margin="4,0,0,8"/>
+
+                            <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+                                    Padding="16,12" Background="#80FFFFFF" Margin="0,0,0,24">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SelectedItem.Item_Name}" FontSize="15" FontWeight="Bold" Foreground="#03045E" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedItem.Category_Name}" FontSize="13" Foreground="#0077B6" Margin="0,4,0,8"/>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="Condition: " FontSize="12" Foreground="#5E7A8A"/>
+                                        <TextBlock Text="{Binding SelectedItem.Item_Condition}" FontSize="12" FontWeight="SemiBold" Foreground="#0A2540"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Status: " FontSize="12" Foreground="#5E7A8A"/>
+                                        <TextBlock Text="{Binding SelectedItem.Item_Status}" FontSize="12" FontWeight="SemiBold" Foreground="{Binding SelectedItem.StatusBadgeColor}"/>
+                                    </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
-
-                            <Border Grid.Column="2" CornerRadius="10" Padding="12,6" 
-                                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    Background="{Binding StatusBadgeBackground}">
-                                <TextBlock Text="{Binding Item_Status}" FontSize="11" FontWeight="Bold" 
-                                           Foreground="{Binding StatusBadgeColor}" HorizontalAlignment="Center"/>
                             </Border>
 
-                            <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                <TextBlock Text="Posted" FontSize="10" Foreground="#5E7A8A" HorizontalAlignment="Right"/>
-                                <TextBlock Text="{Binding StorageDaysDisplay}" FontSize="12" FontWeight="SemiBold" Foreground="#03045E" HorizontalAlignment="Right"/>
-                            </StackPanel>
-                            
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </Grid>
-</Border>
+                            <Button Command="{Binding EditPostCommand}"
+                                    IsEnabled="{Binding CanEditSelected}"
+                                    Height="44" FontSize="13" FontWeight="Bold"
+                                    Foreground="White" BorderThickness="0"
+                                    Cursor="Hand" Margin="0,0,0,12">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="EditBorder" CornerRadius="10" Background="#00B4D8">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="EditBorder" Property="Opacity" Value="0.9"/>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter TargetName="EditBorder" Property="Background" Value="#B0BEC5"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#00B4D8" Offset="0"/>
+                                        <GradientStop Color="#0077B6" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Button.Background>
+                                <TextBlock Text="✏️  Edit Details"/>
+                            </Button>
 
-            <!-- Status bar -->
+                            <Button Command="{Binding DeleteItemCommand}"
+                                    Height="44" FontSize="13" FontWeight="Bold"
+                                    Foreground="White" Background="#C0304A"
+                                    BorderThickness="0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border CornerRadius="10" Background="{TemplateBinding Background}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Opacity" Value="0.85"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <TextBlock Text="🗑️  Delete This Item"/>
+                            </Button>
+
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
             <Border Grid.Row="2" Background="#03045E" Padding="20,0">
                 <TextBlock Text="{Binding StatusMessage}"
                            Foreground="#90E0EF" FontSize="11" VerticalAlignment="Center"/>
