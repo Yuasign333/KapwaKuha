@@ -33,6 +33,8 @@ namespace KapwaKuha.Models
         public string TargetBeneficiary_ID { get; set; } = string.Empty;
         public string Item_Description { get; set; } = string.Empty;
 
+
+
         // Computed helper used by GetAvailableItems filter
         public bool IsGeneralPost => PostType == "GeneralPost";
         public bool IsDirectTarget => PostType == "DirectTarget";
@@ -55,10 +57,15 @@ namespace KapwaKuha.Models
             System.IO.File.Exists(Item_ImagePath);
 
         public int StorageDays => (DateTime.Now - Date_Found).Days;
-        public string StorageDaysDisplay =>
-            StorageDays == 0 ? "Posted today" :
-            StorageDays == 1 ? "1 day posted" :
-            $"{StorageDays} days posted";
+        public string StorageDaysDisplay
+        {
+            get => StorageDays == 0 ? "Posted today" :
+                   StorageDays == 1 ? "1 day posted" :
+                   $"{StorageDays} days posted";
+
+            // Add this empty setter to stop WPF from crashing on OneWayToSource/TwoWay bindings
+            set { }
+        }
 
         public string StatusBadgeBackground => Item_Status switch
         {

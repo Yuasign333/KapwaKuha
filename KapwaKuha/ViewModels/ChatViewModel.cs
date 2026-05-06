@@ -81,46 +81,57 @@ namespace KapwaKuha.ViewModels
             // FIXED: null-safe, checks IsBeneficiary, validates LinkedItemId
             AcceptCommand = new AsyncRelayCommand(async param =>
             {
-                if (!IsBeneficiary) return;
-                if (param is not ChatMessage msg) return;
-                if (string.IsNullOrEmpty(msg.LinkedItemId))
+
+                try
                 {
-                    MessageBox.Show("No item linked to this message.",
-                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    if (!IsBeneficiary) return;
+                    if (param is not ChatMessage msg) return;
+                    if (string.IsNullOrEmpty(msg.LinkedItemId))
+                    {
+                        MessageBox.Show("No item linked to this message.",
+                            "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    // Build the item from what we know — ClaimItemWindow will do the full claim
+                    var itemForClaim = new ItemModel
+                    {
+                        Item_ID = msg.LinkedItemId,
+                        // SAFER! use the helper
+                        Item_Name = ExtractItemNameSafely(msg.Text, msg.LinkedItemId),
+                        Donor_ID = _otherId,
+                        Item_ImagePath = msg.LinkedItemPath ?? string.Empty
+                    };
+
+                    // Navigate to ClaimItemWindow WITHOUT pre-claiming
+                    // Buttons stay visible until the form is actually submitted
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // ClaimItemWindow will call SaveClaim itself on ConfirmClaimCommand
+                        // We only hide buttons AFTER successful navigation + confirmed submit
+                        // Pass a callback action that hides the buttons on success
+                        NavigationService.Navigate(
+                            new View.ClaimItemWindow(_myId, itemForClaim, onClaimSuccess: () =>
+                            {
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    msg.IsActionable = false;
+                                    _ = LoadMessages();
+                                });
+                            }));
+                    });
+
+                    await Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Database error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                // Build the item from what we know — ClaimItemWindow will do the full claim
-                var itemForClaim = new ItemModel
-                {
-                    Item_ID = msg.LinkedItemId,
-                    Item_Name = msg.Text.Contains("Item: \"")
-                        ? msg.Text[(msg.Text.IndexOf("Item: \"") + 7)..msg.Text.IndexOf("\"", msg.Text.IndexOf("Item: \"") + 7)]
-                        : msg.LinkedItemId,
-                    Donor_ID = _otherId,
-                    Item_ImagePath = msg.LinkedItemPath ?? string.Empty
-                };
-
-                // Navigate to ClaimItemWindow WITHOUT pre-claiming
-                // Buttons stay visible until the form is actually submitted
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    // ClaimItemWindow will call SaveClaim itself on ConfirmClaimCommand
-                    // We only hide buttons AFTER successful navigation + confirmed submit
-                    // Pass a callback action that hides the buttons on success
-                    NavigationService.Navigate(
-                        new View.ClaimItemWindow(_myId, itemForClaim, onClaimSuccess: () =>
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                msg.IsActionable = false;
-                                _ = LoadMessages();
-                            });
-                        }));
-                });
-
-                await Task.CompletedTask;
             });
+
+
 
             DeclineCommand = new AsyncRelayCommand(async param =>
             {
@@ -141,8 +152,8 @@ namespace KapwaKuha.ViewModels
                     IsBusy = true;
                     await KapwaDataService.RevertItemToGeneralPost(msg.LinkedItemId);
                     await KapwaDataService.SaveChatMessage(_myId, _otherId,
-                        "❌ I have declined the donation. The item has been returned to the marketplace.");
-                    MessageBox.Show("Item returned to marketplace.", "Declined",
+                        "❌ I have declined the donation. Thank you for your kindness still!");
+                    MessageBox.Show("Item returned.", "Declined",
                         MessageBoxButton.OK, MessageBoxImage.Information);
                     await LoadMessages();
                 }
@@ -169,6 +180,26 @@ namespace KapwaKuha.ViewModels
                 });
             }
             catch { }
+        }
+        private string ExtractItemNameSafely(string messageText, string fallbackId)
+        {
+            try
+            {
+                if (!messageText.Contains("Item: \""))
+                    return fallbackId;
+
+                int startIdx = messageText.IndexOf("Item: \"") + 7;
+                int endIdx = messageText.IndexOf("\"", startIdx);
+
+                if (endIdx <= startIdx)
+                    return fallbackId;
+
+                return messageText[startIdx..endIdx].Trim();
+            }
+            catch
+            {
+                return fallbackId; // If parsing fails, use the ID as fallback
+            }
         }
     }
 }

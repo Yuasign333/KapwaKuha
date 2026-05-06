@@ -54,7 +54,8 @@ d:DataContext="{d:DesignInstance Type=vm:PostItemDesignViewModel, IsDesignTimeCr
             </Ellipse.Fill>
         </Ellipse>
 
-        <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="56"/>
                 <RowDefinition Height="*"/>
@@ -227,7 +228,7 @@ d:DataContext="{d:DesignInstance Type=vm:PostItemDesignViewModel, IsDesignTimeCr
                                              IsReadOnly="True" VerticalContentAlignment="Center"/>
                                 </Border>
                                 <Button Grid.Column="2" Command="{Binding BrowseImageCommand}"
-                                        Height="40" Padding="14,0" BorderThickness="0" Cursor="Hand">
+                                        Height="40" Padding="14,0" BorderThickness="0" Cursor="Hand" Width="70">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border CornerRadius="10" Background="#0077B6">
@@ -483,5 +484,6 @@ d:DataContext="{d:DesignInstance Type=vm:PostItemDesignViewModel, IsDesignTimeCr
 
             </Grid>
         </Grid>
+            </ScrollViewer>
     </Grid>
 </Window>

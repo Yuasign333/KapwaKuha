@@ -128,10 +128,10 @@ namespace KapwaKuha.ViewModels
                     (IsDonationDrive ? $"\nEvent: {EventName}" : ""),
                     "Confirm Claim", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (confirm != MessageBoxResult.Yes) return;
-
                 try
                 {
                     IsBusy = true;
+                    ErrorVisible = false; // Reset any previous errors
 
                     string claimId = await KapwaDataService.GetNextClaimId();
                     var claim = new ClaimModel
@@ -143,17 +143,13 @@ namespace KapwaKuha.ViewModels
                         Beneficiary_ID = _beneficiaryId,
                         Beneficiary_Name = UserSession.FullName,
                         Claim_Date = DateTime.Now,
-                        Claim_Status = "Pending",
+                        Claim_Status = "Pending", // Status is set here!
                         Handoff_Type = HandoffType,
                         Verification_Notes = $"Location: {Location}" +
                                              (IsDonationDrive ? $" | Event: {EventName}" : "")
                     };
 
                     // ── SaveClaim now returns (bool Success, string Error) ─────
-                    // trg_PreventDuplicateClaim fires here inside SQL Server:
-                    //   50010 → item no longer available
-                    //   50011 → beneficiary already has a claim on this item
-                    //   50012 → item is reserved for another beneficiary
                     var (success, error) = await KapwaDataService.SaveClaim(claim);
 
                     if (!success)
@@ -169,30 +165,39 @@ namespace KapwaKuha.ViewModels
                     MessageBox.Show($"✅ Claimed! Your Claim ID: {claimId}",
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    // Call the chat callback so buttons disappear only after successful claim
-                    _onClaimSuccess?.Invoke();
-
-                    NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId));
-
                     // Auto-confirm back to donor in chat
                     try
                     {
-                        // _donorId not available directly — get from Item.Donor_ID
-                        await KapwaDataService.SaveChatMessage(
-                            _beneficiaryId,
-                            Item.Donor_ID,
-                            $"✅ Claim confirmed! Claim ID: {claimId}. " +
-                            $"Handoff: {HandoffType}" +
-                            (string.IsNullOrEmpty(Location) ? "" : $" at {Location}") +
-                            (IsDonationDrive && !string.IsNullOrEmpty(EventName) ? $" — Event: {EventName}" : "") +
-                            ". Thank you for your generosity! 🙏");
+                        string chatMessage = $"⏳ I have confirmed my claim! (Claim ID: {claimId}).\n" +
+                                             $"I am now waiting to receive the item via {HandoffType}" +
+                                             (string.IsNullOrEmpty(Location) ? "." : $" at {Location}.");
+
+                        if (IsDonationDrive && !string.IsNullOrEmpty(EventName))
+                        {
+                            chatMessage += $" (Event: {EventName})";
+                        }
+
+                        await KapwaDataService.SaveChatMessage(_beneficiaryId, Item.Donor_ID, chatMessage);
                     }
                     catch { /* chat message optional — don't block the claim */ }
 
+
+                    // Call the chat callback so buttons disappear only after successful claim
+                    _onClaimSuccess?.Invoke();
+
+                    // Navigate to dashboard ONLY ONCE (removed the duplicate line)
                     NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId));
                 }
-                catch { }
-                finally { IsBusy = false; }
+                catch (Exception ex)
+                {
+                    // Show unexpected errors instead of silently swallowing them
+                    ErrorMessage = "An unexpected error occurred: " + ex.Message;
+                    ErrorVisible = true;
+                }
+                finally
+                {
+                    IsBusy = false;
+                }
             });
         }
     }

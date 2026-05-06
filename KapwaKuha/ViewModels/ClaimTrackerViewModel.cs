@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Security.Claims;
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -92,9 +93,30 @@ namespace KapwaKuha.ViewModels
 
                 try
                 {
+                    // 1. Update the claim status in the database
                     await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
 
-                    // Update in-memory immediately for instant UI feedback
+                    // 2. Send the automated chat message
+                    // 2. Send the automated chat message
+                    try
+                    {
+                        string receivedMessage = $"✅ I have officially received the item! (Claim ID: {c.Claim_ID}).\n" +
+                                                 $"Thank you so much for your generosity! 🙏";
+
+                        // Fetch the original item to find out who the donor is
+                        var associatedItem = await KapwaDataService.GetItemById(c.Item_ID);
+
+                        if (associatedItem != null && !string.IsNullOrEmpty(associatedItem.Donor_ID))
+                        {
+                            await KapwaDataService.SaveChatMessage(
+                                c.Beneficiary_ID,          // Sender (Beneficiary)
+                                associatedItem.Donor_ID,   // Receiver (Donor)
+                                receivedMessage
+                            );
+                        }
+                    }
+                    catch { /* Optional chat message - if it fails, don't crash the whole app */ }
+                    // 3. Update the UI
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         c.Claim_Status = "Released";

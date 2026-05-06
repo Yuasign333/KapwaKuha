@@ -5,6 +5,11 @@
         Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize" FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
     <Grid>
         <Rectangle>
             <Rectangle.Fill>
@@ -14,9 +19,11 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
+
         <Image Source="https://i.imgur.com/y4MrK4c.jpeg" Opacity="0.10"
                Width="1980" HorizontalAlignment="Center" VerticalAlignment="Center"
                Height="2808" RenderTransformOrigin="0.5,0.5"/>
+
         <Ellipse Width="380" Height="380" Opacity="0.13"
                  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-100,-80,0">
             <Ellipse.Fill>
@@ -26,6 +33,7 @@
                 </RadialGradientBrush>
             </Ellipse.Fill>
         </Ellipse>
+
         <Ellipse Width="280" Height="280" Opacity="0.10"
                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-60,0,0,-60">
             <Ellipse.Fill>
@@ -50,15 +58,15 @@
                                Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,4"/>
                     <TextBlock Text="Fill in all fields to register your account."
                                FontSize="12" Foreground="#5E7A8A"
-                               HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                               HorizontalAlignment="Center" Margin="0,0,0,24"/>
 
-                    <Border Background="#4DFFF0F5" CornerRadius="8" Padding="12,8" Margin="0,0,0,14"
+                    <Border Background="#4DFFF0F5" CornerRadius="8" Padding="12,8" Margin="0,0,0,16"
                             Visibility="{Binding ErrorVisible, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="{Binding ErrorMessage}" Foreground="#C0304A"
                                    FontSize="12" TextWrapping="Wrap"/>
                     </Border>
 
-                    <StackPanel HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <StackPanel HorizontalAlignment="Center" Margin="0,0,0,24">
                         <TextBlock Text="Profile Picture (optional)" FontSize="11" FontWeight="SemiBold"
                                    Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,8"/>
 
@@ -68,9 +76,9 @@
                             </Grid.InputBindings>
 
                             <Border Width="72" Height="72" CornerRadius="36" ClipToBounds="True" 
-        Background="#EBF7FB" BorderBrush="#B390E0EF" BorderThickness="1.5">
+                                    Background="#EBF7FB" BorderBrush="#B390E0EF" BorderThickness="1.5">
                                 <Grid>
-                                    <TextBlock Text="👤" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,6,0,0">
+                                    <TextBlock Text="👤" FontSize="36" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,5,0,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -87,7 +95,6 @@
                                         <Image.Clip>
                                             <EllipseGeometry RadiusX="34.5" RadiusY="34.5" Center="34.5,34.5" />
                                         </Image.Clip>
-
                                         <Image.Style>
                                             <Style TargetType="Image">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -103,147 +110,126 @@
                             </Border>
 
                             <Border Width="28" Height="28" CornerRadius="14" Background="White" 
-            BorderBrush="#0077B6" BorderThickness="1.5"
-            HorizontalAlignment="Right" VerticalAlignment="Bottom" 
-            Margin="0,0,-4,-4">
-                                <TextBlock Text="📷" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1"/>
+                                    BorderBrush="#0077B6" BorderThickness="1.5"
+                                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-4,-4">
+                                <TextBlock Text="📷" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,2,0,0"/>
                             </Border>
                         </Grid>
                     </StackPanel>
 
-                    <Grid Margin="0,0,0,12">
+                    <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="First Name" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="#03045E" Margin="0,0,0,5"/>
-                            <Border Style="{StaticResource GlassInputBorder}" Margin="0">
+                            <TextBlock Text="First Name" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                            <Border Style="{StaticResource GlassInputBorder}">
                                 <TextBox Text="{Binding FName, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="34" Background="Transparent" BorderThickness="0"
+                                         Height="36" Background="Transparent" BorderThickness="0"
                                          Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
                             </Border>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Last Name" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="#03045E" Margin="0,0,0,5"/>
-                            <Border Style="{StaticResource GlassInputBorder}" Margin="0">
+                            <TextBlock Text="Last Name" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                            <Border Style="{StaticResource GlassInputBorder}">
                                 <TextBox Text="{Binding LName, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="34" Background="Transparent" BorderThickness="0"
+                                         Height="36" Background="Transparent" BorderThickness="0"
                                          Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
                             </Border>
                         </StackPanel>
                     </Grid>
 
-                    <StackPanel Margin="0,0,0,12"
-                                Visibility="{Binding IsDonor, Converter={StaticResource BoolToVis}}">
-                        <TextBlock Text="Username" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="#03045E" Margin="0,0,0,5"/>
-                        <Border Style="{StaticResource GlassInputBorder}" Margin="0">
+                    <StackPanel Margin="0,0,0,14" Visibility="{Binding IsDonor, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Username" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource GlassInputBorder}">
                             <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="34" Background="Transparent" BorderThickness="0"
+                                     Height="36" Background="Transparent" BorderThickness="0"
                                      Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
                         </Border>
                     </StackPanel>
 
-                    <Grid Margin="0,0,0,12"
-                          Visibility="{Binding IsBeneficiary, Converter={StaticResource BoolToVis}}">
+                    <Grid Margin="0,0,0,14" Visibility="{Binding IsBeneficiary, Converter={StaticResource BoolToVis}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Sex" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="#03045E" Margin="0,0,0,5"/>
-
-                            <ComboBox SelectedValue="{Binding Sex}" Height="34"
-                                          Background="Transparent" BorderThickness="0"
-                                          Foreground="#03045E" FontSize="12" Padding="10,0">
-                                <ComboBoxItem Content="Male"   IsSelected="True"/>
-                                <ComboBoxItem Content="Female"/>
-                            </ComboBox>
-
+                            <TextBlock Text="Sex" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                            <Border Style="{StaticResource GlassInputBorder}">
+                                <ComboBox SelectedValue="{Binding Sex}" Height="36" Background="Transparent" BorderThickness="0" Foreground="#03045E" FontSize="12" Padding="10,0">
+                                    <ComboBoxItem Content="Male" IsSelected="True"/>
+                                    <ComboBoxItem Content="Female"/>
+                                </ComboBox>
+                            </Border>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Organization" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="#03045E" Margin="0,0,0,5"/>
+                            <TextBlock Text="Organization Name" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
 
-                            <ComboBox
-                                  ItemsSource="{Binding Organizations}"
-                                  Height="34" Background="Transparent" BorderThickness="0"
-                                  Foreground="#03045E" FontSize="12" Padding="10,0">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Item2}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-
+                            <Border Style="{StaticResource GlassInputBorder}">
+                                <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="36" Background="Transparent" BorderThickness="0"
+                                         Foreground="#03045E" FontSize="12" Padding="10,0" 
+                                         VerticalContentAlignment="Center"/>
+                            </Border>
                         </StackPanel>
                     </Grid>
 
-                    <TextBlock Text="Contact Number" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#03045E" Margin="0,0,0,5"/>
-                    <Border Style="{StaticResource GlassInputBorder}">
-                        <TextBox Text="{Binding Contact, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="34" Background="Transparent" BorderThickness="0"
-                                 Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
-                    </Border>
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Contact Number" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource GlassInputBorder}">
+                            <TextBox Text="{Binding Contact, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="36" Background="Transparent" BorderThickness="0"
+                                     Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
 
-                    <Grid Margin="0,0,0,12">
+                    <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="12"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="#03045E" Margin="0,0,0,5"/>
-                            <Border Style="{StaticResource GlassInputBorder}" Margin="0">
-                                <PasswordBox x:Name="PwBox" Height="34" Background="Transparent"
-                                             BorderThickness="0" Foreground="#03045E"
-                                             FontSize="12" Padding="0,8,0,0"/>
+                            <TextBlock Text="Password" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                            <Border Style="{StaticResource GlassInputBorder}">
+                                <PasswordBox x:Name="PwBox" Height="36" Background="Transparent" BorderThickness="0" Foreground="#03045E" FontSize="12" Padding="0,8,0,0"/>
                             </Border>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Confirm Password" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="#03045E" Margin="0,0,0,5"/>
-                            <Border Style="{StaticResource GlassInputBorder}" Margin="0">
-                                <PasswordBox x:Name="ConfirmPwBox" Height="34" Background="Transparent"
-                                             BorderThickness="0" Foreground="#03045E"
-                                             FontSize="12" Padding="0,8,0,0"/>
+                            <TextBlock Text="Confirm Password" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                            <Border Style="{StaticResource GlassInputBorder}">
+                                <PasswordBox x:Name="ConfirmPwBox" Height="36" Background="Transparent" BorderThickness="0" Foreground="#03045E" FontSize="12" Padding="0,8,0,0"/>
                             </Border>
                         </StackPanel>
                     </Grid>
 
-                    <TextBlock Text="Security Question" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#03045E" Margin="0,0,0,5"/>
-                    <Border Style="{StaticResource GlassInputBorder}">
-                        <ComboBox SelectedValue="{Binding SecurityQuestion}"
-                                  SelectedValuePath="Content"
-                                  Height="34" Background="Transparent" BorderThickness="0"
-                                  Foreground="#03045E" FontSize="12" Padding="10,0">
-                            <ComboBoxItem Content="What is your pet name?"  IsSelected="True"/>
-                            <ComboBoxItem Content="What city were you born in?"/>
-                        </ComboBox>
-                    </Border>
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Security Question" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource GlassInputBorder}">
+                            <ComboBox SelectedValue="{Binding SecurityQuestion}" SelectedValuePath="Content"
+                                      Height="36" Background="Transparent" BorderThickness="0" Foreground="#03045E" FontSize="12" Padding="10,0">
+                                <ComboBoxItem Content="What is your pet name?" IsSelected="True"/>
+                                <ComboBoxItem Content="What city were you born in?"/>
+                            </ComboBox>
+                        </Border>
+                    </StackPanel>
 
-                    <TextBlock Text="Security Answer" FontSize="11" FontWeight="SemiBold"
-                               Foreground="#03045E" Margin="0,0,0,5"/>
-                    <Border Style="{StaticResource GlassInputBorder}" Margin="0,0,0,24">
-                        <TextBox Text="{Binding SecurityAnswer, UpdateSourceTrigger=PropertyChanged}"
-                                 Height="34" Background="Transparent" BorderThickness="0"
-                                 Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
-                    </Border>
+                    <StackPanel Margin="0,0,0,28">
+                        <TextBlock Text="Security Answer" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource GlassInputBorder}">
+                            <TextBox Text="{Binding SecurityAnswer, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="36" Background="Transparent" BorderThickness="0"
+                                     Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
 
-                    <Button x:Name="RegisterBtn"
-                            Style="{StaticResource GradientButton}"
-                            Click="RegisterBtn_Click">
+                    <Button x:Name="RegisterBtn" Style="{StaticResource GradientButton}" Click="RegisterBtn_Click">
                         <TextBlock Text="Create Account →"/>
                     </Button>
+
                 </StackPanel>
             </Border>
         </ScrollViewer>
