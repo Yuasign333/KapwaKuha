@@ -17,6 +17,11 @@ namespace KapwaKuha.ViewModels
 
         public string OtherName { get; }
 
+        // In ChatViewModel, add private field:
+        private readonly string _otherName;
+
+ 
+
         // Exposed so XAML can AND with IsSystemDirectTarget to hide buttons from donor
         public bool IsBeneficiary => _role == "Beneficiary";
 
@@ -43,6 +48,8 @@ namespace KapwaKuha.ViewModels
 
         public ChatViewModel(string myId, string otherId, string otherName, string role)
         {
+
+            _otherName = otherName;
             _myId = myId;
             _otherId = otherId;
             _role = role;
@@ -94,12 +101,15 @@ namespace KapwaKuha.ViewModels
                     }
 
                     // Build the item from what we know — ClaimItemWindow will do the full claim
+                    // FILE: ViewModels/ChatViewModel.cs — inside AcceptCommand, replace the itemForClaim build:
                     var itemForClaim = new ItemModel
                     {
                         Item_ID = msg.LinkedItemId,
-                        // SAFER! use the helper
-                        Item_Name = ExtractItemNameSafely(msg.Text, msg.LinkedItemId),
+                        Item_Name = msg.Text.Contains("Item: \"")
+                            ? msg.Text[(msg.Text.IndexOf("Item: \"") + 7)..msg.Text.IndexOf("\"", msg.Text.IndexOf("Item: \"") + 7)]
+                            : msg.LinkedItemId,
                         Donor_ID = _otherId,
+                        Donor_Name = _otherName,   // ← ADD: pass the name already stored in ChatViewModel
                         Item_ImagePath = msg.LinkedItemPath ?? string.Empty
                     };
 
@@ -139,32 +149,38 @@ namespace KapwaKuha.ViewModels
                 if (param is not ChatMessage msg) return;
                 if (string.IsNullOrEmpty(msg.LinkedItemId)) return;
 
+                msg.IsDeclined = true;
+                msg.IsActionable = false;
+
                 var confirm = MessageBox.Show(
-                    "Decline this donation? The item will be returned to the general marketplace.",
+                    "Decline this donation?\n\nThe item will be deactivated. " +
+                    "The donor can choose to re-post it manually from their listings.",
                     "Decline Donation", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (confirm != MessageBoxResult.Yes) return;
-
-                // ── HIDE BUTTONS IMMEDIATELY ──
-                Application.Current.Dispatcher.Invoke(() => msg.IsActionable = false);
 
                 try
                 {
                     IsBusy = true;
+
+                    // Mark item as deactivated (not GeneralPost marketplace — donor decides)
                     await KapwaDataService.RevertItemToGeneralPost(msg.LinkedItemId);
+
+                    // Immediately hide Accept/Decline buttons for THIS message only
+                    msg.IsActionable = false;
+
+                    // Send decline message to donor
                     await KapwaDataService.SaveChatMessage(_myId, _otherId,
-                        "❌ I have declined the donation. Thank you for your kindness still!");
-                    MessageBox.Show("Item returned.", "Declined",
+                        "❌ I have declined the donation. The item has been deactivated. " +
+                        "You can re-post it from your Active Listings if you wish.");
+
+                    MessageBox.Show("Donation declined.", "Declined",
                         MessageBoxButton.OK, MessageBoxImage.Information);
+
                     await LoadMessages();
                 }
-                catch
-                {
-                    Application.Current.Dispatcher.Invoke(() => msg.IsActionable = true);
-                }
+                catch { }
                 finally { IsBusy = false; }
             });
-
-            _ = LoadMessages();
         }
 
         private async System.Threading.Tasks.Task LoadMessages()

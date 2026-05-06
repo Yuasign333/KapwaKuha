@@ -26,13 +26,26 @@ namespace KapwaKuha.ViewModels
             set { _filterUrgency = value; OnPropertyChanged(); ApplyFilter(); }
         }
 
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+
         private void ApplyFilter()
         {
             NeedsPosts.Clear();
+            var q = _searchText.Trim().ToLower();
             foreach (var p in _allPosts)
             {
-                bool match = _filterUrgency == "All" || p.Urgency == _filterUrgency;
-                if (match) NeedsPosts.Add(p);
+                bool matchUrgency = _filterUrgency == "All" || p.Urgency == _filterUrgency;
+                bool matchSearch = string.IsNullOrEmpty(q) ||
+                                    p.Title.ToLower().Contains(q) ||
+                                    p.Description.ToLower().Contains(q) ||
+                                    p.Org_Name.ToLower().Contains(q);
+                if (matchUrgency && matchSearch) NeedsPosts.Add(p);
             }
         }
 

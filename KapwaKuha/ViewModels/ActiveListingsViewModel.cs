@@ -1,4 +1,5 @@
 ﻿// FILE: ViewModels/ActiveListingsViewModel.cs
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -11,12 +12,36 @@ namespace KapwaKuha.ViewModels
     public class ActiveListingsViewModel : ObservableObject
     {
         private readonly string _donorId;
+        private List<ItemModel> _allItems = new();
 
         public ObservableCollection<ItemModel> Items { get; } = new();
+
         private bool _isBusy;
         public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
-        public string StatusMessage { get; private set; } = string.Empty;
 
+        private string _statusMessage = string.Empty;
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            private set { _statusMessage = value; OnPropertyChanged(); }
+        }
+
+        // ── Search + filter ──────────────────────────────────────────────────
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        private string _filterStatus = "All";
+        public string FilterStatus
+        {
+            get => _filterStatus;
+            set { _filterStatus = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        // ── Selection ────────────────────────────────────────────────────────
         private ItemModel? _selectedItem;
         public ItemModel? SelectedItem
         {
@@ -30,60 +55,51 @@ namespace KapwaKuha.ViewModels
             }
         }
         public bool IsItemSelected => SelectedItem != null;
-
-        // Edit only allowed when item is still Available
         public bool CanEditSelected => SelectedItem?.Item_Status == "Available";
 
-        // Add these properties to ActiveListingsViewModel:
-
+        // ── Edit panel fields ────────────────────────────────────────────────
         private string _editName = string.Empty;
+        private string _editDescription = string.Empty;
+        private string _editCondition = "Good";
+        private string _editImagePath = string.Empty;
+        private bool _isEditPanelOpen;
+
         public string EditName
         {
             get => _editName;
             set { _editName = value; OnPropertyChanged(); }
         }
-
-        private string _editDescription = string.Empty;
         public string EditDescription
         {
             get => _editDescription;
             set { _editDescription = value; OnPropertyChanged(); }
         }
-
-        private string _editCondition = "Good";
         public string EditCondition
         {
             get => _editCondition;
             set { _editCondition = value; OnPropertyChanged(); }
         }
-
-        private string _editImagePath = string.Empty;
         public string EditImagePath
         {
             get => _editImagePath;
             set { _editImagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasEditImage)); }
         }
-
-        public bool HasEditImage =>
-            !string.IsNullOrEmpty(_editImagePath) && System.IO.File.Exists(_editImagePath);
-
-        private bool _isEditPanelOpen;
+        public bool HasEditImage => !string.IsNullOrEmpty(_editImagePath)
+                                    && System.IO.File.Exists(_editImagePath);
         public bool IsEditPanelOpen
         {
             get => _isEditPanelOpen;
             set { _isEditPanelOpen = value; OnPropertyChanged(); }
         }
 
+        // ── Commands ─────────────────────────────────────────────────────────
+        public ICommand BackCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand DeleteItemCommand { get; }
         public ICommand OpenEditPanelCommand { get; }
         public ICommand BrowseEditImageCommand { get; }
         public ICommand SaveEditCommand { get; }
         public ICommand CancelEditCommand { get; }
-
-        public string[] Conditions { get; } = { "New", "Good", "Fair", "Poor" };
-
-        public ICommand BackCommand { get; }
-        public ICommand RefreshCommand { get; }
-        public ICommand DeleteItemCommand { get; }
         public ICommand EditPostCommand { get; }
 
         public ActiveListingsViewModel(string donorId)
@@ -104,8 +120,8 @@ namespace KapwaKuha.ViewModels
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-                var r = MessageBox.Show($"Delete '{SelectedItem.Item_Name}'?", "Confirm Delete",
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                var r = MessageBox.Show($"Delete '{SelectedItem.Item_Name}'?",
+                    "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (r != MessageBoxResult.Yes) return;
                 try
                 {
@@ -120,17 +136,9 @@ namespace KapwaKuha.ViewModels
                 finally { IsBusy = false; }
             });
 
-            // Replace the EditPostCommand = new AsyncRelayCommand(...) with:
-            EditPostCommand = new RelayCommand(_ =>
+            OpenEditPanelCommand = new RelayCommand(_ =>
             {
                 if (SelectedItem == null) return;
-                if (SelectedItem.Item_Status != "Available")
-                {
-                    MessageBox.Show("Only Available items can be edited.", "Cannot Edit",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                // Pre-fill edit form
                 EditName = SelectedItem.Item_Name;
                 EditDescription = SelectedItem.Item_Description;
                 EditCondition = SelectedItem.Item_Condition;
@@ -138,45 +146,46 @@ namespace KapwaKuha.ViewModels
                 IsEditPanelOpen = true;
             });
 
-            OpenEditPanelCommand = EditPostCommand;  // alias
+            CancelEditCommand = new RelayCommand(_ => IsEditPanelOpen = false);
 
             BrowseEditImageCommand = new RelayCommand(_ =>
             {
                 var dlg = new Microsoft.Win32.OpenFileDialog
                 {
-                    Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
-                    Title = "Select New Item Image"
+                    Filter = "Images (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
+                    Title = "Select Item Image"
                 };
                 if (dlg.ShowDialog() == true) EditImagePath = dlg.FileName;
             });
-
-            CancelEditCommand = new RelayCommand(_ => IsEditPanelOpen = false);
 
             SaveEditCommand = new AsyncRelayCommand(async _ =>
             {
                 if (SelectedItem == null) return;
                 if (string.IsNullOrWhiteSpace(EditName))
                 {
-                    MessageBox.Show("Item name cannot be empty.", "Validation",
+                    MessageBox.Show("Name cannot be empty.", "Validation",
                         MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
                 try
                 {
                     IsBusy = true;
-                    SelectedItem.Item_Name = EditName.Trim();
-                    SelectedItem.Item_Description = EditDescription.Trim();
+                    SelectedItem.Item_Name = EditName;
+                    SelectedItem.Item_Description = EditDescription;
                     SelectedItem.Item_Condition = EditCondition;
                     SelectedItem.Item_ImagePath = EditImagePath;
                     await KapwaDataService.UpdateItem(SelectedItem);
                     IsEditPanelOpen = false;
-                    MessageBox.Show("✅ Item updated successfully!", "Saved",
+                    MessageBox.Show("✅ Item updated!", "Saved",
                         MessageBoxButton.OK, MessageBoxImage.Information);
                     await LoadItemsAsync();
                 }
                 catch { }
                 finally { IsBusy = false; }
             });
+
+            // Alias for XAML backward compat
+            EditPostCommand = OpenEditPanelCommand;
 
             _ = LoadItemsAsync();
         }
@@ -189,14 +198,31 @@ namespace KapwaKuha.ViewModels
                 var items = await KapwaDataService.GetItemsByDonor(_donorId);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Items.Clear();
-                    foreach (var i in items) Items.Add(i);
-                    StatusMessage = $"{Items.Count} item(s) posted.";
-                    OnPropertyChanged(nameof(StatusMessage));
+                    _allItems = items;
+                    ApplyFilter();
                 });
             }
             catch { }
             finally { IsBusy = false; }
+        }
+
+        private void ApplyFilter()
+        {
+            Items.Clear();
+            var q = _searchText.Trim().ToLower();
+            foreach (var i in _allItems)
+            {
+                bool matchSearch = string.IsNullOrEmpty(q) ||
+                                   i.Item_Name.ToLower().Contains(q) ||
+                                   i.Item_Description.ToLower().Contains(q) ||
+                                   i.Category_Name.ToLower().Contains(q);
+
+                bool matchStatus = _filterStatus == "All" ||
+                                   i.Item_Status == _filterStatus;
+
+                if (matchSearch && matchStatus) Items.Add(i);
+            }
+            StatusMessage = $"{Items.Count} item(s) shown.";
         }
     }
 }

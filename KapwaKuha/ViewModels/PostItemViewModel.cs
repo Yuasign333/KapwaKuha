@@ -161,6 +161,9 @@ namespace KapwaKuha.ViewModels
                 { ErrorMessage = "Please select a target beneficiary."; ErrorVisible = true; return; }
                 if (string.IsNullOrWhiteSpace(ImagePath))
                 { ErrorMessage = "Please attach an image of the item."; ErrorVisible = true; return; }
+          
+                if (string.IsNullOrWhiteSpace(Description))
+                { ErrorMessage = "Caption/description is required."; ErrorVisible = true; return; }
 
                 var confirm = MessageBox.Show(
                     $"Post item?\n\nName: {ItemName}\nCategory: {SelectedCategory}\n" +

@@ -172,7 +172,7 @@ namespace KapwaKuha.Services
         }
 
         public static async Task RegisterDonor(DonorModel donor, string password,
-            string securityQuestion, string securityAnswer)
+    string securityQuestion, string securityAnswer)
         {
             try
             {
@@ -188,13 +188,25 @@ namespace KapwaKuha.Services
                 cmd.Parameters.AddWithValue("@SecurityQ", securityQuestion);
                 cmd.Parameters.AddWithValue("@SecurityA", securityAnswer);
                 await cmd.ExecuteNonQueryAsync();
+
+                // Save profile picture immediately after registration if provided
+                if (!string.IsNullOrEmpty(donor.ProfilePicturePath))
+                {
+                    await UpdateDonorProfile(donor.Donor_ID, donor.Donor_Username,
+                        donor.ProfilePicturePath);
+                }
             }
             catch (Exception ex) { MessageBox.Show("RegisterDonor failed: " + ex.Message); throw; }
         }
 
         public static async Task RegisterBeneficiary(BeneficiaryModel bene, string password,
-            string securityQuestion, string securityAnswer)
+     string securityQuestion, string securityAnswer)
         {
+            // Combine FName + LName → FullName for sp_RegisterBeneficiary
+            string fullName = string.IsNullOrWhiteSpace(bene.Beneficiary_FullName)
+                ? $"{bene.Beneficiary_FName} {bene.Beneficiary_LName}".Trim()
+                : bene.Beneficiary_FullName;
+
             try
             {
                 using var conn = new SqlConnection(_conn);
@@ -202,8 +214,8 @@ namespace KapwaKuha.Services
                 using var cmd = new SqlCommand("sp_RegisterBeneficiary", conn);
                 cmd.CommandType = System.Data.CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@BeneficiaryId", bene.Beneficiary_ID);
-                cmd.Parameters.AddWithValue("@FName", bene.Beneficiary_FName);
-                cmd.Parameters.AddWithValue("@LName", bene.Beneficiary_LName);
+                cmd.Parameters.AddWithValue("@FullName", fullName);
+                cmd.Parameters.AddWithValue("@Username", bene.Beneficiary_Username);
                 cmd.Parameters.AddWithValue("@Sex", bene.Beneficiary_Sex);
                 cmd.Parameters.AddWithValue("@Contact", bene.Beneficiary_Contact);
                 cmd.Parameters.AddWithValue("@OrgId", bene.Organization_ID);
@@ -211,8 +223,22 @@ namespace KapwaKuha.Services
                 cmd.Parameters.AddWithValue("@SecurityQ", securityQuestion);
                 cmd.Parameters.AddWithValue("@SecurityA", securityAnswer);
                 await cmd.ExecuteNonQueryAsync();
+
+                // Save profile picture immediately after registration if provided
+                if (!string.IsNullOrEmpty(bene.ProfilePicturePath))
+                {
+                    await UpdateBeneficiaryProfile(bene.Beneficiary_ID,
+                        bene.Beneficiary_Username, bene.ProfilePicturePath);
+                }
             }
             catch (Exception ex) { MessageBox.Show("RegisterBeneficiary failed: " + ex.Message); throw; }
+        }
+
+        public static string GetClaimReportPath(string claimId)
+        {
+            string dir = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "KapwaKuhaData", "ClaimReports");
+            return System.IO.Path.Combine(dir, $"Claim_{claimId}.txt");
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -1326,9 +1352,16 @@ ORDER BY cm.SentAt ASC";
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(
-                    "UPDATE Items SET PostType='GeneralPost', TargetBeneficiary_ID='', Item_Status='Available' WHERE Item_ID=@id",
-                    conn);
+
+                // NEW BEHAVIOUR: item is deactivated (Reserved→Available) but stays DirectTarget
+                // Donor must manually re-post it — do NOT move it to GeneralPost automatically
+                // Just clear the reservation so it doesn't block the beneficiary's view
+                using var cmd = new SqlCommand(@"
+            UPDATE Items
+            SET Item_Status          = 'Available',
+                TargetBeneficiary_ID = '',
+                Post_ID              = (SELECT Post_ID FROM Post WHERE Post_Type = 'GeneralPost')
+            WHERE Item_ID = @id", conn);
                 cmd.Parameters.AddWithValue("@id", itemId);
                 await cmd.ExecuteNonQueryAsync();
             }

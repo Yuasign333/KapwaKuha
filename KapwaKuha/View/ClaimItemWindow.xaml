@@ -144,10 +144,10 @@
                                                        Foreground="{Binding Item.StatusBadgeColor}"/>
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding Item.StorageDaysDisplay}"
-                                               FontSize="11" Foreground="#5E7A8A" Margin="0,4,0,0"/>
-                                    <TextBlock Text="{Binding Item.Donor_Name, StringFormat='Donated by {0}'}"
-                                               FontSize="11" Foreground="#5E7A8A"/>
+                                    <TextBlock Text="{Binding Item.StorageDaysDisplay, Mode=OneWay}"
+           FontSize="11" Foreground="#5E7A8A" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding Item.Donor_Name, Mode=OneWay, StringFormat='Donated by {0}'}"
+           FontSize="11" Foreground="#5E7A8A"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -466,19 +466,20 @@
                             <!-- Info chips -->
                             <Border Background="#F0F8FB" CornerRadius="10" Padding="14,12">
                                 <StackPanel>
+                                    <!-- Line 471 — replace both Run elements in the right panel -->
                                     <TextBlock FontSize="12" Foreground="#03045E" Margin="0,0,0,6">
-                                        <Run Text="📅 " FontSize="13"/>
-                                        <Run Text="{Binding Item.StorageDaysDisplay}"/>
+    <Run Text="📅 " FontSize="13"/>
+    <Run Text="{Binding Item.StorageDaysDisplay, Mode=OneWay}"/>
                                     </TextBlock>
                                     <TextBlock FontSize="12" Foreground="#03045E" Margin="0,0,0,6">
-                                        <Run Text="🙋 " FontSize="13"/>
-                                        <Run Text="{Binding Item.Donor_Name}"/>
+    <Run Text="🙋 " FontSize="13"/>
+    <Run Text="{Binding Item.Donor_Name, Mode=OneWay}"/>
                                     </TextBlock>
                                     <TextBlock FontSize="12" Foreground="#03045E">
-                                        <Run Text="🏷️ " FontSize="13"/>
-                                        <Run Text="{Binding Item.Category_Name}"/>
-                                        <Run Text=" · "/>
-                                        <Run Text="{Binding Item.Item_Condition}"/>
+    <Run Text="🏷️ " FontSize="13"/>
+    <Run Text="{Binding Item.Category_Name, Mode=OneWay}"/>
+    <Run Text=" · "/>
+    <Run Text="{Binding Item.Item_Condition, Mode=OneWay}"/>
                                     </TextBlock>
                                 </StackPanel>
                             </Border>

@@ -350,7 +350,7 @@
                             </Button>
                         </UniformGrid>
 
-                        <Border CornerRadius="16" Margin="0,0,0,28" BorderThickness="1">
+                        <Border CornerRadius="16" Margin="0,0,0,28" BorderThickness="1" MinHeight="250">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                                     <GradientStop Color="#CCFFFFFF" Offset="0"/>
@@ -364,8 +364,7 @@
                                 </LinearGradientBrush>
                             </Border.BorderBrush>
                             <Border.Effect>
-                                <DropShadowEffect Color="#00B4D8" BlurRadius="14"
-                                                  ShadowDepth="0" Opacity="0.10"/>
+                                <DropShadowEffect Color="#00B4D8" BlurRadius="14" ShadowDepth="0" Opacity="0.10"/>
                             </Border.Effect>
 
                             <Grid>
@@ -378,47 +377,37 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="📋 " FontSize="16" VerticalAlignment="Center"/>
                                         <TextBlock Text="My Received Donations" FontSize="16"
-                                                   FontWeight="Bold" Foreground="#03045E"
-                                                   VerticalAlignment="Center"/>
+                           FontWeight="Bold" Foreground="#03045E"
+                           VerticalAlignment="Center"/>
                                     </StackPanel>
                                     <TextBlock Text="{Binding TransactionStatus}"
-                                               FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0"/>
+                       FontSize="11" Foreground="#5E7A8A" Margin="0,3,0,0"/>
                                 </StackPanel>
-                                <Grid>
-                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                Margin="0,40,0,0">
-                                        <StackPanel.Style>
-                                            <Style TargetType="StackPanel">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
+
+                                <Grid Grid.Row="1">
+
+                                    <DataGrid x:Name="DonationsGrid" ItemsSource="{Binding Transactions}"
+                      AutoGenerateColumns="False" CanUserAddRows="False"
+                      CanUserDeleteRows="False" IsReadOnly="True"
+                      SelectionMode="Single" Background="Transparent"
+                      BorderThickness="0" GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#EBF7FB"
+                      RowBackground="White" AlternatingRowBackground="#F7FBFD"
+                      AlternationCount="2"
+                      ColumnHeaderHeight="36" RowHeight="56" FontSize="12"
+                      MaxHeight="260" Margin="0,0,0,8">
+
+                                        <DataGrid.Style>
+                                            <Style TargetType="DataGrid">
+                                                <Setter Property="Visibility" Value="Visible"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Transactions.Count}" Value="0">
-                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    <DataTrigger Binding="{Binding Items.Count, RelativeSource={RelativeSource Self}}" Value="0">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </StackPanel.Style>
-                                        <TextBlock Text="📭" FontSize="56" HorizontalAlignment="Center"
-                   Margin="0,0,0,12"/>
-                                        <TextBlock Text="No donations yet" FontSize="16" FontWeight="Bold"
-                   Foreground="#03045E" HorizontalAlignment="Center"
-                   Margin="0,0,0,6"/>
-                                        <TextBlock Text="Items you receive will appear here once released."
-                   FontSize="12" Foreground="#5E7A8A"
-                   HorizontalAlignment="Center"/>
-                                    </StackPanel>
+                                        </DataGrid.Style>
 
-
-
-                                    <DataGrid Grid.Row="1" ItemsSource="{Binding Transactions}"
-           AutoGenerateColumns="False" CanUserAddRows="False"
-           CanUserDeleteRows="False" IsReadOnly="True"
-           SelectionMode="Single" Background="Transparent"
-           BorderThickness="0" GridLinesVisibility="Horizontal"
-           HorizontalGridLinesBrush="#EBF7FB"
-           RowBackground="White" AlternatingRowBackground="#F7FBFD"
-           AlternationCount="2"
-           ColumnHeaderHeight="36" RowHeight="56" FontSize="12"
-           MaxHeight="260" Margin="0,0,0,8">
                                         <DataGrid.ColumnHeaderStyle>
                                             <Style TargetType="{x:Type DataGridColumnHeader}">
                                                 <Setter Property="Background" Value="#EBF7FB"/>
@@ -430,7 +419,6 @@
                                         </DataGrid.ColumnHeaderStyle>
 
                                         <DataGrid.Columns>
-
                                             <DataGridTemplateColumn Header="Photo" Width="60" IsReadOnly="True">
                                                 <DataGridTemplateColumn.CellTemplate>
                                                     <DataTemplate>
@@ -467,10 +455,9 @@
                                                 </DataGridTemplateColumn.CellTemplate>
                                             </DataGridTemplateColumn>
 
-                                            <DataGridTextColumn Header="Claim ID" Binding="{Binding Claim_ID}"
-                             Width="90" IsReadOnly="True"/>
-                                            <DataGridTextColumn Header="Item Received" Binding="{Binding Item_Name}"
-                             Width="*" IsReadOnly="True">
+                                            <DataGridTextColumn Header="Claim ID" Binding="{Binding Claim_ID}" Width="90" IsReadOnly="True"/>
+
+                                            <DataGridTextColumn Header="Item Received" Binding="{Binding Item_Name}" Width="*" IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
                                                     <Style TargetType="{x:Type TextBlock}">
                                                         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -478,8 +465,8 @@
                                                     </Style>
                                                 </DataGridTextColumn.ElementStyle>
                                             </DataGridTextColumn>
-                                            <DataGridTextColumn Header="Category" Binding="{Binding Category_Name}"
-                             Width="110" IsReadOnly="True">
+
+                                            <DataGridTextColumn Header="Category" Binding="{Binding Category_Name}" Width="110" IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
                                                     <Style TargetType="{x:Type TextBlock}">
                                                         <Setter Property="FontSize" Value="11"/>
@@ -488,16 +475,16 @@
                                                     </Style>
                                                 </DataGridTextColumn.ElementStyle>
                                             </DataGridTextColumn>
-                                            <DataGridTextColumn Header="From Donor" Binding="{Binding Donor_FullName}"
-                             Width="130" IsReadOnly="True">
+
+                                            <DataGridTextColumn Header="From Donor" Binding="{Binding Donor_FullName}" Width="130" IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
                                                     <Style TargetType="{x:Type TextBlock}">
                                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                                     </Style>
                                                 </DataGridTextColumn.ElementStyle>
                                             </DataGridTextColumn>
-                                            <DataGridTextColumn Header="Received On" Binding="{Binding ClaimDateDisplay}"
-                             Width="150" IsReadOnly="True">
+
+                                            <DataGridTextColumn Header="Received On" Binding="{Binding ClaimDateDisplay}" Width="150" IsReadOnly="True">
                                                 <DataGridTextColumn.ElementStyle>
                                                     <Style TargetType="{x:Type TextBlock}">
                                                         <Setter Property="FontSize" Value="11"/>
@@ -509,8 +496,24 @@
                                         </DataGrid.Columns>
                                     </DataGrid>
 
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,30,0,50">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Items.Count, ElementName=DonationsGrid}" Value="0">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+
+                                        <TextBlock Text="📭" FontSize="50" HorizontalAlignment="Center" Margin="0,0,0,10" Opacity="0.8"/>
+                                        <TextBlock Text="No donations yet." FontSize="14" Foreground="#03045E" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Items you receive will appear here once released." FontSize="12" Foreground="#5E7A8A" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                    </StackPanel>
+
                                 </Grid>
-                               
                             </Grid>
                         </Border>
 

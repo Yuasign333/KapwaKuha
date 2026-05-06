@@ -15,6 +15,22 @@ namespace KapwaKuha.Models
         public string LinkedItemId { get; set; } = string.Empty;
         public string LinkedItemPath { get; set; } = string.Empty;
 
+        // Add to ChatMessage.cs:
+        private bool _isDeclined;
+        public bool IsDeclined
+        {
+            get => _isDeclined;
+            set
+            {
+                _isDeclined = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowItemPreview));
+            }
+        }
+
+        // Image only shows when: it's a DirectTarget message AND not yet declined
+        public bool ShowItemPreview => IsSystemDirectTarget && !IsDeclined;
+
         // Controls button visibility — set to false after Accept or Decline
         private bool _isActionable = true;
         public bool IsActionable

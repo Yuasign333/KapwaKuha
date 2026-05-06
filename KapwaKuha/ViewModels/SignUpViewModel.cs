@@ -180,7 +180,7 @@ namespace KapwaKuha.ViewModels
                 }
                 else // Beneficiary
                 {
-                    if (string.IsNullOrWhiteSpace(SelectedOrgId))
+                    if (string.IsNullOrWhiteSpace(SelectedOrgName))
                     { ShowError("Please select an organization."); return; }
 
                     var confirm = MessageBox.Show(

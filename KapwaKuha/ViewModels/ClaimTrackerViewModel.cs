@@ -48,6 +48,15 @@ namespace KapwaKuha.ViewModels
             set { _filterStatus = value; OnPropertyChanged(); ApplyFilter(); }
         }
 
+        // Add this property to the ClaimTrackerViewModel class
+        private string _receiptContent = string.Empty;
+        public string ReceiptContent
+        {
+            get => _receiptContent;
+            set { _receiptContent = value; OnPropertyChanged(); }
+        }
+
+
         private List<ClaimModel> _allClaims = new();
 
         public ICommand BackCommand { get; }
@@ -102,6 +111,13 @@ namespace KapwaKuha.ViewModels
                     {
                         string receivedMessage = $"✅ I have officially received the item! (Claim ID: {c.Claim_ID}).\n" +
                                                  $"Thank you so much for your generosity! 🙏";
+
+                        // In ProofOfReceipt ViewModel or display logic:
+                        string path = KapwaDataService.GetClaimReportPath(c.Claim_ID);
+                        if (System.IO.File.Exists(path))
+                            ReceiptContent = System.IO.File.ReadAllText(path);
+                        else
+                            ReceiptContent = "No receipt found for this claim.";
 
                         // Fetch the original item to find out who the donor is
                         var associatedItem = await KapwaDataService.GetItemById(c.Item_ID);
