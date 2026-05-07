@@ -239,7 +239,8 @@ namespace KapwaKuha.Services
                 cmd.Parameters.AddWithValue("@FullName", fullName);
 
                 string username = string.IsNullOrWhiteSpace(bene.Beneficiary_Username) ? bene.Beneficiary_ID : bene.Beneficiary_Username;
-                cmd.Parameters.AddWithValue("@Username", username);
+           
+                cmd.Parameters.AddWithValue("@Username", bene.Beneficiary_Username);
 
                 // Birthdate is GONE from here
                 cmd.Parameters.AddWithValue("@Sex", bene.Beneficiary_Sex);

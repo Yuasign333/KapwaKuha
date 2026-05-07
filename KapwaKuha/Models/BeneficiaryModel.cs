@@ -12,7 +12,9 @@ namespace KapwaKuha.Models
         public System.DateTime? Beneficiary_Birthdate { get; set; }
         public string Beneficiary_Sex { get; set; } = string.Empty;
         public string Beneficiary_Contact { get; set; } = string.Empty;
-        public string Beneficiary_Username { get; set; } = string.Empty;
+
+
+        public string Beneficiary_Username { get; set; } = string.Empty ;
         public string Beneficiary_Password { get; set; } = string.Empty;
         public string ProfilePicturePath { get; set; } = string.Empty;
 

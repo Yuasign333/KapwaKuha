@@ -184,10 +184,11 @@ namespace KapwaKuha.ViewModels
                     { ShowError("Please enter an organization name."); return; }
 
                     var confirm = MessageBox.Show(
-                        $"Register as Beneficiary?\n\nName: {FName} {LName}\nOrg: {SelectedOrgName}\nContact: {Contact}",
+                        $"Register as Beneficiary?\n\nName: {FName} {LName}\nUsername: {Username}\nOrg: {SelectedOrgName}\nContact: {Contact}",
                         "Confirm Registration", MessageBoxButton.YesNo, MessageBoxImage.Question);
                     if (confirm != MessageBoxResult.Yes) return;
 
+                    // Inside your RegisterCommand -> else // Beneficiary block
                     try
                     {
                         IsLoading = true;
@@ -197,16 +198,17 @@ namespace KapwaKuha.ViewModels
                             Beneficiary_ID = id,
                             Beneficiary_FName = FName,
                             Beneficiary_LName = LName,
+                            Beneficiary_Username = Username, // 👈 ADD THIS LINE HERE!
                             Beneficiary_Sex = Sex,
                             Beneficiary_Contact = Contact,
-
-                            // USE THE TEXTBOX STRING DIRECTLY HERE:
                             Organization_Name = SelectedOrgName,
-
                             ProfilePicturePath = ProfilePicturePath
                         };
+
                         await KapwaDataService.RegisterBeneficiary(bene, Password, SecurityQuestion, SecurityAnswer);
-                        MessageBox.Show($"✅ Registered! Your Beneficiary ID: {id}\nLogin with ID: {id}",
+
+                        // 👈 Update the message box so it tells them to login with their Username!
+                        MessageBox.Show($"✅ Registered! Your Beneficiary ID: {id}\nLogin with username: {Username}",
                             "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         NavigationService.Navigate(new View.BeneficiaryLoginWindow());
                     }
