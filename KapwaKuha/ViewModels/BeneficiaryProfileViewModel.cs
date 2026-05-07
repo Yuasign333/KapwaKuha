@@ -16,50 +16,30 @@ namespace KapwaKuha.ViewModels
         private string _username = string.Empty;
         private string _contact = string.Empty;
         private string _orgName = string.Empty;
+        private string _orgAddress = string.Empty;
+        private string _orgContact = string.Empty;
         private string _picturePath = string.Empty;
         private bool _isBusy;
 
-        public string FullName
-        {
-            get => _fullName;
-            set { _fullName = value; OnPropertyChanged(); }
-        }
-        public string Username
-        {
-            get => _username;
-            set { _username = value; OnPropertyChanged(); }
-        }
-        public string Contact
-        {
-            get => _contact;
-            set { _contact = value; OnPropertyChanged(); }
-        }
-        public string OrgName
-        {
-            get => _orgName;
-            set { _orgName = value; OnPropertyChanged(); }
-        }
-        public string PicturePath
-        {
-            get => _picturePath;
-            set { _picturePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasPicture)); }
-        }
-        public bool IsBusy
-        {
-            get => _isBusy;
-            set { _isBusy = value; OnPropertyChanged(); }
-        }
-
-        public bool HasPicture =>
-            !string.IsNullOrEmpty(_picturePath) && System.IO.File.Exists(_picturePath);
-
+        public string FullName { get => _fullName; set { _fullName = value; OnPropertyChanged(); } }
+        public string Username { get => _username; set { _username = value; OnPropertyChanged(); } }
+        public string Contact { get => _contact; set { _contact = value; OnPropertyChanged(); } }
+        public string OrganizationName { get => _orgName; set { _orgName = value; OnPropertyChanged(); } }
+        public string OrgAddress { get => _orgAddress; set { _orgAddress = value; OnPropertyChanged(); } }
+        public string OrgContact { get => _orgContact; set { _orgContact = value; OnPropertyChanged(); } }
+        public string PicturePath { get => _picturePath; set { _picturePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasPicture)); } }
+        public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
+        public bool HasPicture => !string.IsNullOrEmpty(_picturePath) && System.IO.File.Exists(_picturePath);
         public string BeneficiaryIdLabel => $"ID: {_beneficiaryId}";
+
+        // Keep OrgName alias so any old XAML binding doesn't break
+        public string OrgName { get => _orgName; set { _orgName = value; OnPropertyChanged(); OnPropertyChanged(nameof(OrganizationName)); } }
 
         public ICommand BackCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand BrowsePictureCommand { get; }
         public ICommand DeactivateCommand { get; }
-        public ICommand MyBAccountCommand { get; } // Kept so XAML binding doesn't break
+        public ICommand MyBAccountCommand { get; }
 
         public BeneficiaryProfileViewModel(string beneficiaryId)
         {
@@ -84,7 +64,8 @@ namespace KapwaKuha.ViewModels
                 {
                     IsBusy = true;
                     await KapwaDataService.UpdateBeneficiaryProfile(
-                        _beneficiaryId, Username, PicturePath);
+                        _beneficiaryId, Username, PicturePath,
+                        OrganizationName, OrgAddress, OrgContact);
                     MessageBox.Show("✅ Profile updated!",
                         "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -101,10 +82,8 @@ namespace KapwaKuha.ViewModels
                 var confirm = MessageBox.Show(
                     "Are you sure you want to deactivate your account?\n\n" +
                     "You will be logged out and cannot log in until reactivated.",
-                    "Deactivate Account",
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    "Deactivate Account", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (confirm != MessageBoxResult.Yes) return;
-
                 try
                 {
                     IsBusy = true;
@@ -118,13 +97,7 @@ namespace KapwaKuha.ViewModels
                 finally { IsBusy = false; }
             });
 
-            // THE FIX: We make this empty. 
-            // If the user clicks the "My Account" avatar while already ON the "My Account" page,
-            // it will safely do nothing instead of crashing or opening a duplicate window.
-            MyBAccountCommand = new RelayCommand(_ =>
-            {
-                // Intentionally left blank. 
-            });
+            MyBAccountCommand = new RelayCommand(_ => { });
 
             LoadProfile();
         }
@@ -138,7 +111,9 @@ namespace KapwaKuha.ViewModels
                 FullName = bene.Beneficiary_FullName;
                 Username = bene.Beneficiary_Username;
                 Contact = bene.Beneficiary_Contact;
-                OrgName = bene.Organization_Name;
+                OrganizationName = bene.Organization_Name;
+                OrgAddress = bene.Organization_Address;
+                OrgContact = bene.Organization_Contact;
                 PicturePath = bene.ProfilePicturePath ?? string.Empty;
             }
             catch { }

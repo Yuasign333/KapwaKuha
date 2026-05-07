@@ -161,8 +161,8 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Username" FontSize="13" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,8"/>
                                 <Border Style="{StaticResource GlassInputBorder}">
-                                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                                             Height="44" Background="Transparent" BorderThickness="0"
+                                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                    Height="44" Background="Transparent" BorderThickness="0"
                                              Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center"/>
                                 </Border>
                             </StackPanel>
@@ -186,14 +186,13 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Sex" FontSize="13" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,8"/>
-                                
-                                    <ComboBox SelectedValue="{Binding Sex}" SelectedValuePath="Content"
-                                              Height="44" Background="Transparent" BorderThickness="0" 
-                                              Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center">
-                                        <ComboBoxItem Content="Male" IsSelected="True"/>
-                                        <ComboBoxItem Content="Female"/>
-                                    </ComboBox>
-                                
+
+                                <ComboBox SelectedItem="{Binding SelectedSex, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="39">
+                                    <ComboBoxItem Content="Select Sex" IsEnabled="False" Visibility="Collapsed"/>
+                                    <ComboBoxItem Content="Male"/>
+                                    <ComboBoxItem Content="Female"/>
+                                </ComboBox>
+
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
@@ -202,6 +201,8 @@
                                     <TextBox Text="{Binding SelectedOrgName, UpdateSourceTrigger=PropertyChanged}" 
                                              Height="44" Background="Transparent" BorderThickness="0"
                                              Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center"/>
+                                    
+
                                 </Border>
                             </StackPanel>
                         </Grid>

@@ -44,6 +44,13 @@ namespace KapwaKuha.ViewModels
         private string _selectedOrgId = string.Empty;
         private string _selectedOrgName = string.Empty;
 
+        private string _selectedSex = string.Empty;
+        public string SelectedSex
+        {
+            get => _selectedSex;
+            set { _selectedSex = value; OnPropertyChanged(); }
+        }
+
         public string FName
         {
             get => _fName;
@@ -89,6 +96,20 @@ namespace KapwaKuha.ViewModels
         public string SecurityQuestion { get => _securityQuestion; set { _securityQuestion = value; OnPropertyChanged(); } }
         public string SecurityAnswer { get => _securityAnswer; set { _securityAnswer = value; OnPropertyChanged(); } }
         public string Sex { get => _sex; set { _sex = value; OnPropertyChanged(); } }
+
+        private string _orgAddress = string.Empty;
+        public string OrgAddress
+        {
+            get => _orgAddress;
+            set { _orgAddress = value; OnPropertyChanged(); }
+        }
+
+        private string _orgContact = string.Empty;
+        public string OrgContact
+        {
+            get => _orgContact;
+            set { _orgContact = value; OnPropertyChanged(); }
+        }
 
         public string SelectedOrgId
         {
@@ -198,10 +219,12 @@ namespace KapwaKuha.ViewModels
                             Beneficiary_ID = id,
                             Beneficiary_FName = FName,
                             Beneficiary_LName = LName,
-                            Beneficiary_Username = Username, // 👈 ADD THIS LINE HERE!
+                            Beneficiary_Username = Username,
                             Beneficiary_Sex = Sex,
                             Beneficiary_Contact = Contact,
                             Organization_Name = SelectedOrgName,
+                            Organization_Address = OrgAddress,   // ← ADD
+                            Organization_Contact = OrgContact,   // ← ADD
                             ProfilePicturePath = ProfilePicturePath
                         };
 
@@ -211,6 +234,12 @@ namespace KapwaKuha.ViewModels
                         MessageBox.Show($"✅ Registered! Your Beneficiary ID: {id}\nLogin with username: {Username}",
                             "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                         NavigationService.Navigate(new View.BeneficiaryLoginWindow());
+
+                        if (string.IsNullOrEmpty(SelectedSex) || SelectedSex == "Select Sex")
+                        {
+                            ErrorMessage = "Please select a sex.";
+                            return;
+                        }
                     }
                     catch { /* error shown by service */ }
                     finally { IsLoading = false; }

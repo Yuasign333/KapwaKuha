@@ -234,28 +234,21 @@ namespace KapwaKuha.Services
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand("sp_RegisterBeneficiary", conn);
                 cmd.CommandType = System.Data.CommandType.StoredProcedure;
-
                 cmd.Parameters.AddWithValue("@BeneficiaryId", bene.Beneficiary_ID);
                 cmd.Parameters.AddWithValue("@FullName", fullName);
-
-                string username = string.IsNullOrWhiteSpace(bene.Beneficiary_Username) ? bene.Beneficiary_ID : bene.Beneficiary_Username;
-           
                 cmd.Parameters.AddWithValue("@Username", bene.Beneficiary_Username);
-
-                // Birthdate is GONE from here
                 cmd.Parameters.AddWithValue("@Sex", bene.Beneficiary_Sex);
                 cmd.Parameters.AddWithValue("@Contact", bene.Beneficiary_Contact);
                 cmd.Parameters.AddWithValue("@OrgName", bene.Organization_Name);
+                cmd.Parameters.AddWithValue("@OrgAddress", string.IsNullOrWhiteSpace(bene.Organization_Address) ? (object)DBNull.Value : bene.Organization_Address);
+                cmd.Parameters.AddWithValue("@OrgContact", string.IsNullOrWhiteSpace(bene.Organization_Contact) ? (object)DBNull.Value : bene.Organization_Contact);
                 cmd.Parameters.AddWithValue("@Password", password);
                 cmd.Parameters.AddWithValue("@SecurityQ", securityQuestion);
                 cmd.Parameters.AddWithValue("@SecurityA", securityAnswer);
-
                 await cmd.ExecuteNonQueryAsync();
 
                 if (!string.IsNullOrEmpty(bene.ProfilePicturePath))
-                {
-                    await UpdateBeneficiaryProfile(bene.Beneficiary_ID, username, bene.ProfilePicturePath);
-                }
+                    await UpdateBeneficiaryProfile(bene.Beneficiary_ID, bene.Beneficiary_Username, bene.ProfilePicturePath);
             }
             catch (Exception ex) { MessageBox.Show("Registration failed: " + ex.Message); throw; }
         }
@@ -417,6 +410,33 @@ namespace KapwaKuha.Services
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex) { MessageBox.Show("UpdateItemStatus failed: " + ex.Message); }
+        }
+
+        public static async Task UploadProofOfReceipt(string receiptId, string claimId, string filePath, string verificationId)
+        {
+            try
+            {
+                using (var conn = new SqlConnection(_conn))
+                {
+                    await conn.OpenAsync();
+                    var cmd = new SqlCommand(@"
+            INSERT INTO ProofOfReceipt 
+                (Receipt_ID, Claim_ID, FilePath, UploadDate, Verification_ID)
+            VALUES 
+                (@ReceiptId, @ClaimId, @FilePath, GETDATE(), @VerificationId)", conn);
+
+                    cmd.Parameters.AddWithValue("@ReceiptId", receiptId);
+                    cmd.Parameters.AddWithValue("@ClaimId", claimId);
+                    cmd.Parameters.AddWithValue("@FilePath", filePath);
+                    cmd.Parameters.AddWithValue("@VerificationId", verificationId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("UploadProofOfReceipt failed: " + ex.Message);
+            }
+
         }
 
         /// <summary>
@@ -1462,20 +1482,21 @@ ORDER BY cm.SentAt ASC";
         }
 
         public static async Task UpdateBeneficiaryProfile(
-    string beneficiaryId, string newUsername, string profilePic)
+     string beneficiaryId, string newUsername, string profilePic,
+     string orgName = "", string orgAddress = "", string orgContact = "")
         {
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(@"
-            UPDATE Beneficiaries
-            SET Beneficiary_Username = @uname,
-                ProfilePicturePath   = @pic
-            WHERE Beneficiary_ID = @id", conn);
-                cmd.Parameters.AddWithValue("@uname", newUsername);
-                cmd.Parameters.AddWithValue("@pic", profilePic ?? "");
-                cmd.Parameters.AddWithValue("@id", beneficiaryId);
+                using var cmd = new SqlCommand("sp_UpdateBeneficiaryProfile", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@BeneficiaryId", beneficiaryId);
+                cmd.Parameters.AddWithValue("@NewUsername", newUsername);
+                cmd.Parameters.AddWithValue("@ProfilePic", profilePic ?? "");
+                cmd.Parameters.AddWithValue("@OrgName", string.IsNullOrWhiteSpace(orgName) ? (object)DBNull.Value : orgName);
+                cmd.Parameters.AddWithValue("@OrgAddress", string.IsNullOrWhiteSpace(orgAddress) ? (object)DBNull.Value : orgAddress);
+                cmd.Parameters.AddWithValue("@OrgContact", string.IsNullOrWhiteSpace(orgContact) ? (object)DBNull.Value : orgContact);
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
@@ -1494,6 +1515,9 @@ ORDER BY cm.SentAt ASC";
                    b.Beneficiaries_Status, b.Organization_ID,
                    ISNULL(b.ProfilePicturePath,'') AS ProfilePicturePath,
                    ISNULL(o.Organization_Name,'')  AS Organization_Name
+ISNULL(o.Organization_Address,'') AS Organization_Address,
+ISNULL(o.Organization_Contact,'') AS Organization_Contact
+
             FROM Beneficiaries b
             LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
             WHERE b.Beneficiary_ID = @id", conn);
@@ -1509,7 +1533,9 @@ ORDER BY cm.SentAt ASC";
                         Beneficiaries_Status = r["Beneficiaries_Status"].ToString() ?? "Active",
                         Organization_ID = r["Organization_ID"].ToString() ?? "",
                         Organization_Name = r["Organization_Name"].ToString() ?? "",
-                        ProfilePicturePath = r["ProfilePicturePath"].ToString() ?? ""
+                        ProfilePicturePath = r["ProfilePicturePath"].ToString() ?? "",
+                        Organization_Address = r["Organization_Address"].ToString() ?? "",
+                        Organization_Contact = r["Organization_Contact"].ToString() ?? "",
                     };
             }
             catch (Exception ex)

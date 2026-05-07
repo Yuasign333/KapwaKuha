@@ -226,10 +226,13 @@
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Organization Name" Style="{StaticResource HCILabel}"/>
                                 <Border Style="{StaticResource HCIInput}">
-                                    <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=PropertyChanged}"
+                                    <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
                                              Height="42" Background="Transparent" BorderThickness="0"
-                                             FontSize="14" Foreground="#0F172A" VerticalContentAlignment="Center"/>
+                                             FontSize="14" Foreground="#0F172A" VerticalContentAlignment="Center"
+                                             
+                                             />
                                 </Border>
+                                
                             </StackPanel>
                         </Grid>
 

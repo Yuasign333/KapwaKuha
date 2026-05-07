@@ -19,6 +19,9 @@ namespace KapwaKuha.Models
         public string ProfilePicturePath { get; set; } = string.Empty;
 
         private string _status = "Active";
+
+        public string Organization_Address { get; set; } = string.Empty;
+        public string Organization_Contact { get; set; } = string.Empty;
         public string Beneficiaries_Status
         {
             get => _status;
