@@ -177,10 +177,13 @@ namespace KapwaKuha.ViewModels
                         MessageBoxButton.OK, MessageBoxImage.Information);
 
                     await LoadMessages();
+
+                
                 }
                 catch { }
                 finally { IsBusy = false; }
             });
+            _ = LoadMessages();
         }
 
         private async System.Threading.Tasks.Task LoadMessages()

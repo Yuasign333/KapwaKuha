@@ -181,7 +181,7 @@ namespace KapwaKuha.ViewModels
                 else // Beneficiary
                 {
                     if (string.IsNullOrWhiteSpace(SelectedOrgName))
-                    { ShowError("Please select an organization."); return; }
+                    { ShowError("Please enter an organization name."); return; }
 
                     var confirm = MessageBox.Show(
                         $"Register as Beneficiary?\n\nName: {FName} {LName}\nOrg: {SelectedOrgName}\nContact: {Contact}",
@@ -199,8 +199,11 @@ namespace KapwaKuha.ViewModels
                             Beneficiary_LName = LName,
                             Beneficiary_Sex = Sex,
                             Beneficiary_Contact = Contact,
-                            Organization_ID = SelectedOrgId,
-                            ProfilePicturePath = ProfilePicturePath  // ADD THIS LINE
+
+                            // USE THE TEXTBOX STRING DIRECTLY HERE:
+                            Organization_Name = SelectedOrgName,
+
+                            ProfilePicturePath = ProfilePicturePath
                         };
                         await KapwaDataService.RegisterBeneficiary(bene, Password, SecurityQuestion, SecurityAnswer);
                         MessageBox.Show($"✅ Registered! Your Beneficiary ID: {id}\nLogin with ID: {id}",

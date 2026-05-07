@@ -16,26 +16,49 @@ namespace KapwaKuha.Services
     public static class KapwaDataService
     {
         // ── Connection ────────────────────────────────────────────────────────
-        private static string? _cachedConn;
-
-        private static readonly string _laptopConn =
-            @"Server=DESKTOP-8P1VJSE;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+        // Connection strings for all team members
         private static readonly string _pcConn =
             @"Server=CCL2-12\MSSQLSERVER01;Database=KapwaKuha_Database;User Id=sa;Password=ccl2;TrustServerCertificate=True;";
+        private static readonly string _laptopConn =
+            @"Server=DESKTOP-8P1VJSE;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+
+        // Teammate 1
+        private static readonly string _team1Conn =
+            @"Server=3QIJJ85P\MSSQLSERVER06;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+
+        // Teammate 2
+        private static readonly string _team2Conn =
+            @"Server=KAORI\MSSQLSERVER01;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+
+        private static string? _cachedConn;
 
         private static string _conn
         {
             get
             {
                 if (_cachedConn != null) return _cachedConn;
-                try
+
+                // List of all possible strings to try
+                string[] connectionStrings = { _pcConn, _laptopConn, _team1Conn, _team2Conn };
+
+                foreach (var connectionString in connectionStrings)
                 {
-                    using var t = new SqlConnection(_pcConn + "Connect Timeout=5;");
-                    t.Open();
-                    return _cachedConn = _pcConn;
+                    try
+                    {
+                        using var t = new SqlConnection(connectionString);
+                        // Set a short timeout so it doesn't freeze the app for too long while testing
+                        t.Open();
+                        return _cachedConn = connectionString;
+                    }
+                    catch
+                    {
+                        // If this one fails, it moves to the next one in the list automatically
+                        continue;
+                    }
                 }
-                catch { }
-                return _cachedConn = _laptopConn;
+
+                // Default fallback if everything fails
+                return _laptopConn;
             }
         }
 
@@ -199,10 +222,8 @@ namespace KapwaKuha.Services
             catch (Exception ex) { MessageBox.Show("RegisterDonor failed: " + ex.Message); throw; }
         }
 
-        public static async Task RegisterBeneficiary(BeneficiaryModel bene, string password,
-     string securityQuestion, string securityAnswer)
+        public static async Task RegisterBeneficiary(BeneficiaryModel bene, string password, string securityQuestion, string securityAnswer)
         {
-            // Combine FName + LName → FullName for sp_RegisterBeneficiary
             string fullName = string.IsNullOrWhiteSpace(bene.Beneficiary_FullName)
                 ? $"{bene.Beneficiary_FName} {bene.Beneficiary_LName}".Trim()
                 : bene.Beneficiary_FullName;
@@ -213,27 +234,30 @@ namespace KapwaKuha.Services
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand("sp_RegisterBeneficiary", conn);
                 cmd.CommandType = System.Data.CommandType.StoredProcedure;
+
                 cmd.Parameters.AddWithValue("@BeneficiaryId", bene.Beneficiary_ID);
                 cmd.Parameters.AddWithValue("@FullName", fullName);
-                cmd.Parameters.AddWithValue("@Username", bene.Beneficiary_Username);
+
+                string username = string.IsNullOrWhiteSpace(bene.Beneficiary_Username) ? bene.Beneficiary_ID : bene.Beneficiary_Username;
+                cmd.Parameters.AddWithValue("@Username", username);
+
+                // Birthdate is GONE from here
                 cmd.Parameters.AddWithValue("@Sex", bene.Beneficiary_Sex);
                 cmd.Parameters.AddWithValue("@Contact", bene.Beneficiary_Contact);
-                cmd.Parameters.AddWithValue("@OrgId", bene.Organization_ID);
+                cmd.Parameters.AddWithValue("@OrgName", bene.Organization_Name);
                 cmd.Parameters.AddWithValue("@Password", password);
                 cmd.Parameters.AddWithValue("@SecurityQ", securityQuestion);
                 cmd.Parameters.AddWithValue("@SecurityA", securityAnswer);
+
                 await cmd.ExecuteNonQueryAsync();
 
-                // Save profile picture immediately after registration if provided
                 if (!string.IsNullOrEmpty(bene.ProfilePicturePath))
                 {
-                    await UpdateBeneficiaryProfile(bene.Beneficiary_ID,
-                        bene.Beneficiary_Username, bene.ProfilePicturePath);
+                    await UpdateBeneficiaryProfile(bene.Beneficiary_ID, username, bene.ProfilePicturePath);
                 }
             }
-            catch (Exception ex) { MessageBox.Show("RegisterBeneficiary failed: " + ex.Message); throw; }
+            catch (Exception ex) { MessageBox.Show("Registration failed: " + ex.Message); throw; }
         }
-
         public static string GetClaimReportPath(string claimId)
         {
             string dir = System.IO.Path.Combine(

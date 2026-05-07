@@ -76,9 +76,9 @@
                             </Grid.InputBindings>
 
                             <Border Width="72" Height="72" CornerRadius="36" ClipToBounds="True" 
-                                    Background="#EBF7FB" BorderBrush="#B390E0EF" BorderThickness="1.5">
+          Background="#EBF7FB" BorderBrush="#B390E0EF" BorderThickness="1.5">
                                 <Grid>
-                                    <TextBlock Text="👤" FontSize="36" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,5,0,0">
+                                    <TextBlock Text="👤" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,5,0,0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -91,12 +91,12 @@
                                         </TextBlock.Style>
                                     </TextBlock>
 
-                                    <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill">
-                                        <Image.Clip>
-                                            <EllipseGeometry RadiusX="34.5" RadiusY="34.5" Center="34.5,34.5" />
-                                        </Image.Clip>
-                                        <Image.Style>
-                                            <Style TargetType="Image">
+                                    <Ellipse>
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="{Binding ProfilePicturePath}" Stretch="UniformToFill" />
+                                        </Ellipse.Fill>
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding HasPicture}" Value="True">
@@ -104,8 +104,8 @@
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </Image.Style>
-                                    </Image>
+                                        </Ellipse.Style>
+                                    </Ellipse>
                                 </Grid>
                             </Border>
 
@@ -158,18 +158,18 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Sex" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
-                            <Border Style="{StaticResource GlassInputBorder}">
-                                <ComboBox SelectedValue="{Binding Sex}" Height="36" Background="Transparent" BorderThickness="0" Foreground="#03045E" FontSize="12" Padding="10,0">
-                                    <ComboBoxItem Content="Male" IsSelected="True"/>
-                                    <ComboBoxItem Content="Female"/>
-                                </ComboBox>
-                            </Border>
+
+                            <ComboBox SelectedValue="{Binding Sex}" Height="36" Background="Transparent" BorderThickness="0" Foreground="#03045E" FontSize="12" Padding="10,0">
+                                <ComboBoxItem Content="Male" IsSelected="True"/>
+                                <ComboBoxItem Content="Female"/>
+                            </ComboBox>
+
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Organization Name" FontSize="11" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,5"/>
 
                             <Border Style="{StaticResource GlassInputBorder}">
-                                <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox Text="{Binding SelectedOrgName, UpdateSourceTrigger=PropertyChanged}" 
                                          Height="36" Background="Transparent" BorderThickness="0"
                                          Foreground="#03045E" FontSize="12" Padding="10,0" 
                                          VerticalContentAlignment="Center"/>
