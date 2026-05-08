@@ -228,11 +228,34 @@
                                 <Border Style="{StaticResource HCIInput}">
                                     <TextBox Text="{Binding OrganizationName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
                                              Height="42" Background="Transparent" BorderThickness="0"
-                                             FontSize="14" Foreground="#0F172A" VerticalContentAlignment="Center"
-                                             
-                                             />
+                                             FontSize="14" Foreground="#0F172A" VerticalContentAlignment="Center"/>
                                 </Border>
-                                
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Organization Location" Style="{StaticResource HCILabel}"/>
+                                <Border Style="{StaticResource HCIReadOnlyInput}">
+                                    <TextBox Text="{Binding OrgAddress, Mode=OneWay}" Height="42" Background="Transparent"
+                                             BorderThickness="0" FontSize="14" IsReadOnly="True"
+                                             Foreground="#64748B" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Organization Contact" Style="{StaticResource HCILabel}"/>
+                                <Border Style="{StaticResource HCIReadOnlyInput}">
+                                    <TextBox Text="{Binding OrgContact, Mode=OneWay}" Height="42" Background="Transparent"
+                                             BorderThickness="0" FontSize="14" IsReadOnly="True"
+                                             Foreground="#64748B" VerticalContentAlignment="Center"/>
+                                </Border>
                             </StackPanel>
                         </Grid>
 

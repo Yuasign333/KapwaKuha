@@ -186,27 +186,48 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Sex" FontSize="13" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,8"/>
-
                                 <ComboBox SelectedItem="{Binding SelectedSex, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Height="39">
                                     <ComboBoxItem Content="Select Sex" IsEnabled="False" Visibility="Collapsed"/>
                                     <ComboBoxItem Content="Male"/>
                                     <ComboBoxItem Content="Female"/>
                                 </ComboBox>
-
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Organization Name" FontSize="13" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,8"/>
                                 <Border Style="{StaticResource GlassInputBorder}">
                                     <TextBox Text="{Binding SelectedOrgName, UpdateSourceTrigger=PropertyChanged}" 
-                                             Height="44" Background="Transparent" BorderThickness="0"
-                                             Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center"/>
-                                    
-
+                     Height="44" Background="Transparent" BorderThickness="0"
+                     Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center"/>
                                 </Border>
                             </StackPanel>
                         </Grid>
 
+                        <Grid Margin="0,0,0,20" Visibility="{Binding IsBeneficiary, Converter={StaticResource BoolToVis}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="24"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Organization Location" FontSize="13" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,8"/>
+                                <Border Style="{StaticResource GlassInputBorder}">
+                                    <TextBox Text="{Binding OrgAddress, UpdateSourceTrigger=PropertyChanged}" 
+                     Height="44" Background="Transparent" BorderThickness="0"
+                     Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Organization Contact" FontSize="13" FontWeight="SemiBold" Foreground="#03045E" Margin="0,0,0,8"/>
+                                <Border Style="{StaticResource GlassInputBorder}">
+                                    <TextBox Text="{Binding OrgContact, UpdateSourceTrigger=PropertyChanged}" 
+                     Height="44" Background="Transparent" BorderThickness="0"
+                     Foreground="#03045E" FontSize="14" Padding="14,0" VerticalContentAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
                         <Grid Margin="0,0,0,20">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>

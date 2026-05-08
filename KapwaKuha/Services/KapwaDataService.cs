@@ -18,17 +18,18 @@ namespace KapwaKuha.Services
         // ── Connection ────────────────────────────────────────────────────────
         // Connection strings for all team members
         private static readonly string _pcConn =
-            @"Server=CCL2-12\MSSQLSERVER01;Database=KapwaKuha_Database;User Id=sa;Password=ccl2;TrustServerCertificate=True;";
+            @"Server=CCL2-12\MSSQLSERVER01;Database=KapwaKuha_Database;User Id=sa;Password=ccl2;TrustServerCertificate=True;Connection Timeout=5;";
+
         private static readonly string _laptopConn =
-            @"Server=DESKTOP-8P1VJSE;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+            @"Server=DESKTOP-8P1VJSE;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=5;";
 
         // Teammate 1
         private static readonly string _team1Conn =
-            @"Server=3QIJJ85P\MSSQLSERVER06;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+            @"Server=3QIJJ85P\MSSQLSERVER06;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=5;";
 
         // Teammate 2
         private static readonly string _team2Conn =
-            @"Server=KAORI\MSSQLSERVER01;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;";
+            @"Server=KAORI\MSSQLSERVER01;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=5;";
 
         private static string? _cachedConn;
 
@@ -46,7 +47,7 @@ namespace KapwaKuha.Services
                     try
                     {
                         using var t = new SqlConnection(connectionString);
-                        // Set a short timeout so it doesn't freeze the app for too long while testing
+                        // The connection will now safely give up after 3 seconds if the server is offline
                         t.Open();
                         return _cachedConn = connectionString;
                     }
@@ -61,7 +62,6 @@ namespace KapwaKuha.Services
                 return _laptopConn;
             }
         }
-
         // ══════════════════════════════════════════════════════════════════════
         // AUTH / LOGIN
         // ══════════════════════════════════════════════════════════════════════
@@ -1514,15 +1514,16 @@ ORDER BY cm.SentAt ASC";
                    b.Beneficiary_Username, b.Beneficiary_Contact,
                    b.Beneficiaries_Status, b.Organization_ID,
                    ISNULL(b.ProfilePicturePath,'') AS ProfilePicturePath,
-                   ISNULL(o.Organization_Name,'')  AS Organization_Name
-ISNULL(o.Organization_Address,'') AS Organization_Address,
-ISNULL(o.Organization_Contact,'') AS Organization_Contact
-
+                   ISNULL(o.Organization_Name,'') AS Organization_Name, -- <-- COMMA ADDED HERE
+                   ISNULL(o.Organization_Address,'') AS Organization_Address,
+                   ISNULL(o.Organization_Contact,'') AS Organization_Contact
             FROM Beneficiaries b
             LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
             WHERE b.Beneficiary_ID = @id", conn);
+
                 cmd.Parameters.AddWithValue("@id", beneficiaryId);
                 using var r = await cmd.ExecuteReaderAsync();
+
                 if (await r.ReadAsync())
                     return new BeneficiaryModel
                     {
@@ -1539,10 +1540,12 @@ ISNULL(o.Organization_Contact,'') AS Organization_Contact
                     };
             }
             catch (Exception ex)
-            { MessageBox.Show("GetBeneficiaryById failed: " + ex.Message); }
+            {
+                MessageBox.Show("GetBeneficiaryById failed: " + ex.Message);
+            }
+
             return null;
         }
-
         public static async Task DeactivateAccount(string userId)
         {
             try
