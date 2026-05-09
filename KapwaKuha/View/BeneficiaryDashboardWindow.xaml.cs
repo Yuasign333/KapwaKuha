@@ -12,7 +12,5 @@ namespace KapwaKuha.View
             DataContext = new BeneficiaryDashboardViewModel(beneficiaryId);
             Loaded += (s, e) => NavigationService.SetCurrent(this);
         }
-
-    
     }
 }

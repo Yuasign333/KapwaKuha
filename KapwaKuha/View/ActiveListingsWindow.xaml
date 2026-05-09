@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:KapwaKuha.ViewModels"
         mc:Ignorable="d"
-        d:DataContext="{d:DesignInstance Type=vm:ActiveListingsDesignViewModel, IsDesignTimeCreatable=True}"
+        
         Title="KapwaKuha — Active Listings"
         Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"

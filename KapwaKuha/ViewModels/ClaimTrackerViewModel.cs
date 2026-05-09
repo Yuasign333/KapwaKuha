@@ -8,6 +8,7 @@ using System.Windows.Input;
 using KapwaKuha.Commands;
 using KapwaKuha.Models;
 using KapwaKuha.Services;
+using System.IO;
 
 namespace KapwaKuha.ViewModels
 {
@@ -102,46 +103,52 @@ namespace KapwaKuha.ViewModels
 
                 try
                 {
-                    // 1. Update the claim status in the database
+                    // 1. Update claim status to Released (also triggers UpdateProofOfReceiptOnRelease inside)
                     await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
 
-                    // 2. Send the automated chat message
-                    // 2. Send the automated chat message
+                    // 2. Generate the text receipt file
+                    KapwaDataService.GenerateClaimReport(c);
+
+                    // 3. Also generate donor receipt file
                     try
                     {
-                        string receivedMessage = $"✅ I have officially received the item! (Claim ID: {c.Claim_ID}).\n" +
-                                                 $"Thank you so much for your generosity! 🙏";
-
-                        // In ProofOfReceipt ViewModel or display logic:
-                        string path = KapwaDataService.GetClaimReportPath(c.Claim_ID);
-                        if (System.IO.File.Exists(path))
-                            ReceiptContent = System.IO.File.ReadAllText(path);
-                        else
-                            ReceiptContent = "No receipt found for this claim.";
-
-                        // Fetch the original item to find out who the donor is
-                        var associatedItem = await KapwaDataService.GetItemById(c.Item_ID);
-
-                        if (associatedItem != null && !string.IsNullOrEmpty(associatedItem.Donor_ID))
+                        var item = await KapwaDataService.GetItemById(c.Item_ID);
+                        if (item != null)
                         {
-                            await KapwaDataService.SaveChatMessage(
-                                c.Beneficiary_ID,          // Sender (Beneficiary)
-                                associatedItem.Donor_ID,   // Receiver (Donor)
-                                receivedMessage
-                            );
+                            var donor = await KapwaDataService.GetDonorById(item.Donor_ID);
+                            if (donor != null)
+                                KapwaDataService.GenerateDonationReceipt(c, donor.Donor_FullName);
                         }
                     }
-                    catch { /* Optional chat message - if it fails, don't crash the whole app */ }
-                    // 3. Update the UI
-                    Application.Current.Dispatcher.Invoke(() =>
+                    catch { /* non-fatal */ }
+
+                    // 4. Read receipt content for display
+                    string path = KapwaDataService.GetClaimReportPath(c.Claim_ID);
+                    ReceiptContent = File.Exists(path)
+                        ? File.ReadAllText(path)
+                        : "Receipt saved to database.";
+
+                    // 5. Send automated chat message to donor
+                    try
                     {
-                        c.Claim_Status = "Released";
-                    });
+                        var associatedItem = await KapwaDataService.GetItemById(c.Item_ID);
+                        if (associatedItem != null && !string.IsNullOrEmpty(associatedItem.Donor_ID))
+                        {
+                            string receivedMessage =
+                                $"✅ I have officially received the item! (Claim ID: {c.Claim_ID}).\n" +
+                                "Thank you so much for your generosity! 🙏";
+                            await KapwaDataService.SaveChatMessage(
+                                c.Beneficiary_ID, associatedItem.Donor_ID, receivedMessage);
+                        }
+                    }
+                    catch { /* Optional chat message */ }
+
+                    // 6. Update UI
+                    Application.Current.Dispatcher.Invoke(() => c.Claim_Status = "Released");
 
                     MessageBox.Show("✅ Item marked as received! Thank you.",
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    // Full reload to sync with DB
                     await LoadAsync();
                 }
                 catch (Exception ex)

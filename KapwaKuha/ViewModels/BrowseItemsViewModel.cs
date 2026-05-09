@@ -45,7 +45,6 @@ namespace KapwaKuha.ViewModels
             set { _filterCondition = value; OnPropertyChanged(); ApplyFilter(); }
         }
 
-        // Radio button bindings for sidebar
         public bool IsCatAll { get => _filterCategory == "All"; set { if (value) FilterCategory = "All"; } }
         public bool IsCatClothing { get => _filterCategory == "Clothing"; set { if (value) FilterCategory = "Clothing"; } }
         public bool IsCatFood { get => _filterCategory == "Food"; set { if (value) FilterCategory = "Food"; } }
@@ -61,8 +60,12 @@ namespace KapwaKuha.ViewModels
         public ICommand SelectItemCommand { get; }
 
         public BrowseItemsViewModel(string beneficiaryId)
+            : this(beneficiaryId, "All") { }
+
+        public BrowseItemsViewModel(string beneficiaryId, string initialCategory)
         {
             _beneficiaryId = beneficiaryId;
+            _filterCategory = initialCategory;
 
             BackCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.BeneficiaryDashboardWindow(_beneficiaryId)));
@@ -80,51 +83,30 @@ namespace KapwaKuha.ViewModels
 
         private async System.Threading.Tasks.Task LoadItemsAsync()
         {
-            // Ensure thread safety for IsBusy
-            Application.Current?.Dispatcher.Invoke(() => IsBusy = true);
+            IsBusy = true;
             try
             {
-                var items = await KapwaDataService.GetAvailableItems();
-                Application.Current?.Dispatcher.Invoke(() =>
-                {
-                    // Null check fallback in case DB service returns null
-                    _allItems = items ?? new System.Collections.Generic.List<ItemModel>();
-                    ApplyFilter();
-                });
+                var all = await KapwaDataService.GetAvailableItems();
+                _allItems = all;
+                Application.Current.Dispatcher.Invoke(ApplyFilter);
             }
-            catch { /* Keep this empty to swallow background DB errors, or log them */ }
-            finally
-            {
-                // Must be back on the UI thread to update the bound property
-                Application.Current?.Dispatcher.Invoke(() => IsBusy = false);
-            }
+            catch { }
+            finally { IsBusy = false; }
         }
 
         private void ApplyFilter()
         {
             Items.Clear();
-
-            // Prevent crash if the database returned a null list
-            if (_allItems == null) return;
-
-            // Safely trim and lower the search text
-            var q = _searchText?.Trim().ToLower() ?? string.Empty;
-
-            foreach (var i in _allItems)
+            var q = _searchText.Trim().ToLower();
+            foreach (var item in _allItems)
             {
-                // Use ?. to safely check for nulls before calling ToLower()
-                bool matchSearch = string.IsNullOrEmpty(q) ||
-                                   (i.Item_Name?.ToLower().Contains(q) ?? false) ||
-                                   (i.Item_Description?.ToLower().Contains(q) ?? false) ||
-                                   (i.Donor_Name?.ToLower().Contains(q) ?? false);
-
-                bool matchCat = _filterCategory == "All" || i.Category_Name == _filterCategory;
-                bool matchCond = _filterCondition == "Any" || i.Item_Condition == _filterCondition;
-
-                if (matchSearch && matchCat && matchCond)
-                {
-                    Items.Add(i);
-                }
+                bool catOk = _filterCategory == "All" || item.Category_Name == _filterCategory;
+                bool condOk = _filterCondition == "Any" || item.Item_Condition == _filterCondition;
+                bool searchOk = string.IsNullOrEmpty(q) ||
+                    item.Item_Name.ToLower().Contains(q) ||
+                    item.Category_Name.ToLower().Contains(q) ||
+                    item.Item_Description.ToLower().Contains(q);
+                if (catOk && condOk && searchOk) Items.Add(item);
             }
         }
     }

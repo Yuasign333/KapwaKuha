@@ -281,32 +281,64 @@
                                 <Grid Margin="0,0,0,20">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="16"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="12"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="What would you like to do today?"
-                                                   FontSize="20" FontWeight="Bold" Foreground="#03045E"
-                                                   Margin="0,0,0,6"/>
+                   FontSize="20" FontWeight="Bold" Foreground="#03045E"
+                   Margin="0,0,0,6"/>
                                         <TextBlock Text="Post items, track impact, or respond to community needs."
-                                                   FontSize="12" Foreground="#5E7A8A"/>
+                   FontSize="12" Foreground="#5E7A8A"/>
                                     </StackPanel>
 
+                                    <!-- Existing Kapwa Impact card -->
                                     <Border Grid.Column="2" Background="#EBF7FB" CornerRadius="14"
-                                            Padding="18,12" VerticalAlignment="Center" MaxWidth="340">
+            Padding="18,12" VerticalAlignment="Center" Width="220">
                                         <Border.Effect>
                                             <DropShadowEffect Color="#00B4D8" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
                                         </Border.Effect>
                                         <StackPanel>
                                             <TextBlock Text="💙 Kapwa Impact" FontSize="13" FontWeight="Bold"
-                                                       Foreground="#0077B6" Margin="0,0,0,4"/>
+                       Foreground="#0077B6" Margin="0,0,0,4"/>
                                             <TextBlock FontSize="11" Foreground="#5E7A8A" TextWrapping="Wrap"
-                                                       Text="Every item you donate is a connection. You're not just giving things — you're giving hope and dignity to your community."/>
+                       Text="Every item you donate is a connection. You're not just giving things — you're giving hope and dignity to your community."/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- New card: Community Quote -->
+                                    <Border Grid.Column="4" Background="#FFF7ED" CornerRadius="14"
+            Padding="18,12" VerticalAlignment="Center" Width="200">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#F4A261" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <TextBlock Text="🌱 Did You Know?" FontSize="13" FontWeight="Bold"
+                       Foreground="#C05621" Margin="0,0,0,4"/>
+                                            <TextBlock FontSize="11" Foreground="#7B4F2E" TextWrapping="Wrap"
+                       Text="One donated item can change a family's week. Small acts of kindness ripple outward in ways we never see."/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- New card: Tip of the Day -->
+                                    <Border Grid.Column="6" Background="#F0FFF5" CornerRadius="14"
+            Padding="18,12" VerticalAlignment="Center" Width="200">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#2DC653" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <TextBlock Text="💡 Tip" FontSize="13" FontWeight="Bold"
+                       Foreground="#1A7A3A" Margin="0,0,0,4"/>
+                                            <TextBlock FontSize="11" Foreground="#2E6B42" TextWrapping="Wrap"
+                       Text="Add clear photos and descriptions to your posts — items with images get claimed 3× faster!"/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>
-
                                 <!-- ── MY IMPACT ── -->
                                 <Border CornerRadius="16" Margin="0,0,0,20" BorderThickness="1.5" Padding="0">
                                     <Border.Background>
@@ -497,13 +529,36 @@
                                                                 <ColumnDefinition Width="*"/>
                                                                 <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
-
                                                             <Border Width="38" Height="38" CornerRadius="19"
-                                                                    ClipToBounds="True" Background="#EBF7FB">
+                                                             ClipToBounds="True" Background="#EBF7FB">
                                                                 <Grid>
                                                                     <TextBlock Text="👤" FontSize="18"
-                                                                               HorizontalAlignment="Center"
-                                                                               VerticalAlignment="Center"/>
+                                                               HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding HasProfilePicture}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                    <Image Stretch="UniformToFill">
+                                                                        <Image.Style>
+                                                                            <Style TargetType="Image">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Setter Property="Source" Value="{Binding SenderProfilePicture}"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding HasProfilePicture}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Image.Style>
+                                                                    </Image>
                                                                 </Grid>
                                                             </Border>
 
@@ -615,14 +670,15 @@
                                         </ControlTemplate>
                                     </Button.Template>
                                     <TextBlock Text="‹" FontSize="20" FontWeight="Bold"
-                                               Foreground="#0077B6" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                               Foreground="#0077B6" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-5,1,0"/>
                                 </Button>
 
                                 <!-- Carousel scroll host -->
                                 <ScrollViewer Grid.Column="1"
                                               x:Name="PostsCarouselScroller"
                                               HorizontalScrollBarVisibility="Hidden"
-                                              VerticalScrollBarVisibility="Disabled">
+                                              VerticalScrollBarVisibility="Disabled"
+                                               MinHeight="230">
                                     <StackPanel Orientation="Horizontal">
 
                                         <ItemsControl ItemsSource="{Binding MyPosts}">
@@ -738,19 +794,20 @@
                                                                 </Button>
 
                                                                 <!-- Sidebar CLOSED: Edit Post -->
+                                                                <!-- Single Edit Post button — always visible, never changes text -->
                                                                 <Button Command="{Binding DataContext.EditPostCommand,
-                                                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                                        CommandParameter="{Binding}"
-                                                                        Height="34" BorderThickness="0" Cursor="Hand"
-                                                                        FontSize="12" FontWeight="SemiBold"
-                                                                        Foreground="White">
+            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+        CommandParameter="{Binding}"
+        Height="34" BorderThickness="0" Cursor="Hand"
+        FontSize="12" FontWeight="SemiBold"
+        Foreground="White">
                                                                     <Button.Style>
                                                                         <Style TargetType="Button">
-                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            <Setter Property="IsEnabled" Value="True"/>
                                                                             <Setter Property="Template">
                                                                                 <Setter.Value>
                                                                                     <ControlTemplate TargetType="Button">
-                                                                                        <Border CornerRadius="10">
+                                                                                        <Border CornerRadius="10" x:Name="Bd">
                                                                                             <Border.Background>
                                                                                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                                                                     <GradientStop Color="#00B4D8" Offset="0"/>
@@ -763,15 +820,18 @@
                                                                                             <Trigger Property="IsMouseOver" Value="True">
                                                                                                 <Setter Property="Opacity" Value="0.85"/>
                                                                                             </Trigger>
+                                                                                            <Trigger Property="IsEnabled" Value="False">
+                                                                                                <Setter TargetName="Bd" Property="Background" Value="#CCCCCC"/>
+                                                                                            </Trigger>
                                                                                         </ControlTemplate.Triggers>
                                                                                     </ControlTemplate>
                                                                                 </Setter.Value>
                                                                             </Setter>
+                                                                            <!-- Disable (gray out) when item is already Claimed -->
                                                                             <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding DataContext.IsSidebarOpen,
-                                                                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                                                             Value="False">
-                                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                                <DataTrigger Binding="{Binding Item_Status}" Value="Claimed">
+                                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                                    <Setter Property="Foreground" Value="#999999"/>
                                                                                 </DataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
@@ -787,7 +847,7 @@
 
                                         <!-- Add post button -->
                                         <Button Command="{Binding PostItemCommand}"
-                                                Width="220" Margin="0,0,0,0"
+                                                Width="220"  Height="230" Margin="0,0,0,0"
                                                 Background="Transparent" BorderThickness="0" Cursor="Hand">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
@@ -834,7 +894,7 @@
                                         </ControlTemplate>
                                     </Button.Template>
                                     <TextBlock Text="›" FontSize="20" FontWeight="Bold"
-                                               Foreground="#0077B6" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                               Foreground="#0077B6" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-5,-2,0"/>
                                 </Button>
 
                             </Grid>

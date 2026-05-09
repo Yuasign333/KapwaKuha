@@ -25,7 +25,7 @@ namespace KapwaKuha.Services
 
         // Teammate 1
         private static readonly string _team1Conn =
-            @"Server=3QIJJ85P\MSSQLSERVER06;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=5;";
+            @"Server=LAPTOP-3QIJJ85P\MSSQLSERVER06;Database=KapwaKuha_Database;Trusted_Connection=True;TrustServerCertificate=True;Connection Timeout=5;";
 
         // Teammate 2
         private static readonly string _team2Conn =
@@ -621,8 +621,8 @@ namespace KapwaKuha.Services
                         Item_Description = r["Item_Description"].ToString() ?? "",
                         Category_Name = r["Category_Name"].ToString() ?? "",
                         Item_Condition = r["Item_Condition"].ToString() ?? "",
-                        Donor_FullName = r["Donor_Name"].ToString() ?? "",  
-                        Beneficiary_Name = r["Donor_Name"].ToString() ?? "",   
+                        Donor_FullName = r["Donor_Name"].ToString() ?? "",
+                        Beneficiary_Name = r["Donor_Name"].ToString() ?? "",
                         Organization_Name = r["Organization_Name"].ToString() ?? "",
                         Claim_Date = Convert.ToDateTime(r["Claim_Date"]),
                         Claim_Status = r["Claim_Status"].ToString() ?? "",
@@ -746,7 +746,7 @@ namespace KapwaKuha.Services
             }
         }
 
-         public static async Task UpdateClaimStatus(string claimId, string newStatus)
+        public static async Task UpdateClaimStatus(string claimId, string newStatus)
         {
             try
             {
@@ -989,9 +989,9 @@ namespace KapwaKuha.Services
         // ══════════════════════════════════════════════════════════════════════
 
         public static async Task<List<BeneficiaryModel>> GetActiveBeneficiariesFull()
-{
-    var list = new List<BeneficiaryModel>();
-    const string sql = @"
+        {
+            var list = new List<BeneficiaryModel>();
+            const string sql = @"
                 SELECT b.Beneficiary_ID, b.Beneficiary_FullName,
                        b.Beneficiary_Username,
                        b.Beneficiary_Sex, b.Beneficiary_Contact, b.Beneficiaries_Status,
@@ -999,47 +999,11 @@ namespace KapwaKuha.Services
                 FROM Beneficiaries b
                 LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
                 WHERE b.Beneficiaries_Status='Active'";
-    try
-    {
-        using var conn = new SqlConnection(_conn);
-        await conn.OpenAsync();
-        using var cmd = new SqlCommand(sql, conn);
-        using var r = await cmd.ExecuteReaderAsync();
-        while (await r.ReadAsync())
-            list.Add(new BeneficiaryModel
-            {
-                Beneficiary_ID = r["Beneficiary_ID"].ToString() ?? "",
-                Beneficiary_FullName = r["Beneficiary_FullName"].ToString() ?? "",
-                Beneficiary_Username = r["Beneficiary_Username"].ToString() ?? "",
-                Beneficiary_Sex = r["Beneficiary_Sex"].ToString() ?? "",
-                Beneficiary_Contact = r["Beneficiary_Contact"].ToString() ?? "",
-                Beneficiaries_Status = r["Beneficiaries_Status"].ToString() ?? "Active",
-                Organization_ID = r["Organization_ID"].ToString() ?? "",
-                Organization_Name = r["Organization_Name"].ToString() ?? ""
-            });
-    }
-    catch (Exception ex) { MessageBox.Show("GetActiveBeneficiaries failed: " + ex.Message); }
-    return list;
-}
-
-        /// <summary>Returns ALL active beneficiaries for donor chat search.</summary>
-        public static async Task<List<BeneficiaryModel>> GetAllBeneficiariesForChat()
-        {
-            var list = new List<BeneficiaryModel>();
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(@"
-            SELECT b.Beneficiary_ID, b.Beneficiary_FullName,
-                   b.Beneficiary_Username,
-                   b.Beneficiary_Sex, b.Beneficiary_Contact, b.Beneficiaries_Status,
-                   b.Organization_ID, b.ProfilePicturePath,
-                   ISNULL(o.Organization_Name,'') AS Organization_Name
-            FROM Beneficiaries b
-            LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
-            WHERE b.Beneficiaries_Status = 'Active'
-            ORDER BY b.Beneficiary_FullName", conn);
+                using var cmd = new SqlCommand(sql, conn);
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync())
                     list.Add(new BeneficiaryModel
@@ -1051,11 +1015,88 @@ namespace KapwaKuha.Services
                         Beneficiary_Contact = r["Beneficiary_Contact"].ToString() ?? "",
                         Beneficiaries_Status = r["Beneficiaries_Status"].ToString() ?? "Active",
                         Organization_ID = r["Organization_ID"].ToString() ?? "",
-                        Organization_Name = r["Organization_Name"].ToString() ?? "",
-                        ProfilePicturePath = r["ProfilePicturePath"].ToString() ?? "" // KEY FIX
+                        Organization_Name = r["Organization_Name"].ToString() ?? ""
                     });
             }
-            catch (Exception ex) { MessageBox.Show("GetAllBeneficiariesForChat failed: " + ex.Message); }
+            catch (Exception ex) { MessageBox.Show("GetActiveBeneficiaries failed: " + ex.Message); }
+            return list;
+        }
+        // ══════════════════════════════════════════════════════════════════════
+        // CHAT LIST FETCHING (For ChatListViewModel)
+        // ══════════════════════════════════════════════════════════════════════
+        /// <summary>Returns ALL active beneficiaries for donor chat search.</summary>
+        public static async Task<List<BeneficiaryModel>> GetAllBeneficiariesForChat()
+        {
+            var list = new List<BeneficiaryModel>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                // Fetch all active beneficiaries (Removed b.Organization_Name)
+                using var cmd = new SqlCommand(@"
+            SELECT b.Beneficiary_ID, 
+                   b.Beneficiary_FullName, 
+                   b.Beneficiary_Username, 
+                   ISNULL(b.ProfilePicturePath, '') AS ProfilePicturePath
+            FROM Beneficiaries b
+            INNER JOIN Users u ON u.UserID = b.Beneficiary_ID
+            WHERE u.IsActive = 1", conn);
+
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                {
+                    list.Add(new BeneficiaryModel
+                    {
+                        Beneficiary_ID = r["Beneficiary_ID"].ToString() ?? "",
+                        Beneficiary_FullName = r["Beneficiary_FullName"].ToString() ?? "",
+                        Beneficiary_Username = r["Beneficiary_Username"].ToString() ?? "",
+                        Organization_Name = "", // Assigned an empty string to avoid errors
+                        ProfilePicturePath = r["ProfilePicturePath"].ToString() ?? ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("GetAllBeneficiariesForChat failed: " + ex.Message);
+            }
+            return list;
+        }
+
+        public static async Task<List<DonorModel>> GetAllDonorsForChat()
+        {
+            var list = new List<DonorModel>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                // Fetch all active donors
+                using var cmd = new SqlCommand(@"
+                    SELECT d.Donor_ID, 
+                           d.Donor_FullName, 
+                           d.Donor_Username, 
+                           ISNULL(d.ProfilePicturePath, '') AS ProfilePicturePath
+                    FROM Donors d
+                    INNER JOIN Users u ON u.UserID = d.Donor_ID
+                    WHERE u.IsActive = 1", conn);
+
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                {
+                    list.Add(new DonorModel
+                    {
+                        Donor_ID = r["Donor_ID"].ToString() ?? "",
+                        Donor_FullName = r["Donor_FullName"].ToString() ?? "",
+                        Donor_Username = r["Donor_Username"].ToString() ?? "",
+                        ProfilePicturePath = r["ProfilePicturePath"].ToString() ?? ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("GetAllDonorsForChat failed: " + ex.Message);
+            }
             return list;
         }
 
@@ -1104,30 +1145,30 @@ namespace KapwaKuha.Services
 
         // Legacy tuple version used by ClaimProcessViewModel
         public static async Task<List<(string Id, string DisplayName)>> GetActiveBeneficiaries()
-{
-    var full = await GetActiveBeneficiariesFull();
-    var result = new List<(string, string)>();
-    foreach (var b in full)
-        result.Add((b.Beneficiary_ID, b.DisplayName));
-    return result;
-}
+        {
+            var full = await GetActiveBeneficiariesFull();
+            var result = new List<(string, string)>();
+            foreach (var b in full)
+                result.Add((b.Beneficiary_ID, b.DisplayName));
+            return result;
+        }
 
-public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
-{
-    var list = new List<(string, string)>();
-    try
-    {
-        using var conn = new SqlConnection(_conn);
-        await conn.OpenAsync();
-        using var cmd = new SqlCommand(
-            "SELECT Organization_ID, Organization_Name FROM Organization ORDER BY Organization_Name", conn);
-        using var r = await cmd.ExecuteReaderAsync();
-        while (await r.ReadAsync())
-            list.Add((r["Organization_ID"].ToString() ?? "", r["Organization_Name"].ToString() ?? ""));
-    }
-    catch (Exception ex) { MessageBox.Show("GetAllOrganizations failed: " + ex.Message); }
-    return list;
-}
+        public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
+        {
+            var list = new List<(string, string)>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(
+                    "SELECT Organization_ID, Organization_Name FROM Organization ORDER BY Organization_Name", conn);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    list.Add((r["Organization_ID"].ToString() ?? "", r["Organization_Name"].ToString() ?? ""));
+            }
+            catch (Exception ex) { MessageBox.Show("GetAllOrganizations failed: " + ex.Message); }
+            return list;
+        }
 
         // ══════════════════════════════════════════════════════════════════════
         // IMPACT METRICS  (parallel to Revenue analytics)
@@ -1217,17 +1258,17 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
 
 
         public static async Task<string> GetNextNeedsPostId()
-{
-    try
-    {
-        using var conn = new SqlConnection(_conn);
-        await conn.OpenAsync();
-        using var cmd = new SqlCommand("SELECT COUNT(*) FROM NeedsPosts", conn);
-        int n = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-        return $"NP{n + 1:D3}";
-    }
-    catch { return $"NP{DateTime.Now.Ticks % 900 + 100:D3}"; }
-}
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("SELECT COUNT(*) FROM NeedsPosts", conn);
+                int n = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                return $"NP{n + 1:D3}";
+            }
+            catch { return $"NP{DateTime.Now.Ticks % 900 + 100:D3}"; }
+        }
 
         private static NeedsPostModel MapNeedsPost(SqlDataReader r) => new()
         {
@@ -1248,20 +1289,20 @@ public static async Task<List<(string Id, string Name)>> GetAllOrganizations()
         // ══════════════════════════════════════════════════════════════════════
 
         public static async Task SaveChatMessage(string senderId, string receiverId, string message)
-{
-    try
-    {
-        using var conn = new SqlConnection(_conn);
-        await conn.OpenAsync();
-        using var cmd = new SqlCommand("sp_SaveChatMessage", conn);
-        cmd.CommandType = System.Data.CommandType.StoredProcedure;
-        cmd.Parameters.AddWithValue("@SenderId", senderId);
-        cmd.Parameters.AddWithValue("@ReceiverId", receiverId);
-        cmd.Parameters.AddWithValue("@Message", message);
-        await cmd.ExecuteNonQueryAsync();
-    }
-    catch (Exception ex) { MessageBox.Show("SaveChatMessage failed: " + ex.Message); }
-}
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_SaveChatMessage", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SenderId", senderId);
+                cmd.Parameters.AddWithValue("@ReceiverId", receiverId);
+                cmd.Parameters.AddWithValue("@Message", message);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex) { MessageBox.Show("SaveChatMessage failed: " + ex.Message); }
+        }
 
         public static async Task<List<ChatMessage>> GetChatMessages(string userId1, string userId2)
         {
@@ -1341,12 +1382,12 @@ ORDER BY cm.SentAt ASC";
         SELECT COUNT(*) FROM Claims
         WHERE Item_ID        = @iid
           AND Beneficiary_ID = @bid", conn);
-    c3.Parameters.AddWithValue("@iid", linkedItemId);
-    c3.Parameters.AddWithValue("@bid", userId1);
-    var countObj = await c3.ExecuteScalarAsync();
-    var count = (countObj is DBNull || countObj == null) ? 0 : Convert.ToInt32(countObj);
-    alreadyActioned = count > 0;
-}
+                        c3.Parameters.AddWithValue("@iid", linkedItemId);
+                        c3.Parameters.AddWithValue("@bid", userId1);
+                        var countObj = await c3.ExecuteScalarAsync();
+                        var count = (countObj is DBNull || countObj == null) ? 0 : Convert.ToInt32(countObj);
+                        alreadyActioned = count > 0;
+                    }
 
                     list.Add(new ChatMessage
                     {
@@ -1369,26 +1410,26 @@ ORDER BY cm.SentAt ASC";
 
         public static async Task<List<(string UserId, string FullName, string LastMessage, int UnreadCount)>>
     GetChatDonors()
-{
-    var list = new List<(string, string, string, int)>();
-    try
-    {
-        using var conn = new SqlConnection(_conn);
-        await conn.OpenAsync();
-        using var cmd = new SqlCommand("sp_GetChatDonors", conn);
-        cmd.CommandType = System.Data.CommandType.StoredProcedure;
-        using var r = await cmd.ExecuteReaderAsync();
-        while (await r.ReadAsync())
-            list.Add((
-                r["Donor_ID"].ToString() ?? "",
-                r["Donor_FullName"].ToString() ?? "",
-                r["LastMessage"].ToString() ?? "",
-                Convert.ToInt32(r["UnreadCount"])
-            ));
-    }
-    catch (Exception ex) { MessageBox.Show("GetChatDonors failed: " + ex.Message); }
-    return list;
-}
+        {
+            var list = new List<(string, string, string, int)>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_GetChatDonors", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    list.Add((
+                        r["Donor_ID"].ToString() ?? "",
+                        r["Donor_FullName"].ToString() ?? "",
+                        r["LastMessage"].ToString() ?? "",
+                        Convert.ToInt32(r["UnreadCount"])
+                    ));
+            }
+            catch (Exception ex) { MessageBox.Show("GetChatDonors failed: " + ex.Message); }
+            return list;
+        }
 
         // ADD: RevertItemToGeneralPost (for Decline in chat)
         public static async Task RevertItemToGeneralPost(string itemId)
@@ -1566,69 +1607,68 @@ ORDER BY cm.SentAt ASC";
         // ══════════════════════════════════════════════════════════════════════
 
         public static void GenerateClaimReport(ClaimModel claim)
-{
-    try
-    {
-        string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                                   "KapwaKuhaData", "ClaimReports");
-        Directory.CreateDirectory(dir);
-        string path = Path.Combine(dir, $"Claim_{claim.Claim_ID}.txt");
-        using var w = new StreamWriter(path, append: false);
-        w.WriteLine("================================================");
-        w.WriteLine("       KAPWAKUHA — ITEM CLAIM REPORT            ");
-        w.WriteLine("================================================");
-        w.WriteLine($"Claim ID        : {claim.Claim_ID}");
-        w.WriteLine($"Claim Date      : {claim.Claim_Date:yyyy-MM-dd HH:mm:ss}");
-        w.WriteLine("------------------------------------------------");
-        w.WriteLine($"Item ID         : {claim.Item_ID}");
-        w.WriteLine($"Item Name       : {claim.Item_Name}");
-        w.WriteLine("------------------------------------------------");
-        w.WriteLine($"Beneficiary ID  : {claim.Beneficiary_ID}");
-        w.WriteLine($"Beneficiary     : {claim.Beneficiary_Name}");
-        w.WriteLine("------------------------------------------------");
-        w.WriteLine($"Handoff Type    : {claim.Handoff_Type}");
-        w.WriteLine($"Status          : {claim.Claim_Status}");
-        w.WriteLine($"Notes           : {claim.Verification_Notes}");
-        w.WriteLine("================================================");
-        w.WriteLine("  Kapwa — Together We Give What Others Need     ");
-        w.WriteLine("================================================");
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show($"Claim report error: {ex.Message}",
-            "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-    }
-}
+        {
+            try
+            {
+                string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                           "KapwaKuhaData", "ClaimReports");
+                Directory.CreateDirectory(dir);
+                string path = Path.Combine(dir, $"Claim_{claim.Claim_ID}.txt");
+                using var w = new StreamWriter(path, append: false);
+                w.WriteLine("================================================");
+                w.WriteLine("       KAPWAKUHA — ITEM CLAIM REPORT            ");
+                w.WriteLine("================================================");
+                w.WriteLine($"Claim ID        : {claim.Claim_ID}");
+                w.WriteLine($"Claim Date      : {claim.Claim_Date:yyyy-MM-dd HH:mm:ss}");
+                w.WriteLine("------------------------------------------------");
+                w.WriteLine($"Item ID         : {claim.Item_ID}");
+                w.WriteLine($"Item Name       : {claim.Item_Name}");
+                w.WriteLine("------------------------------------------------");
+                w.WriteLine($"Beneficiary ID  : {claim.Beneficiary_ID}");
+                w.WriteLine($"Beneficiary     : {claim.Beneficiary_Name}");
+                w.WriteLine("------------------------------------------------");
+                w.WriteLine($"Handoff Type    : {claim.Handoff_Type}");
+                w.WriteLine($"Status          : {claim.Claim_Status}");
+                w.WriteLine($"Notes           : {claim.Verification_Notes}");
+                w.WriteLine("================================================");
+                w.WriteLine("  Kapwa — Together We Give What Others Need     ");
+                w.WriteLine("================================================");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Claim report error: {ex.Message}",
+                    "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
 
-public static void GenerateDonationReceipt(ClaimModel claim, string donorName)
-{
-    try
-    {
-        string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                                   "KapwaKuhaData", "DonorReceipts");
-        Directory.CreateDirectory(dir);
-        string path = Path.Combine(dir, $"Receipt_{claim.Claim_ID}.txt");
-        using var w = new StreamWriter(path, append: false);
-        w.WriteLine("================================================");
-        w.WriteLine("       KAPWAKUHA — DONATION RECEIPT             ");
-        w.WriteLine("================================================");
-        w.WriteLine($"Receipt for     : {donorName}");
-        w.WriteLine($"Claim ID        : {claim.Claim_ID}");
-        w.WriteLine($"Date            : {claim.Claim_Date:yyyy-MM-dd HH:mm:ss}");
-        w.WriteLine("------------------------------------------------");
-        w.WriteLine($"Item Donated    : {claim.Item_Name}");
-        w.WriteLine($"Received By     : {claim.Beneficiary_Name}");
-        w.WriteLine($"Handoff Method  : {claim.Handoff_Type}");
-        w.WriteLine("================================================");
-        w.WriteLine("  Thank you for your generosity, Kapwa!         ");
-        w.WriteLine("================================================");
-    }
-    catch (Exception ex)
-    {
-        MessageBox.Show($"Receipt error: {ex.Message}",
-            "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+        public static void GenerateDonationReceipt(ClaimModel claim, string donorName)
+        {
+            try
+            {
+                string dir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                           "KapwaKuhaData", "DonorReceipts");
+                Directory.CreateDirectory(dir);
+                string path = Path.Combine(dir, $"Receipt_{claim.Claim_ID}.txt");
+                using var w = new StreamWriter(path, append: false);
+                w.WriteLine("================================================");
+                w.WriteLine("       KAPWAKUHA — DONATION RECEIPT             ");
+                w.WriteLine("================================================");
+                w.WriteLine($"Receipt for     : {donorName}");
+                w.WriteLine($"Claim ID        : {claim.Claim_ID}");
+                w.WriteLine($"Date            : {claim.Claim_Date:yyyy-MM-dd HH:mm:ss}");
+                w.WriteLine("------------------------------------------------");
+                w.WriteLine($"Item Donated    : {claim.Item_Name}");
+                w.WriteLine($"Received By     : {claim.Beneficiary_Name}");
+                w.WriteLine($"Handoff Method  : {claim.Handoff_Type}");
+                w.WriteLine("================================================");
+                w.WriteLine("  Thank you for your generosity, Kapwa!         ");
+                w.WriteLine("================================================");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Receipt error: {ex.Message}",
+                    "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
     }
 }
-    }
-}
-

@@ -1,7 +1,7 @@
 ﻿// FILE: ChatListViewModel.cs
 // Window: ChatListWindow.xaml
 // Donor side: shows ALL registered beneficiaries with live search bar
-// Beneficiary side: shows donors they have chatted with
+// Beneficiary side: shows ALL registered donors with live search bar
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -64,7 +64,7 @@ namespace KapwaKuha.ViewModels
         {
             if (_role == "Donor")
             {
-                // Donors see ALL registered beneficiaries (they initiate)
+                // Donors see ALL registered beneficiaries
                 var benes = await KapwaDataService.GetAllBeneficiariesForChat();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -84,22 +84,22 @@ namespace KapwaKuha.ViewModels
             }
             else
             {
-                // Beneficiaries see only donors they have active chats with
-                var donors = await KapwaDataService.GetChatDonorsForBeneficiary(_myId);
+                // Beneficiaries see ALL registered donors
+                var donors = await KapwaDataService.GetAllDonorsForChat();
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     _allUsers.Clear();
 
-                    foreach (var (userId, fullName, lastMsg, unread, picPath) in donors)
+                    foreach (var d in donors)
                         _allUsers.Add(new ChatUserRow
                         {
-                            UserId = userId,
-                            DisplayName = fullName,
+                            UserId = d.Donor_ID,
+                            DisplayName = d.Donor_FullName,
                             SubText = "Donor",
-                            LastMessage = lastMsg,
-                            UnreadCount = unread,
-                            ProfilePicturePath = picPath ?? string.Empty
+                            LastMessage = "",
+                            UnreadCount = 0,
+                            ProfilePicturePath = d.ProfilePicturePath ?? string.Empty
                         });
 
                     ApplySearch();

@@ -15,7 +15,17 @@ namespace KapwaKuha.Models
         public string LinkedItemId { get; set; } = string.Empty;
         public string LinkedItemPath { get; set; } = string.Empty;
 
-        // Add to ChatMessage.cs:
+
+        private string _senderProfilePicture = string.Empty;
+        public string SenderProfilePicture
+        {
+            get => _senderProfilePicture;
+            set { _senderProfilePicture = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasProfilePicture)); }
+        }
+        public bool HasProfilePicture =>
+
+       !string.IsNullOrEmpty(_senderProfilePicture) && System.IO.File.Exists(_senderProfilePicture);
+
         private bool _isDeclined;
         public bool IsDeclined
         {

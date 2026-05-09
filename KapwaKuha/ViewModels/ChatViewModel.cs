@@ -149,23 +149,24 @@ namespace KapwaKuha.ViewModels
                 if (param is not ChatMessage msg) return;
                 if (string.IsNullOrEmpty(msg.LinkedItemId)) return;
 
-                msg.IsDeclined = true;
-                msg.IsActionable = false;
-
                 var confirm = MessageBox.Show(
-                    "Decline this donation?\n\nThe item will be deactivated. " +
-                    "The donor can choose to re-post it manually from their listings.",
-                    "Decline Donation", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+              "Decline this donation?\n\nThe item will be deactivated. " +
+                "The donor can choose to re-post it manually from their listings.",
+             "Decline Donation", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (confirm != MessageBoxResult.Yes)
                 {
-                    ExtractItemNameSafely(msg.Text, msg.LinkedItemId); // Attempt to extract item name for better UX
+                    // User cancelled — do NOT mutate state; force a reload so images refresh
+                    await LoadMessages();
                     return;
                 }
 
-                
+                msg.IsDeclined = true;
+                msg.IsActionable = false;
 
 
-                    try
+
+
+                try
                     {
                         IsBusy = true;
 
@@ -203,6 +204,27 @@ namespace KapwaKuha.ViewModels
                     Messages.Clear();
                     foreach (var m in msgs) Messages.Add(m);
                     ScrollToBottom?.Invoke();
+                });
+                // Populate profile pictures for received messages
+                var otherPic = string.Empty;
+                try
+                {
+                    if (_role == "Beneficiary")
+                    {
+                        var donor = await KapwaDataService.GetDonorById(_otherId);
+                        otherPic = donor?.ProfilePicturePath ?? string.Empty;
+                    }
+                    else
+                    {
+                        var bene = await KapwaDataService.GetBeneficiaryById(_otherId);
+                        otherPic = bene?.ProfilePicturePath ?? string.Empty;
+                    }
+                }
+                catch { }
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    foreach (var m in Messages)
+                        if (!m.IsFromUser) m.SenderProfilePicture = otherPic;
                 });
             }
             catch { }

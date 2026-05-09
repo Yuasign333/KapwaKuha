@@ -26,7 +26,7 @@ namespace KapwaKuha.ViewModels
         private readonly string _donorId;
 
         // ── Sidebar ───────────────────────────────────────────────────────────
-        private bool _isSidebarOpen = true;
+        private bool _isSidebarOpen = false;
         public bool IsSidebarOpen
         {
             get => _isSidebarOpen;
