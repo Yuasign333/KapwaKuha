@@ -17,7 +17,7 @@ namespace KapwaKuha.ViewModels
         private readonly string _beneficiaryId;
 
         // Sidebar — starts OPEN by default
-        private bool _isSidebarOpen = true;
+        private bool _isSidebarOpen = false;
         public bool IsSidebarOpen
         {
             get => _isSidebarOpen;

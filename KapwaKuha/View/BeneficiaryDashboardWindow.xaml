@@ -342,145 +342,101 @@
                                         <DropShadowEffect Color="#00B4D8" BlurRadius="14" ShadowDepth="0" Opacity="0.10"/>
                                     </Border.Effect>
 
-                                    <StackPanel>
-                                        <TextBlock Text="Item Categories" FontSize="15" FontWeight="Bold"
-                                                   Foreground="#03045E" Margin="20,16,20,14"/>
+                                  <StackPanel Margin="0,0,0,24">
+            
+            <TextBlock Text="Item Categories" FontSize="16" FontWeight="Bold"
+                       Foreground="#03045E" Margin="0,0,0,12"/>
 
-                                        <UniformGrid Rows="1" Columns="5" Margin="12,0,12,16">
+            <UniformGrid Rows="1" Columns="5">
 
-                                            <!-- Clothing -->
-                                            <Button Command="{Binding BrowseByCategoryCommand}"
-                                                    CommandParameter="Clothing"
-                                                    Style="{StaticResource CardHoverBtn}" Margin="6,0">
-                                                <Border CornerRadius="14" BorderThickness="1.5" Padding="10,20">
-                                                    <Border.BorderBrush>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="Transparent" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.BorderBrush>
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="#E8F7FC" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="👕" FontSize="22" HorizontalAlignment="Center" 
-                                                                   Margin="0,0,0,8" Foreground="#0077B6"/>
-                                                        <TextBlock Text="Clothing" FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="#03045E" HorizontalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Button>
+                <Button Command="{Binding BrowseByCategoryCommand}" CommandParameter="Clothing"
+                        Style="{StaticResource CardHoverBtn}" Margin="0,0,5,0">
+                    <Border CornerRadius="16" Background="White" BorderThickness="0" Padding="2,16">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.05"/>
+                        </Border.Effect>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="48" Height="48" CornerRadius="24" Background="#E8F4FD" Margin="0,0,0,12">
+                                <TextBlock Text="👕" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Clothing" FontSize="13" FontWeight="Bold" 
+                                       Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock Text="15 items" FontSize="11" Foreground="#5E7A8A" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
-                                            <!-- Food -->
-                                            <Button Command="{Binding BrowseByCategoryCommand}"
-                                                    CommandParameter="Food"
-                                                    Style="{StaticResource CardHoverBtn}" Margin="6,0">
-                                                <Border CornerRadius="14" BorderThickness="1.5" Padding="10,20">
-                                                    <Border.BorderBrush>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="Transparent" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.BorderBrush>
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="#E8F7FC" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="🍽️" FontSize="22" HorizontalAlignment="Center" 
-                                                                   Margin="0,0,0,8" Foreground="#0077B6"/>
-                                                        <TextBlock Text="Food" FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="#03045E" HorizontalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Button>
+                <Button Command="{Binding BrowseByCategoryCommand}" CommandParameter="Food"
+                        Style="{StaticResource CardHoverBtn}" Margin="5,0,5,0">
+                    <Border CornerRadius="16" Background="White" BorderThickness="0" Padding="2,16">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.05"/>
+                        </Border.Effect>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="48" Height="48" CornerRadius="24" Background="#FDE8E8" Margin="0,0,0,12">
+                                <TextBlock Text="🍽️" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Food" FontSize="13" FontWeight="Bold" 
+                                       Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock Text="24 items" FontSize="11" Foreground="#5E7A8A" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
-                                            <!-- Electronics -->
-                                            <Button Command="{Binding BrowseByCategoryCommand}"
-                                                    CommandParameter="Electronics"
-                                                    Style="{StaticResource CardHoverBtn}" Margin="6,0">
-                                                <Border CornerRadius="14" BorderThickness="1.5" Padding="10,20">
-                                                    <Border.BorderBrush>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="Transparent" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.BorderBrush>
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="#E8F7FC" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="💻" FontSize="22" HorizontalAlignment="Center" 
-                                                                   Margin="0,0,0,8" Foreground="#0077B6"/>
-                                                        <TextBlock Text="Electronics" FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="#03045E" HorizontalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Button>
+                <Button Command="{Binding BrowseByCategoryCommand}" CommandParameter="Electronics"
+                        Style="{StaticResource CardHoverBtn}" Margin="5,0,5,0">
+                    <Border CornerRadius="16" Background="White" BorderThickness="0" Padding="2,16">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.05"/>
+                        </Border.Effect>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="48" Height="48" CornerRadius="24" Background="#F4E8FD" Margin="0,0,0,12">
+                                <TextBlock Text="💻" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Electronics" FontSize="12" FontWeight="Bold" 
+                                       Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,2"
+                                       TextWrapping="Wrap" TextAlignment="Center"/>
+                            <TextBlock Text="8 items" FontSize="11" Foreground="#5E7A8A" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
-                                            <!-- Medicine -->
-                                            <Button Command="{Binding BrowseByCategoryCommand}"
-                                                    CommandParameter="Medicine"
-                                                    Style="{StaticResource CardHoverBtn}" Margin="6,0">
-                                                <Border CornerRadius="14" BorderThickness="1.5" Padding="10,20">
-                                                    <Border.BorderBrush>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="Transparent" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.BorderBrush>
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="#E8F7FC" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="💊" FontSize="22" HorizontalAlignment="Center" 
-                                                                   Margin="0,0,0,8" Foreground="#0077B6"/>
-                                                        <TextBlock Text="Medicine" FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="#03045E" HorizontalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Button>
+                <Button Command="{Binding BrowseByCategoryCommand}" CommandParameter="Medicine"
+                        Style="{StaticResource CardHoverBtn}" Margin="5,0,5,0">
+                    <Border CornerRadius="16" Background="White" BorderThickness="0" Padding="2,16">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.05"/>
+                        </Border.Effect>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="48" Height="48" CornerRadius="24" Background="#E8FDF4" Margin="0,0,0,12">
+                                <TextBlock Text="💊" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Medicine" FontSize="13" FontWeight="Bold" 
+                                       Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock Text="32 items" FontSize="11" Foreground="#5E7A8A" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
-                                            <!-- School Supplies -->
-                                            <Button Command="{Binding BrowseByCategoryCommand}"
-                                                    CommandParameter="School Supplies"
-                                                    Style="{StaticResource CardHoverBtn}" Margin="6,0">
-                                                <Border CornerRadius="14" BorderThickness="1.5" Padding="10,20">
-                                                    <Border.BorderBrush>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="Transparent" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.BorderBrush>
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#90CAF9" Offset="0"/>
-                                                            <GradientStop Color="#E8F7FC" Offset="1"/>
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                    <StackPanel HorizontalAlignment="Center">
-                                                        <TextBlock Text="🎒" FontSize="22" HorizontalAlignment="Center" 
-                                                                   Margin="0,0,0,8" Foreground="#0077B6"/>
-                                                        <TextBlock Text="School Supplies" FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="#03045E" HorizontalAlignment="Center"
-                                                                   TextWrapping="Wrap" TextAlignment="Center"/>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Button>
+                <Button Command="{Binding BrowseByCategoryCommand}" CommandParameter="School Supplies"
+                        Style="{StaticResource CardHoverBtn}" Margin="5,0,0,0">
+                    <Border CornerRadius="16" Background="White" BorderThickness="0" Padding="2,16">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#000000" BlurRadius="10" ShadowDepth="2" Opacity="0.05"/>
+                        </Border.Effect>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Border Width="48" Height="48" CornerRadius="24" Background="#FDF4E8" Margin="0,0,0,12">
+                                <TextBlock Text="🎒" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="School" FontSize="13" FontWeight="Bold" 
+                                       Foreground="#03045E" HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <TextBlock Text="19 items" FontSize="11" Foreground="#5E7A8A" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                </Button>
 
-                                        </UniformGrid>
-                                    </StackPanel>
+            </UniformGrid>
+        </StackPanel>
                                 </Border>
                                 <!-- ── END ITEM CATEGORIES ── -->
 
