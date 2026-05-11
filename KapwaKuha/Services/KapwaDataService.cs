@@ -286,20 +286,22 @@ namespace KapwaKuha.Services
         // ══════════════════════════════════════════════════════════════════════
 
         public static async Task<(bool Found, string Question, string UserId)>
-            GetSecurityQuestion(string username)
+    GetSecurityQuestion(string username)
         {
             try
             {
-
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                // Try Donors first, then Beneficiaries
+
+                // Fix: Changed Beneficiary_ID to Beneficiary_Username in the WHERE clause
                 using var cmd = new SqlCommand(@"
-                    SELECT Donor_ID AS UserId, SecurityQuestion FROM Donors WHERE Donor_Username = @u
-                    UNION ALL
-                    SELECT Beneficiary_ID AS UserId, SecurityQuestion FROM Beneficiaries WHERE Beneficiary_ID = @u", conn);
+            SELECT Donor_ID AS UserId, SecurityQuestion FROM Donors WHERE Donor_Username = @u
+            UNION ALL
+            SELECT Beneficiary_ID AS UserId, SecurityQuestion FROM Beneficiaries WHERE Beneficiary_Username = @u", conn);
+
                 cmd.Parameters.AddWithValue("@u", username);
                 using var r = await cmd.ExecuteReaderAsync();
+
                 if (await r.ReadAsync())
                     return (true, r["SecurityQuestion"].ToString() ?? "", r["UserId"].ToString() ?? "");
             }
@@ -1052,6 +1054,8 @@ namespace KapwaKuha.Services
             FROM NeedsPosts n
             LEFT JOIN Organization o ON o.Organization_ID = n.Org_ID
             WHERE n.Org_ID = @oid
+        AND n.Status = 'Open'
+      
             ORDER BY n.Post_Date DESC", conn);
                 cmd.Parameters.AddWithValue("@oid", orgId);
                 using var r = await cmd.ExecuteReaderAsync();

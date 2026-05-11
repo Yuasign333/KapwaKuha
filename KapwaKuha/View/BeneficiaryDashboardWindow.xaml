@@ -120,7 +120,7 @@
                             </Border>
                         </Button>
 
-                        <Button Command="{Binding NeedsWishlistCommand}" Style="{StaticResource CardHoverBtn}" Padding="0" Margin="0,0,0,4">
+                        <Button Command="{Binding NeedsWishlistCommand}" Style="{StaticResource CardHoverBtn}" Padding="0" Margin="0,4">
                             <Border CornerRadius="12" Padding="12,12"
                                     Style="{StaticResource SidebarItemStyle}" Background="Transparent">
                                 <StackPanel Orientation="Horizontal">
