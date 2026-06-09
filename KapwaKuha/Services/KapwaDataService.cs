@@ -743,23 +743,12 @@ WHERE p.Post_Type = 'DirectTarget'
         public static async Task<List<ClaimModel>> GetAllClaims()
         {
             var list = new List<ClaimModel>();
-            const string sql = @"
-        SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
-               cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
-               ISNULL(cl.Handoff_Type,'Pickup')        AS Handoff_Type,
-               ISNULL(i.Item_Name,'')                  AS Item_Name,
-               ISNULL(i.Item_ImagePath,'')             AS Item_ImagePath,
-               ISNULL(c.Category_Name,'')              AS Category_Name,
-               ISNULL(b.Beneficiary_FullName,'')       AS Beneficiary_Name
-        FROM Claims cl
-        LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
-        LEFT JOIN Category      c ON c.Category_ID    = i.Category_ID
-        LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID";
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(sql, conn);
+                using var cmd = new SqlCommand("sp_GetAllClaims", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync()) list.Add(MapClaim(r));
             }
@@ -779,15 +768,19 @@ WHERE p.Post_Type = 'DirectTarget'
             const string sql = @"
         SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
                cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
-               ISNULL(cl.Handoff_Type,'Pickup')        AS Handoff_Type,
-               ISNULL(i.Item_Name,'')                  AS Item_Name,
-               ISNULL(i.Item_ImagePath,'')             AS Item_ImagePath,
-               ISNULL(c.Category_Name,'')              AS Category_Name,
-               ISNULL(b.Beneficiary_FullName,'')       AS Beneficiary_Name
+               ISNULL(cl.Handoff_Type,'Pickup')                         AS Handoff_Type,
+               ISNULL(i.Item_Name,'')                                   AS Item_Name,
+               ISNULL(i.Item_ImagePath,'')                              AS Item_ImagePath,
+               ISNULL(c.Category_Name,'')                               AS Category_Name,
+               ISNULL(i.Donor_ID,'')                                    AS Donor_ID,
+               ISNULL(d.Donor_FullName,'')                              AS Donor_Name,
+               ISNULL(ib.Beneficiary_FullName, ISNULL(ind.FullName,'')) AS Beneficiary_Name
         FROM Claims cl
-        LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
-        LEFT JOIN Category      c ON c.Category_ID    = i.Category_ID
-        LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID
+        LEFT JOIN Items                      i   ON i.Item_ID          = cl.Item_ID
+        LEFT JOIN Category                   c   ON c.Category_ID      = i.Category_ID
+        LEFT JOIN Donors                     d   ON d.Donor_ID         = i.Donor_ID
+        LEFT JOIN InstitutionalBeneficiaries ib  ON ib.Beneficiary_ID  = cl.InstitutionalBene_ID
+        LEFT JOIN IndependentBeneficiaries   ind ON ind.IndepBene_ID   = cl.IndependentBene_ID
         WHERE cl.Beneficiary_ID = @bid
         ORDER BY cl.Claim_Date DESC";
             try
@@ -947,15 +940,19 @@ WHERE Status = 'Open'
             const string sql = @"
         SELECT cl.Claim_ID, cl.Item_ID, cl.Beneficiary_ID,
                cl.Claim_Date, cl.Claim_Status, cl.Verification_Notes,
-               ISNULL(cl.Handoff_Type,'Pickup')        AS Handoff_Type,
-               ISNULL(i.Item_Name,'')                  AS Item_Name,
-               ISNULL(i.Item_ImagePath,'')             AS Item_ImagePath,
-               ISNULL(c.Category_Name,'')              AS Category_Name,
-               ISNULL(b.Beneficiary_FullName,'')       AS Beneficiary_Name
+               ISNULL(cl.Handoff_Type,'Pickup')                         AS Handoff_Type,
+               ISNULL(i.Item_Name,'')                                   AS Item_Name,
+               ISNULL(i.Item_ImagePath,'')                              AS Item_ImagePath,
+               ISNULL(c.Category_Name,'')                               AS Category_Name,
+               ISNULL(i.Donor_ID,'')                                    AS Donor_ID,
+               ISNULL(d.Donor_FullName,'')                              AS Donor_Name,
+               ISNULL(ib.Beneficiary_FullName, ISNULL(ind.FullName,'')) AS Beneficiary_Name
         FROM Claims cl
-        LEFT JOIN Items         i ON i.Item_ID        = cl.Item_ID
-        LEFT JOIN Category      c ON c.Category_ID    = i.Category_ID
-        LEFT JOIN Beneficiaries b ON b.Beneficiary_ID = cl.Beneficiary_ID
+        LEFT JOIN Items                      i   ON i.Item_ID          = cl.Item_ID
+        LEFT JOIN Category                   c   ON c.Category_ID      = i.Category_ID
+        LEFT JOIN Donors                     d   ON d.Donor_ID         = i.Donor_ID
+        LEFT JOIN InstitutionalBeneficiaries ib  ON ib.Beneficiary_ID  = cl.InstitutionalBene_ID
+        LEFT JOIN IndependentBeneficiaries   ind ON ind.IndepBene_ID   = cl.IndependentBene_ID
         WHERE i.Donor_ID = @did
         ORDER BY cl.Claim_Date DESC";
             try
@@ -990,9 +987,11 @@ WHERE Status = 'Open'
             Item_ID = r["Item_ID"].ToString() ?? "",
             Item_Name = r["Item_Name"].ToString() ?? "",
             Item_ImagePath = r["Item_ImagePath"].ToString() ?? "",
-            Category_Name = r["Category_Name"].ToString() ?? "",  // ADD
+            Category_Name = r["Category_Name"].ToString() ?? "",
             Beneficiary_ID = r["Beneficiary_ID"].ToString() ?? "",
             Beneficiary_Name = r["Beneficiary_Name"].ToString() ?? "",
+            Donor_ID = r["Donor_ID"].ToString() ?? "",
+            Donor_Name = r["Donor_Name"].ToString() ?? "",
             Claim_Date = Convert.ToDateTime(r["Claim_Date"]),
             Claim_Status = r["Claim_Status"].ToString() ?? "Pending",
             Verification_Notes = r["Verification_Notes"].ToString() ?? "",

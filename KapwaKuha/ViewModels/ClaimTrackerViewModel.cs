@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Security.Claims;
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -33,8 +32,6 @@ namespace KapwaKuha.ViewModels
             set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
         }
 
-        // FIX: FilterCategory filters by CATEGORY_NAME (not Claim_Status)
-        // FilterStatus filters by claim status separately
         private string _filterCategory = "All";
         public string FilterCategory
         {
@@ -49,7 +46,6 @@ namespace KapwaKuha.ViewModels
             set { _filterStatus = value; OnPropertyChanged(); ApplyFilter(); }
         }
 
-        // Add this property to the ClaimTrackerViewModel class
         private string _receiptContent = string.Empty;
         public string ReceiptContent
         {
@@ -57,19 +53,13 @@ namespace KapwaKuha.ViewModels
             set { _receiptContent = value; OnPropertyChanged(); }
         }
 
-
         private List<ClaimModel> _allClaims = new();
 
         public ICommand BackCommand { get; }
         public ICommand RefreshCommand { get; }
-        // Renamed command — beneficiary marks their item as received
         public ICommand ConfirmReceiptCommand { get; }
-
         public ICommand UpdateClaimStatusCommand { get; }
-
         public ICommand ViewBeneficiaryProfileCommand { get; }
-
-        public ICommand RateDonorCommand { get; }
 
         public ClaimTrackerViewModel(string userId, string role)
         {
@@ -86,14 +76,28 @@ namespace KapwaKuha.ViewModels
 
             RefreshCommand = new AsyncRelayCommand(async _ => await LoadAsync());
 
+            // ── Beneficiary confirms receipt → marks released → prompts rating popup ──
             ConfirmReceiptCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not ClaimModel c) return;
 
                 if (c.Claim_Status == "Released")
                 {
-                    MessageBox.Show("✅ This item is already marked as received.",
-                        "Already Done", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // Already released — offer to rate if not yet rated
+                    bool alreadyRated = await KapwaDataService.HasAlreadyRatedClaim(c.Claim_ID);
+                    if (!alreadyRated)
+                    {
+                        var rateNow = MessageBox.Show(
+                            "✅ This item is already marked as received.\n\nWould you like to rate the donor?",
+                            "Rate Donor", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        if (rateNow == MessageBoxResult.Yes)
+                            OpenRatingWindow(c);
+                    }
+                    else
+                    {
+                        MessageBox.Show("✅ This item is already marked as received and you have already submitted a rating.",
+                            "Already Done", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                     return;
                 }
 
@@ -107,13 +111,13 @@ namespace KapwaKuha.ViewModels
 
                 try
                 {
-                    // 1. Update claim status to Released (also triggers UpdateProofOfReceiptOnRelease inside)
+                    // 1. Update claim status to Released
                     await KapwaDataService.UpdateClaimStatus(c.Claim_ID, "Released");
 
-                    // 2. Generate the text receipt file
+                    // 2. Generate text receipt file
                     KapwaDataService.GenerateClaimReport(c);
 
-                    // 3. Also generate donor receipt file
+                    // 3. Generate donor receipt file
                     try
                     {
                         var item = await KapwaDataService.GetItemById(c.Item_ID);
@@ -126,13 +130,13 @@ namespace KapwaKuha.ViewModels
                     }
                     catch { /* non-fatal */ }
 
-                    // 4. Read receipt content for display
+                    // 4. Read receipt for display
                     string path = KapwaDataService.GetClaimReportPath(c.Claim_ID);
                     ReceiptContent = File.Exists(path)
                         ? File.ReadAllText(path)
                         : "Receipt saved to database.";
 
-                    // 5. Send automated chat message to donor
+                    // 5. Send automated thank-you chat to donor
                     try
                     {
                         var associatedItem = await KapwaDataService.GetItemById(c.Item_ID);
@@ -145,7 +149,7 @@ namespace KapwaKuha.ViewModels
                                 c.Beneficiary_ID, associatedItem.Donor_ID, receivedMessage);
                         }
                     }
-                    catch { /* Optional chat message */ }
+                    catch { /* non-fatal */ }
 
                     // 6. Update UI
                     Application.Current.Dispatcher.Invoke(() => c.Claim_Status = "Released");
@@ -154,32 +158,15 @@ namespace KapwaKuha.ViewModels
                         "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     await LoadAsync();
+
+                    // 7. Immediately prompt to rate donor
+                    OpenRatingWindow(c);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Update failed: " + ex.Message,
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-            });
-
-            RateDonorCommand = new AsyncRelayCommand(async param =>
-            {
-                if (param is not ClaimModel claim) return;
-                if (claim.Claim_Status != "Released")
-                {
-                    MessageBox.Show("You can only rate a donor after the item has been released.",
-                        "Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-                bool alreadyRated = await KapwaDataService.HasAlreadyRatedClaim(claim.Claim_ID);
-                if (alreadyRated)
-                {
-                    MessageBox.Show("You have already submitted feedback for this donation.",
-                        "Already Rated", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-                NavigationService.Navigate(
-                    new View.FeedbackWindow(claim.Claim_ID, claim.Donor_Name, claim.Donor_Name));
             });
 
             UpdateClaimStatusCommand = new AsyncRelayCommand(async param =>
@@ -208,10 +195,7 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.UpdateClaimStatus(c.Claim_ID, newStatus);
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        c.Claim_Status = newStatus;
-                    });
+                    Application.Current.Dispatcher.Invoke(() => c.Claim_Status = newStatus);
                     MessageBox.Show($"✅ Status updated to {newStatus}.",
                         "Done", MessageBoxButton.OK, MessageBoxImage.Information);
                     await LoadAsync();
@@ -221,27 +205,32 @@ namespace KapwaKuha.ViewModels
                     MessageBox.Show("Update failed: " + ex.Message,
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-
-
             });
-
-
-
-            _ = LoadAsync();
 
             ViewBeneficiaryProfileCommand = new RelayCommand(param =>
             {
                 if (param is not ClaimModel c) return;
                 string beneId = c.Beneficiary_ID ?? string.Empty;
                 if (string.IsNullOrEmpty(beneId)) return;
-                var modal = new View.UserProfileWindow(
-                    beneId, _userId, _role);
-                modal.Owner = System.Windows.Application.Current.MainWindow;
+                var modal = new View.UserProfileWindow(beneId, _userId, _role);
+                modal.Owner = Application.Current.MainWindow;
                 modal.ShowDialog();
             });
+
+            _ = LoadAsync();
         }
 
+        // Opens FeedbackWindow as a dialog popup — does NOT navigate away
+        private void OpenRatingWindow(ClaimModel claim)
+        {
+            // Use Donor_ID if available; fall back to looking it up via Donor_Name
+            string donorId = string.IsNullOrEmpty(claim.Donor_ID) ? claim.Donor_Name : claim.Donor_ID;
+            string donorName = claim.Donor_Name;
 
+            var win = new View.FeedbackWindow(claim.Claim_ID, donorId, donorName);
+            win.Owner = Application.Current.MainWindow;
+            win.ShowDialog();
+        }
 
         private async System.Threading.Tasks.Task LoadAsync()
         {
@@ -274,12 +263,10 @@ namespace KapwaKuha.ViewModels
                                    (c.Beneficiary_Name?.ToLower().Contains(q) ?? false) ||
                                    (c.Claim_ID?.ToLower().Contains(q) ?? false);
 
-                // Filter by Category_Name (Fix 3 — category filter)
                 bool matchCat = _filterCategory == "All" ||
                                 string.Equals(c.Category_Name, _filterCategory,
                                     StringComparison.OrdinalIgnoreCase);
 
-                // Separate status filter
                 bool matchStatus = _filterStatus == "All" ||
                                    c.Claim_Status == _filterStatus;
 

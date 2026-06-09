@@ -12,13 +12,10 @@ namespace KapwaKuha.Models
         public string Item_ImagePath { get; set; } = string.Empty;
         public string Beneficiary_ID { get; set; } = string.Empty;
         public string Beneficiary_Name { get; set; } = string.Empty;
-        public DateTime Claim_Date { get; set; } = DateTime.Now;
-
+        public string Donor_ID { get; set; } = string.Empty;   
         public string Donor_Name { get; set; } = string.Empty;
         public string Category_Name { get; set; } = string.Empty;
-
-        // Maps Claim_Status to the ComboBox human-readable option
-        private string _selectedStatusOption = "Pending";
+        public DateTime Claim_Date { get; set; } = DateTime.Now;
 
         public bool HasItemImage =>
             !string.IsNullOrEmpty(Item_ImagePath) &&
@@ -37,9 +34,6 @@ namespace KapwaKuha.Models
             }
         }
 
-        // Add to ClaimModel.cs after Claim_Status property:
-
-
         public string SelectedStatusOption
         {
             get => _status switch
@@ -50,7 +44,6 @@ namespace KapwaKuha.Models
             };
             set
             {
-                // Map back from human-readable to DB value
                 Claim_Status = value switch
                 {
                     "Released/Received" => "Released",
@@ -59,6 +52,7 @@ namespace KapwaKuha.Models
                 };
             }
         }
+
         public string Verification_Notes { get; set; } = string.Empty;
         public string Handoff_Type { get; set; } = "Pickup";
 

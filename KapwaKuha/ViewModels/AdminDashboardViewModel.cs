@@ -1,4 +1,4 @@
-﻿// FILE: ViewModels/AdminDashboardViewModel.cs  (NEW)
+﻿// FILE: ViewModels/AdminDashboardViewModel.cs
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -37,9 +37,10 @@ namespace KapwaKuha.ViewModels
         // ── Gatekeeper queues ────────────────────────────────────────────────
         public ObservableCollection<ItemModel> PendingItemsList { get; } = new();
         public ObservableCollection<BeneficiaryModel> PendingBenesList { get; } = new();
-
-        // ── Pending Donors ────────────────────────────────────────────────────
         public ObservableCollection<DonorModel> PendingDonorsList { get; } = new();
+        public ObservableCollection<NeedsPostModel> PendingNeedsPostsList { get; } = new();
+        public ObservableCollection<UserReportModel> OpenReportsList { get; } = new();
+
         private int _pendingDonors;
         public int PendingDonors
         {
@@ -48,12 +49,6 @@ namespace KapwaKuha.ViewModels
         }
         public bool HasPendingDonors => PendingDonors > 0;
 
-
-
-        public ObservableCollection<UserReportModel> OpenReportsList { get; } = new();
-
-        // ── Pending NeedsPosts ────────────────────────────────────────────────
-        public ObservableCollection<NeedsPostModel> PendingNeedsPostsList { get; } = new();
         private int _pendingNeedsPosts;
         public int PendingNeedsPosts
         {
@@ -62,38 +57,32 @@ namespace KapwaKuha.ViewModels
         }
         public bool HasPendingNeedsPosts => PendingNeedsPosts > 0;
 
-        private bool _isLoadingNeedsPosts;
-        public bool IsLoadingNeedsPosts
-        {
-            get => _isLoadingNeedsPosts;
-            set { _isLoadingNeedsPosts = value; OnPropertyChanged(); }
-        }
-
-        public ICommand ApproveDonorCommand { get; }
-        public ICommand RejectDonorCommand { get; }
-        public ICommand ApproveNeedsPostCommand { get; }
-        public ICommand RejectNeedsPostCommand { get; }
-
-        private bool _isLoadingItems, _isLoadingBenes, _isLoadingReports;
+        private bool _isLoadingItems, _isLoadingBenes, _isLoadingReports, _isLoadingNeedsPosts;
         public bool IsLoadingItems { get => _isLoadingItems; set { _isLoadingItems = value; OnPropertyChanged(); } }
         public bool IsLoadingBenes { get => _isLoadingBenes; set { _isLoadingBenes = value; OnPropertyChanged(); } }
         public bool IsLoadingReports { get => _isLoadingReports; set { _isLoadingReports = value; OnPropertyChanged(); } }
+        public bool IsLoadingNeedsPosts { get => _isLoadingNeedsPosts; set { _isLoadingNeedsPosts = value; OnPropertyChanged(); } }
 
         // ── Commands ─────────────────────────────────────────────────────────
         public ICommand ApproveItemCommand { get; }
         public ICommand RejectItemCommand { get; }
         public ICommand ApproveBeneficiaryCommand { get; }
         public ICommand RejectBeneficiaryCommand { get; }
-        public ICommand RefreshCommand { get; }
-        public ICommand LogoutCommand { get; }
+        public ICommand ApproveDonorCommand { get; }
+        public ICommand RejectDonorCommand { get; }
+        public ICommand ApproveNeedsPostCommand { get; }
+        public ICommand RejectNeedsPostCommand { get; }
         public ICommand ProcessReportCommand { get; }
         public ICommand AdminBanUserCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand LogoutCommand { get; }
 
         public AdminDashboardViewModel(string adminId)
         {
             _adminId = adminId;
             WelcomeText = $"Admin Panel — {UserSession.FullName}";
 
+            // ── Items ─────────────────────────────────────────────────────────
             ApproveItemCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not ItemModel item) return;
@@ -104,7 +93,6 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.ApproveItem(item.Item_ID);
-                    // Notify donor
                     await KapwaDataService.CreateNotification(
                         item.Donor_ID, "Approval",
                         $"✅ Your item \"{item.Item_Name}\" has been approved and is now visible.",
@@ -134,6 +122,7 @@ namespace KapwaKuha.ViewModels
                 catch { }
             });
 
+            // ── Beneficiaries ─────────────────────────────────────────────────
             ApproveBeneficiaryCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not BeneficiaryModel bene) return;
@@ -169,6 +158,7 @@ namespace KapwaKuha.ViewModels
                 catch { }
             });
 
+            // ── Donors ────────────────────────────────────────────────────────
             ApproveDonorCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not DonorModel donor) return;
@@ -203,32 +193,45 @@ namespace KapwaKuha.ViewModels
                 catch { }
             });
 
+            // ── Needs Posts ───────────────────────────────────────────────────
             ApproveNeedsPostCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not NeedsPostModel post) return;
 
-                // Admin picks urgency at approval time — bene's suggestion is shown, admin decides
+                // Admin picks urgency at approval time
                 string chosenUrgency = post.Urgency;
-                var highResult = MessageBox.Show(
-                    $"Approving \"{post.Title}\" from {post.Org_Name}.\n\n" +
-                    $"Beneficiary requested urgency: {post.Urgency}\n\n" +
-                    "Set urgency to HIGH 🔴?\n\nYes = High  |  No = choose Medium or Low",
-                    "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (highResult == MessageBoxResult.Yes)
-                    chosenUrgency = "High";
-                else
+
+                var result = MessageBox.Show(
+                    $"Approve needs post \"{post.Title}\" from {post.Org_Name}?\n\n" +
+                    $"Submitted urgency: {post.Urgency}\n\n" +
+                    "Click YES to approve at this urgency level.\n" +
+                    "Click NO to approve but override urgency (you will be prompted).",
+                    "Approve Needs Post", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Cancel) return;
+
+                if (result == MessageBoxResult.No)
                 {
-                    var medResult = MessageBox.Show(
-                        "Set urgency to MEDIUM 🟡?\n\nYes = Medium  |  No = Low 🟢",
+                    var highResult = MessageBox.Show(
+                        "Set urgency to HIGH (🔴 Urgent)?\n\nYes = High  |  No = proceed to next option",
                         "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    chosenUrgency = medResult == MessageBoxResult.Yes ? "Medium" : "Low";
+                    if (highResult == MessageBoxResult.Yes)
+                        chosenUrgency = "High";
+                    else
+                    {
+                        var medResult = MessageBox.Show(
+                            "Set urgency to MEDIUM (🟡 Moderate)?\n\nYes = Medium  |  No = Low",
+                            "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        chosenUrgency = medResult == MessageBoxResult.Yes ? "Medium" : "Low";
+                    }
                 }
+
                 try
                 {
                     await KapwaDataService.ApproveNeedsPost(post.NeedsPost_ID, chosenUrgency);
                     await KapwaDataService.CreateNotification(
                         post.Org_ID, "Approval",
-                        $"✅ Your needs post \"{post.Title}\" was approved with {chosenUrgency} urgency and is now visible to donors.",
+                        $"✅ Your needs post \"{post.Title}\" has been approved as {chosenUrgency} urgency and is now visible to donors.",
                         post.NeedsPost_ID);
                     await LoadGatekeeperQueuesAsync();
                     await LoadMetricsAsync();
@@ -240,21 +243,22 @@ namespace KapwaKuha.ViewModels
             {
                 if (param is not NeedsPostModel post) return;
                 var r = MessageBox.Show(
-                    $"Reject \"{post.Title}\"?\nThe beneficiary will be notified to revise it.",
-                    "Reject Needs Post", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    $"Reject needs post \"{post.Title}\"?\nIt will be hidden from donors.",
+                    "Confirm Rejection", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (r != MessageBoxResult.Yes) return;
                 try
                 {
                     await KapwaDataService.RejectNeedsPost(post.NeedsPost_ID);
                     await KapwaDataService.CreateNotification(
                         post.Org_ID, "Approval",
-                        $"❌ Your needs post \"{post.Title}\" was not approved. Please edit and resubmit.",
+                        $"❌ Your needs post \"{post.Title}\" was not approved. Please revise and resubmit.",
                         post.NeedsPost_ID);
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch { }
             });
 
+            // ── Reports ───────────────────────────────────────────────────────
             ProcessReportCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not UserReportModel report) return;
@@ -270,13 +274,11 @@ namespace KapwaKuha.ViewModels
                     await KapwaDataService.ProcessUserReport(
                         report.Report_ID, report.Reported_ID,
                         "Reviewed", "Reviewed by Admin.", action);
-
                     if (action == "Strike")
                         await KapwaDataService.CreateNotification(
                             report.Reported_ID, "AccountAlert",
                             "⚠️ A strike has been applied to your account for a policy violation.",
                             report.Report_ID);
-
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch { }
@@ -303,77 +305,7 @@ namespace KapwaKuha.ViewModels
                 catch { }
             });
 
-            ApproveNeedsPostCommand = new AsyncRelayCommand(async param =>
-            {
-                if (param is not NeedsPostModel post) return;
-
-                // Admin picks urgency at approval time
-                string[] urgencyOptions = { "Low", "Medium", "High" };
-                // Default to what bene submitted — admin can confirm or change
-                string chosenUrgency = post.Urgency;
-
-                var result = MessageBox.Show(
-                    $"Approve needs post \"{post.Title}\" from {post.Org_Name}?\n\n" +
-                    $"Submitted urgency: {post.Urgency}\n\n" +
-                    "Click YES to approve at this urgency level.\n" +
-                    "Click NO to approve but override urgency (you will be prompted).",
-                    "Approve Needs Post", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Cancel) return;
-
-                if (result == MessageBoxResult.No)
-                {
-                    // Let admin pick urgency override
-                 
-                    // Simple approach: ask via sequential MessageBoxes
-                    var highResult = MessageBox.Show(
-                        "Set urgency to HIGH (🔴 Urgent)?\n\nYes = High  |  No = proceed to next option",
-                        "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (highResult == MessageBoxResult.Yes) chosenUrgency = "High";
-                    else
-                    {
-                        var medResult = MessageBox.Show(
-                            "Set urgency to MEDIUM (🟡 Moderate)?\n\nYes = Medium  |  No = Low",
-                            "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        chosenUrgency = medResult == MessageBoxResult.Yes ? "Medium" : "Low";
-                    }
-                }
-
-                try
-                {
-                    await KapwaDataService.ApproveNeedsPost(post.NeedsPost_ID, chosenUrgency);
-
-                    // Notify the org beneficiaries
-                    await KapwaDataService.CreateNotification(
-                        post.Org_ID, "Approval",
-                        $"✅ Your needs post \"{post.Title}\" has been approved as {chosenUrgency} urgency and is now visible to donors.",
-                        post.NeedsPost_ID);
-
-                    await LoadGatekeeperQueuesAsync();
-                    await LoadMetricsAsync();
-                }
-                catch { }
-            });
-
-            RejectNeedsPostCommand = new AsyncRelayCommand(async param =>
-            {
-                if (param is not NeedsPostModel post) return;
-                var r = MessageBox.Show(
-                    $"Reject needs post \"{post.Title}\"?\nIt will be hidden from donors.",
-                    "Confirm Rejection", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (r != MessageBoxResult.Yes) return;
-                try
-                {
-                    await KapwaDataService.RejectNeedsPost(post.NeedsPost_ID);
-                    await KapwaDataService.CreateNotification(
-                        post.Org_ID, "Approval",
-                        $"❌ Your needs post \"{post.Title}\" was not approved. Please revise and resubmit.",
-                        post.NeedsPost_ID);
-                    await LoadGatekeeperQueuesAsync();
-                }
-                catch { }
-            });
-
+            // ── General ───────────────────────────────────────────────────────
             RefreshCommand = new AsyncRelayCommand(async _ =>
             {
                 await LoadMetricsAsync();
@@ -418,7 +350,7 @@ namespace KapwaKuha.ViewModels
 
         private async System.Threading.Tasks.Task LoadGatekeeperQueuesAsync()
         {
-            IsLoadingItems = IsLoadingBenes = IsLoadingReports = true;
+            IsLoadingItems = IsLoadingBenes = IsLoadingReports = IsLoadingNeedsPosts = true;
             try
             {
                 var items = await KapwaDataService.GetPendingItems();
@@ -451,7 +383,7 @@ namespace KapwaKuha.ViewModels
             catch { }
             finally
             {
-                IsLoadingItems = IsLoadingBenes = IsLoadingReports = false;
+                IsLoadingItems = IsLoadingBenes = IsLoadingReports = IsLoadingNeedsPosts = false;
             }
         }
     }
