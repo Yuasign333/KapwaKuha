@@ -386,7 +386,22 @@ WHERE Beneficiary_ID LIKE 'B[0-9][0-9][0-9]'", conn);
         public static async Task<List<ItemModel>> GetAllItems()
         {
             var list = new List<ItemModel>();
-            const string sql = @"
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                // Guard: RejectionNote column may not exist in older DB installs
+                bool hasRejectionNote;
+                using (var chk = new SqlCommand(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Items' AND COLUMN_NAME='RejectionNote'", conn))
+                    hasRejectionNote = Convert.ToInt32(await chk.ExecuteScalarAsync()) > 0;
+
+                string rejCol = hasRejectionNote
+                    ? "ISNULL(i.RejectionNote,'') AS RejectionNote,"
+                    : "CAST('' AS NVARCHAR(500)) AS RejectionNote,";
+
+                string sql = $@"
 SELECT i.Item_ID, i.Item_Name, i.Item_Condition, i.Item_Status,
        i.Date_Found, i.Donor_ID, i.Category_ID,
        ISNULL(p.Post_Type,'GeneralPost')         AS PostType,
@@ -394,17 +409,14 @@ SELECT i.Item_ID, i.Item_Name, i.Item_Condition, i.Item_Status,
        ISNULL(i.Item_Description,'')             AS Item_Description,
        ISNULL(i.Item_ImagePath,'')               AS Item_ImagePath,
        ISNULL(i.Admin_Approval_Status,'Pending') AS Admin_Approval_Status,
-       ISNULL(i.RejectionNote,'')               AS RejectionNote,
+       {rejCol}
        d.Donor_FullName                          AS Donor_Name,
        c.Category_Name
 FROM Items i
 LEFT JOIN Donors   d ON d.Donor_ID    = i.Donor_ID
 LEFT JOIN Category c ON c.Category_ID = i.Category_ID
 LEFT JOIN Post     p ON p.Post_ID     = i.Post_ID";
-            try
-            {
-                using var conn = new SqlConnection(_conn);
-                await conn.OpenAsync();
+
                 using var cmd = new SqlCommand(sql, conn);
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync()) list.Add(MapItem(r));
@@ -2221,7 +2233,7 @@ WHERE b.Beneficiary_ID = @id", conn);
                         Admin_Notes = reader["Admin_Notes"].ToString() ?? ""
                     });
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show("GetOpenReports failed: " + ex.Message); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("GetOpenReports: " + ex.Message); }
             return list;
         }
 
@@ -2347,19 +2359,21 @@ WHERE b.Beneficiary_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-            SELECT i.Item_ID, i.Item_Name, i.Item_Description, i.Item_Condition,
-                   i.Item_Status, i.Date_Found, i.Donor_ID,
-                   d.Donor_FullName AS Donor_Name,
-                   i.Category_ID, c.Category_Name,
-                   i.Post_ID, p.Post_Type AS PostType,
-                   i.TargetBeneficiary_ID, i.Item_ImagePath,
-                   i.Admin_Approval_Status
-            FROM Items i
-            JOIN Donors   d ON d.Donor_ID    = i.Donor_ID
-            JOIN Category c ON c.Category_ID = i.Category_ID
-            JOIN Post     p ON p.Post_ID     = i.Post_ID
-            WHERE i.Admin_Approval_Status = 'Pending'
-            ORDER BY i.Date_Found DESC", conn);
+    SELECT i.Item_ID, i.Item_Name, i.Item_Description, i.Item_Condition,
+           i.Item_Status, i.Date_Found, i.Donor_ID,
+           d.Donor_FullName AS Donor_Name,
+           i.Category_ID, c.Category_Name,
+           i.Post_ID, p.Post_Type AS PostType,
+           i.TargetBeneficiary_ID, i.Item_ImagePath,
+           i.Admin_Approval_Status,
+           ISNULL(i.RejectionNote,'') AS RejectionNote
+    FROM Items i
+    JOIN Donors   d ON d.Donor_ID    = i.Donor_ID
+    JOIN Category c ON c.Category_ID = i.Category_ID
+    JOIN Post     p ON p.Post_ID     = i.Post_ID
+    WHERE i.Admin_Approval_Status = 'Pending'
+    ORDER BY i.Date_Found DESC", conn);
+
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                     list.Add(new ItemModel
@@ -2377,10 +2391,11 @@ WHERE b.Beneficiary_ID = @id", conn);
                         PostType = reader["PostType"].ToString() ?? "",
                         TargetBeneficiary_ID = reader["TargetBeneficiary_ID"].ToString() ?? "",
                         Item_ImagePath = reader["Item_ImagePath"].ToString() ?? "",
-                        Admin_Approval_Status = reader["Admin_Approval_Status"].ToString() ?? "Pending"
+                        Admin_Approval_Status = reader["Admin_Approval_Status"].ToString() ?? "Pending",
+                        RejectionNote = reader["RejectionNote"].ToString() ?? ""
                     });
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show("GetPendingItems failed: " + ex.Message); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("GetPendingItems: " + ex.Message); }
             return list;
         }
 
@@ -2392,7 +2407,6 @@ WHERE b.Beneficiary_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-    -- Institutional
     SELECT b.Beneficiary_ID, b.Beneficiary_FullName, b.Beneficiary_Username,
            b.Beneficiary_Sex, b.Beneficiary_Contact,
            b.Beneficiaries_Status, b.Organization_ID,
@@ -2403,7 +2417,6 @@ WHERE b.Beneficiary_ID = @id", conn);
     LEFT JOIN Organization o ON o.Organization_ID = b.Organization_ID
     WHERE b.Admin_Approval_Status = 'Pending'
     UNION ALL
-    -- Independent
     SELECT ib.IndepBene_ID, ib.FullName, ib.Username,
            ib.Sex, ib.ContactNumber,
            ib.AccountStatus, '' AS Organization_ID,
@@ -2427,7 +2440,7 @@ WHERE b.Beneficiary_ID = @id", conn);
                         Organization_Name = reader["Organization_Name"].ToString() ?? ""
                     });
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show("GetPendingBeneficiaries failed: " + ex.Message); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("GetPendingBeneficiaries: " + ex.Message); }
             return list;
         }
 
@@ -2617,7 +2630,7 @@ ORDER BY d.Donor_ID", conn);
                         Donor_AccountStatus = r["Donor_AccountStatus"].ToString() ?? "Active"
                     });
             }
-            catch (Exception ex) { MessageBox.Show("GetPendingDonors failed: " + ex.Message); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("GetPendingDonors: " + ex.Message); }
             return list;
         }
 
@@ -2753,22 +2766,30 @@ WHERE UserID = @id", conn);
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(@"
+
+                // Check if PreviousTitle column exists (it may have been dropped via debug script)
+                bool hasPrevCols;
+                using (var chk = new SqlCommand(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='NeedsPosts' AND COLUMN_NAME='PreviousTitle'", conn))
+                    hasPrevCols = Convert.ToInt32(await chk.ExecuteScalarAsync()) > 0;
+
+                string prevCols = hasPrevCols
+                    ? "n.PreviousTitle, n.PreviousDescription, n.PreviousUrgency,"
+                    : "CAST(NULL AS NVARCHAR(200)) AS PreviousTitle, CAST(NULL AS NVARCHAR(1000)) AS PreviousDescription, CAST(NULL AS NVARCHAR(10)) AS PreviousUrgency,";
+
+                using var cmd = new SqlCommand($@"
 SELECT n.NeedsPost_ID, n.Org_ID, n.Title, n.Description,
        n.Urgency, n.Status, n.Post_Date,
        ISNULL(n.ImagePath,'')          AS ImagePath,
        ISNULL(o.Organization_Name,'') AS Org_Name,
        n.Admin_Approval_Status,
-       n.PreviousTitle,
-       n.PreviousDescription,
-       n.PreviousUrgency,
+       {prevCols}
        ISNULL(n.RejectionNote,'')     AS RejectionNote
 FROM NeedsPosts n
 LEFT JOIN Organization o ON o.Organization_ID = n.Org_ID
 WHERE n.Admin_Approval_Status = 'Pending'
-ORDER BY
-    CASE n.Urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END,
-    n.Post_Date DESC", conn);
+ORDER BY CASE n.Urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, n.Post_Date DESC", conn);
+
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync())
                     list.Add(new NeedsPostModel
@@ -2789,7 +2810,7 @@ ORDER BY
                         RejectionNote = r["RejectionNote"].ToString() ?? "",
                     });
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show("GetPendingNeedsPosts failed: " + ex.Message); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("GetPendingNeedsPosts: " + ex.Message); }
             return list;
         }
         public static async Task ApproveNeedsPost(string postId, string urgency)

@@ -412,14 +412,20 @@ namespace KapwaKuha.ViewModels
                 }
             });
 
-            // ── Safe deferred load — waits for window to fully render first ───
-            Application.Current.Dispatcher.BeginInvoke(
-                System.Windows.Threading.DispatcherPriority.Loaded,
-                new Action(async () =>
+
+            // ── Safe deferred load — fire-and-forget with full exception guard ────
+            _ = Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                try
                 {
                     await LoadMetricsAsync();
                     await LoadGatekeeperQueuesAsync();
-                }));
+                }
+                catch (Exception ex)
+                {
+                    SafeDispatch(() => LoadError = $"Dashboard load failed: {ex.Message}");
+                }
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         // ── Safe metrics load ─────────────────────────────────────────────────
@@ -428,8 +434,10 @@ namespace KapwaKuha.ViewModels
             try
             {
                 var m = await KapwaDataService.GetAdminImpactMetrics();
-                if (Application.Current == null) return;
-                Application.Current.Dispatcher.Invoke(() =>
+                // Remove the null check for 'm' since it's a value tuple and cannot be null
+                if (Application.Current == null) return; // Prevents NullReferenceException on UI Thread
+
+                SafeDispatch(() =>
                 {
                     TotalDonated = m.TotalDonated;
                     TotalClaimed = m.TotalClaimed;
@@ -447,51 +455,50 @@ namespace KapwaKuha.ViewModels
                 SafeDispatch(() => LoadError = $"Metrics load failed: {ex.Message}");
             }
         }
-
         private async Task LoadGatekeeperQueuesAsync()
         {
             SafeDispatch(() =>
                 IsLoadingItems = IsLoadingBenes = IsLoadingReports = IsLoadingNeedsPosts = true);
-            try
+
+            // Load all 5 queues independently — one failure never blocks the others
+            List<ItemModel> items = new();
+            List<BeneficiaryModel> benes = new();
+            List<DonorModel> donors = new();
+            List<NeedsPostModel> needsPosts = new();
+            List<UserReportModel> reports = new();
+
+            try { items = await KapwaDataService.GetPendingItems() ?? new(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Items failed: {ex.Message}"); }
+            try { benes = await KapwaDataService.GetPendingBeneficiaries() ?? new(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Benes failed: {ex.Message}"); }
+            try { donors = await KapwaDataService.GetPendingDonors() ?? new(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Donors failed: {ex.Message}"); }
+            try { needsPosts = await KapwaDataService.GetPendingNeedsPosts() ?? new(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"NeedsPosts failed: {ex.Message}"); }
+            try { reports = await KapwaDataService.GetOpenReports() ?? new(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Reports failed: {ex.Message}"); }
+
+            if (Application.Current == null) return;
+
+            SafeDispatch(() =>
             {
-                var items = await KapwaDataService.GetPendingItems() ?? new();
-                var benes = await KapwaDataService.GetPendingBeneficiaries() ?? new();
-                var donors = await KapwaDataService.GetPendingDonors() ?? new();
-                var needsPosts = await KapwaDataService.GetPendingNeedsPosts() ?? new();
-                var reports = await KapwaDataService.GetOpenReports() ?? new();
+                PendingItemsList.Clear();
+                foreach (var i in items) PendingItemsList.Add(i);
 
-                if (Application.Current == null) return;
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    PendingItemsList.Clear();
-                    foreach (var i in items) PendingItemsList.Add(i);
+                PendingBenesList.Clear();
+                foreach (var b in benes) PendingBenesList.Add(b);
 
-                    PendingBenesList.Clear();
-                    foreach (var b in benes) PendingBenesList.Add(b);
+                PendingDonorsList.Clear();
+                foreach (var d in donors) PendingDonorsList.Add(d);
 
-                    PendingDonorsList.Clear();
-                    foreach (var d in donors) PendingDonorsList.Add(d);
+                PendingNeedsPostsList.Clear();
+                foreach (var n in needsPosts) PendingNeedsPostsList.Add(n);
 
-                    PendingNeedsPostsList.Clear();
-                    foreach (var n in needsPosts) PendingNeedsPostsList.Add(n);
+                OpenReportsList.Clear();
+                foreach (var r in reports) OpenReportsList.Add(r);
 
-                    OpenReportsList.Clear();
-                    foreach (var r in reports) OpenReportsList.Add(r);
+                PendingItems = items.Count;
+                PendingDonors = donors.Count;
+                PendingNeedsPosts = needsPosts.Count;
+                OpenReports = reports.Count;
 
-                    PendingItems = items.Count;
-                    PendingDonors = donors.Count;
-                    PendingNeedsPosts = needsPosts.Count;
-                });
-            }
-            catch (Exception ex)
-            {
-                SafeDispatch(() => LoadError = $"Queue load failed: {ex.Message}");
-            }
-            finally
-            {
-                SafeDispatch(() =>
-                    IsLoadingItems = IsLoadingBenes = IsLoadingReports = IsLoadingNeedsPosts = false);
-            }
+                IsLoadingItems = IsLoadingBenes = IsLoadingReports = IsLoadingNeedsPosts = false;
+            });
         }
 
         // ── UI-thread helper ──────────────────────────────────────────────────

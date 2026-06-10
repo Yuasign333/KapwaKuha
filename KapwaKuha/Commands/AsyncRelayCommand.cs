@@ -33,14 +33,13 @@ namespace KapwaKuha.Commands
             }
             catch (Exception ex)
             {
-                // Top-level safety net — prevents any async void crash from killing the app
                 try
                 {
-                    MessageBox.Show(
-                        $"An unexpected error occurred:\n\n{ex.Message}",
-                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Application.Current?.Dispatcher.Invoke(() =>
+                        MessageBox.Show($"Unexpected error:\n\n{ex.Message}", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error));
                 }
-                catch { /* swallow if even MessageBox fails */ }
+                catch { /* swallow */ }
             }
             finally
             {

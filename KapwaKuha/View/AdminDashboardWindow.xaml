@@ -746,6 +746,24 @@
                                                             </Button.Template>
                                                         </Button>
                                                         <Button Content="🚫 Ban"
+        Command="{Binding DataContext.AdminBanUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+        CommandParameter="{Binding}"
+        Height="30" FontSize="11"
+        Foreground="White" BorderThickness="0" Cursor="Hand">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="6" Background="#DC2626" x:Name="bg" Padding="10,0">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="bg" Property="Background" Value="#B91C1C"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
+                                                        <Button Content="🚫 Ban"
                                                                 Command="{Binding DataContext.AdminBanUserCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                 CommandParameter="{Binding}"
                                                                 Height="30" FontSize="11"
