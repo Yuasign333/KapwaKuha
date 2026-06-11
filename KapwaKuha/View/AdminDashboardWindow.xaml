@@ -126,10 +126,6 @@
                             </StackPanel>
                         </Border>
                         <Border CornerRadius="10" Padding="14,12" Margin="0,0,0,8"
-                                Background="#FFF7ED" BorderBrush="#FED7AA" BorderThickness="1">
-                           
-                        </Border>
-                        <Border CornerRadius="10" Padding="14,12" Margin="0,0,0,8"
                                 Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1">
                             <StackPanel>
                                 <TextBlock Text="📋 Pending Needs Posts" FontSize="11" Foreground="#92400E"/>
@@ -169,7 +165,6 @@
                                 <TextBlock Text="Loading..." FontSize="13" Foreground="#9CA3AF"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                            Visibility="{Binding IsLoadingItems, Converter={StaticResource BoolToVis}}"/>
-                                <!-- Empty state -->
                                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
@@ -185,7 +180,6 @@
                                     <TextBlock Text="No pending items — all clear!" FontSize="13"
                                                Foreground="#6B7280" HorizontalAlignment="Center"/>
                                 </StackPanel>
-                                <!-- Item list with image + description -->
                                 <ListView ItemsSource="{Binding PendingItemsList}"
                                           Background="Transparent" BorderThickness="0"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled" MaxHeight="320">
@@ -218,21 +212,21 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
 
-                                                    <!-- Item image / placeholder — BIGGER & CLICKABLE -->
+                                                    <!-- Item image -->
                                                     <Border Grid.Column="0" Width="110" Height="110"
-        CornerRadius="10" ClipToBounds="True"
-        Background="#EBF7FB" VerticalAlignment="Top"
-        Cursor="Hand">
+                                                            CornerRadius="10" ClipToBounds="True"
+                                                            Background="#EBF7FB" VerticalAlignment="Top"
+                                                            Cursor="Hand">
                                                         <Border.ToolTip>
                                                             <ToolTip>
                                                                 <Image Source="{Binding Item_ImagePath}" MaxWidth="480" MaxHeight="480"
-                   Stretch="Uniform"/>
+                                                                       Stretch="Uniform"/>
                                                             </ToolTip>
                                                         </Border.ToolTip>
                                                         <Grid>
                                                             <TextBlock Text="📦" FontSize="38"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center" Opacity="0.5">
+                                                                       HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center" Opacity="0.5">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility" Value="Visible"/>
@@ -264,7 +258,6 @@
                                                         <TextBlock Text="{Binding Item_Name}"
                                                                    FontWeight="Bold" FontSize="15"
                                                                    Foreground="#0A2540" TextTrimming="CharacterEllipsis"/>
-                                                        <!-- category · condition · post type pill row -->
                                                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                                             <Border CornerRadius="6" Background="#E0F2FE" Padding="7,2" Margin="0,0,6,0">
                                                                 <TextBlock Text="{Binding Category_Name}" FontSize="10"
@@ -279,18 +272,16 @@
                                                                            FontWeight="SemiBold" Foreground="#374151"/>
                                                             </Border>
                                                         </StackPanel>
-                                                        <!-- description -->
                                                         <TextBlock Text="{Binding Item_Description}"
                                                                    FontSize="12" Foreground="#4B5563"
                                                                    TextWrapping="Wrap" MaxHeight="48"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    Margin="0,6,0,6"/>
-                                                        <!-- donor + storage info -->
                                                         <TextBlock FontSize="11" Foreground="#9CA3AF">
                                                             <Run Text="Donor: "/>
-                                                            <Run Text="{Binding Donor_ID}" FontWeight="SemiBold" Foreground="#6B7280"/>
+                                                            <Run Text="{Binding Donor_ID, Mode=OneWay}" FontWeight="SemiBold" Foreground="#6B7280"/>
                                                             <Run Text="  ·  "/>
-                                                            <Run Text="{Binding StorageInfo}" Foreground="#6B7280"/>
+                                                            <Run Text="{Binding StorageInfo, Mode=OneWay}" Foreground="#6B7280"/>
                                                         </TextBlock>
                                                     </StackPanel>
 
@@ -383,9 +374,9 @@
                                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding Beneficiary_FullName}" FontWeight="SemiBold" FontSize="14" Foreground="#0A2540"/>
                                                         <TextBlock Foreground="#6B7280" FontSize="12" Margin="0,2,0,0">
-                                                            <Run Text="{Binding Organization_Name}"/>
+                                                            <Run Text="{Binding Organization_Name, Mode=OneWay}"/>
                                                             <Run Text=" • "/>
-                                                            <Run Text="{Binding Beneficiary_ID}"/>
+                                                            <Run Text="{Binding Beneficiary_ID, Mode=OneWay}"/>
                                                         </TextBlock>
                                                     </StackPanel>
                                                     <Button Grid.Column="1"
@@ -409,9 +400,7 @@
                         </Grid>
                     </Border>
 
-                   
-
-                    <!-- ── 4. PENDING NEEDS POSTS ── -->
+                    <!-- ── 3. PENDING NEEDS POSTS ── -->
                     <Border Style="{StaticResource GlassCard}" CornerRadius="16" Padding="20,16" Margin="0,0,0,16">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -479,7 +468,7 @@
                                                 </Border.Style>
                                                 <StackPanel>
 
-                                                    <!-- ── Top row: title + badges + action buttons ── -->
+                                                    <!-- Top row: info + buttons -->
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
@@ -488,7 +477,7 @@
 
                                                         <StackPanel Grid.Column="0">
 
-                                                            <!-- "EDITED / RESUBMITTED" badge — only when IsEdit = true -->
+                                                            <!-- EDITED / RESUBMITTED badge -->
                                                             <Border CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" Margin="0,0,0,5">
                                                                 <Border.Style>
                                                                     <Style TargetType="Border">
@@ -504,59 +493,55 @@
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <TextBlock Text="✏️" FontSize="11" Margin="0,0,4,0"/>
                                                                     <TextBlock Text="EDITED / RESUBMITTED — Review changes below"
-                                       FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
+                                                                               FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
                                                                 </StackPanel>
                                                             </Border>
 
                                                             <TextBlock Text="{Binding Title}" FontSize="14"
-                               FontWeight="SemiBold" Foreground="#0A2540"/>
-                                                            <TextBlock Foreground="#6B7280" FontSize="12" Margin="0,2,0,0">
-                        <Run Text="{Binding Org_Name}"/>
-                        <Run Text=" · Urgency: "/>
-                        <Run Text="{Binding Urgency}" FontWeight="Bold"/>
-                                                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
-    <TextBlock Foreground="#6B7280" FontSize="12">
-        <Run Text="{Binding Org_Name}"/>
-        <Run Text=" · "/>
-        <Run Text="{Binding PostDateDisplay}" Foreground="#9CA3AF"/>
-    </TextBlock>
-    <Border CornerRadius="6" Padding="8,2" Margin="8,0,0,0"
-            Background="{Binding UrgencyColor}">
-        <TextBlock FontSize="11" FontWeight="Bold"
-                   Foreground="{Binding UrgencyTextColor}">
-            <Run Text="{Binding Urgency}"/>
-            <Run Text=" Urgency"/>
-        </TextBlock>
-    </Border>
-</StackPanel>
-                        <Run Text=" · "/>
-                        <Run Text="{Binding PostDateDisplay}" Foreground="#9CA3AF"/>
-                                                            </TextBlock>
+                                                                       FontWeight="SemiBold" Foreground="#0A2540"/>
+
+                                                            <!-- Org · date · urgency pill row -->
+                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                                <TextBlock Foreground="#6B7280" FontSize="12">
+                                                                    <Run Text="{Binding Org_Name, Mode=OneWay}"/>
+                                                                    <Run Text=" · "/>
+                                                                    <Run Text="{Binding PostDateDisplay, Mode=OneWay}" Foreground="#9CA3AF"/>
+                                                                </TextBlock>
+                                                                <Border CornerRadius="6" Padding="8,2" Margin="8,0,0,0"
+                                                                        Background="{Binding UrgencyColor}">
+                                                                    <TextBlock FontSize="11" FontWeight="Bold"
+                                                                               Foreground="{Binding UrgencyTextColor}">
+                                                                        <Run Text="{Binding Urgency, Mode=OneWay}"/>
+                                                                        <Run Text=" Urgency"/>
+                                                                    </TextBlock>
+                                                                </Border>
+                                                            </StackPanel>
+
                                                             <TextBlock Text="{Binding Description}" FontSize="11"
-                               Foreground="#6B7280" TextTrimming="CharacterEllipsis"
-                               Margin="0,4,0,0" MaxWidth="500"/>
+                                                                       Foreground="#6B7280" TextTrimming="CharacterEllipsis"
+                                                                       Margin="0,4,0,0" MaxWidth="500"/>
                                                         </StackPanel>
 
                                                         <!-- Approve / Reject buttons -->
                                                         <StackPanel Grid.Column="1" Orientation="Horizontal"
-                            VerticalAlignment="Top" Margin="12,0,0,0">
+                                                                    VerticalAlignment="Top" Margin="12,0,0,0">
                                                             <Button Content="✅ Approve + Set Urgency"
-                            Command="{Binding DataContext.ApproveNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding}"
-                            Style="{StaticResource GradientButton}"
-                            Height="32" Padding="14,0" Margin="0,0,8,0" FontSize="12"/>
+                                                                    Command="{Binding DataContext.ApproveNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource GradientButton}"
+                                                                    Height="32" Padding="14,0" Margin="0,0,8,0" FontSize="12"/>
                                                             <Button Content="❌ Reject"
-                            Command="{Binding DataContext.RejectNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                            CommandParameter="{Binding}"
-                            Style="{StaticResource OutlineBtn}"
-                            Height="32" Padding="14,0" FontSize="12"/>
+                                                                    Command="{Binding DataContext.RejectNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Style="{StaticResource OutlineBtn}"
+                                                                    Height="32" Padding="14,0" FontSize="12"/>
                                                         </StackPanel>
                                                     </Grid>
 
-                                                    <!-- ── Before / After diff panel — only for edited resubmissions ── -->
+                                                    <!-- Before / After diff panel -->
                                                     <Border Margin="0,10,0,0" CornerRadius="8"
-                    Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1"
-                    Padding="12,10">
+                                                            Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1"
+                                                            Padding="12,10">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -578,41 +563,41 @@
                                                             <Border Grid.Column="0" Background="#FEF2F2" CornerRadius="6" Padding="10,8">
                                                                 <StackPanel>
                                                                     <TextBlock Text="BEFORE" FontSize="9" FontWeight="Bold"
-                                       Foreground="#EF4444" Margin="0,0,0,5"/>
+                                                                               Foreground="#EF4444" Margin="0,0,0,5"/>
                                                                     <TextBlock Text="{Binding PreviousTitle}"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       Foreground="#7F1D1D" TextWrapping="Wrap"/>
+                                                                               FontSize="12" FontWeight="SemiBold"
+                                                                               Foreground="#7F1D1D" TextWrapping="Wrap"/>
                                                                     <TextBlock Text="{Binding PreviousDescription}"
-                                       FontSize="11" Foreground="#991B1B"
-                                       TextWrapping="Wrap" Margin="0,3,0,4"
-                                       MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                                                               FontSize="11" Foreground="#991B1B"
+                                                                               TextWrapping="Wrap" Margin="0,3,0,4"
+                                                                               MaxHeight="50" TextTrimming="CharacterEllipsis"/>
                                                                     <TextBlock FontSize="11" Foreground="#B91C1C">
-                                <Run Text="Urgency: "/>
-                                <Run Text="{Binding PreviousUrgency}" FontWeight="Bold"/>
+                                                                        <Run Text="Urgency: "/>
+                                                                        <Run Text="{Binding PreviousUrgency, Mode=OneWay}" FontWeight="Bold"/>
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                             </Border>
 
                                                             <!-- Arrow -->
                                                             <TextBlock Grid.Column="1" Text="→" FontSize="18" FontWeight="Bold"
-                               Foreground="#92400E" VerticalAlignment="Center"
-                               HorizontalAlignment="Center"/>
+                                                                       Foreground="#92400E" VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Center"/>
 
-                                                            <!-- AFTER (current submission) -->
+                                                            <!-- AFTER -->
                                                             <Border Grid.Column="2" Background="#F0FFF4" CornerRadius="6" Padding="10,8">
                                                                 <StackPanel>
                                                                     <TextBlock Text="AFTER" FontSize="9" FontWeight="Bold"
-                                       Foreground="#16A34A" Margin="0,0,0,5"/>
+                                                                               Foreground="#16A34A" Margin="0,0,0,5"/>
                                                                     <TextBlock Text="{Binding Title}"
-                                       FontSize="12" FontWeight="SemiBold"
-                                       Foreground="#14532D" TextWrapping="Wrap"/>
+                                                                               FontSize="12" FontWeight="SemiBold"
+                                                                               Foreground="#14532D" TextWrapping="Wrap"/>
                                                                     <TextBlock Text="{Binding Description}"
-                                       FontSize="11" Foreground="#166534"
-                                       TextWrapping="Wrap" Margin="0,3,0,4"
-                                       MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                                                               FontSize="11" Foreground="#166534"
+                                                                               TextWrapping="Wrap" Margin="0,3,0,4"
+                                                                               MaxHeight="50" TextTrimming="CharacterEllipsis"/>
                                                                     <TextBlock FontSize="11" Foreground="#15803D">
-                                <Run Text="Urgency: "/>
-                                <Run Text="{Binding Urgency}" FontWeight="Bold"/>
+                                                                        <Run Text="Urgency: "/>
+                                                                        <Run Text="{Binding Urgency, Mode=OneWay}" FontWeight="Bold"/>
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                             </Border>
@@ -628,7 +613,7 @@
                         </Grid>
                     </Border>
 
-                    <!-- ── 5. OPEN USER REPORTS ── -->
+                    <!-- ── 4. OPEN USER REPORTS ── -->
                     <Border Style="{StaticResource GlassCard}" CornerRadius="16" Padding="20,16">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -693,27 +678,27 @@
                                                     </Grid.ColumnDefinitions>
                                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                                         <TextBlock Foreground="#0A2540" FontWeight="SemiBold" FontSize="14">
-                                                            <Run Text="{Binding ReportType}"/>
+                                                            <Run Text="{Binding ReportType, Mode=OneWay}"/>
                                                             <Run Text=" — "/>
-                                                            <Run Text="{Binding ReportedName}"/>
+                                                            <Run Text="{Binding ReportedName, Mode=OneWay}"/>
                                                         </TextBlock>
                                                         <TextBlock Text="{Binding Description}"
                                                                    Foreground="#6B7280" FontSize="12"
                                                                    TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
                                                         <TextBlock Foreground="#9CA3AF" FontSize="11" Margin="0,4,0,0">
                                                             <Run Text="Filed by: "/>
-                                                            <Run Text="{Binding ReporterName}"/>
+                                                            <Run Text="{Binding ReporterName, Mode=OneWay}"/>
                                                             <Run Text="  •  "/>
-                                                            <Run Text="{Binding FiledAtDisplay}"/>
+                                                            <Run Text="{Binding FiledAtDisplay, Mode=OneWay}"/>
                                                         </TextBlock>
                                                     </StackPanel>
                                                     <StackPanel Grid.Column="1" Orientation="Horizontal"
                                                                 Margin="12,0,4,0" VerticalAlignment="Center">
                                                         <Button Content="⚡ Strike"
-        Command="{Binding DataContext.ProcessReportCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-        CommandParameter="{Binding}"
-        Height="30" Margin="0,0,6,0" FontSize="11"
-        Foreground="White" BorderThickness="0" Cursor="Hand">
+                                                                Command="{Binding DataContext.ProcessReportCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"
+                                                                Height="30" Margin="0,0,6,0" FontSize="11"
+                                                                Foreground="White" BorderThickness="0" Cursor="Hand">
                                                             <Button.Template>
                                                                 <ControlTemplate TargetType="Button">
                                                                     <Border CornerRadius="6" Background="#F59E0B" x:Name="bg" Padding="10,0">
@@ -728,43 +713,7 @@
                                                             </Button.Template>
                                                         </Button>
                                                         <Button Content="🚫 Ban"
-        Command="{Binding DataContext.AdminBanUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-        CommandParameter="{Binding}"
-        Height="30" FontSize="11"
-        Foreground="White" BorderThickness="0" Cursor="Hand">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border CornerRadius="6" Background="#DC2626" x:Name="bg" Padding="10,0">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="bg" Property="Background" Value="#B91C1C"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                        </Button>
-                                                        <Button Content="🚫 Ban"
-        Command="{Binding DataContext.AdminBanUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-        CommandParameter="{Binding}"
-        Height="30" FontSize="11"
-        Foreground="White" BorderThickness="0" Cursor="Hand">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border CornerRadius="6" Background="#DC2626" x:Name="bg" Padding="10,0">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="bg" Property="Background" Value="#B91C1C"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                        </Button>
-                                                        <Button Content="🚫 Ban"
-                                                                Command="{Binding DataContext.AdminBanUserCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                Command="{Binding DataContext.AdminBanUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                 CommandParameter="{Binding}"
                                                                 Height="30" FontSize="11"
                                                                 Foreground="White" BorderThickness="0" Cursor="Hand">
