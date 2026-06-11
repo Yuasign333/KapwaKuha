@@ -199,25 +199,51 @@ namespace KapwaKuha.ViewModels
             });
 
             // ── UPDATE EXISTING POST ──────────────────────────────────────────
+            // ── UPDATE EXISTING POST ──────────────────────────────────────────
             UpdateNeedCommand = new AsyncRelayCommand(async _ =>
             {
                 if (SelectedPost == null) return;
                 ErrorVisible = false;
-
-                // Gate: cannot edit a live (Approved) post
-                if (SelectedPost.Admin_Approval_Status == "Approved")
-                {
-                    MessageBox.Show(
-    "✅ Changes saved and resubmitted for admin review.\n\nYour post will reappear once re-approved.",
-    "Resubmitted", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
 
                 if (string.IsNullOrWhiteSpace(Title))
                 { ErrorMessage = "Title is required."; ErrorVisible = true; return; }
                 if (string.IsNullOrWhiteSpace(Description))
                 { ErrorMessage = "Description is required."; ErrorVisible = true; return; }
 
+                // Gate: cannot directly edit a live (Approved) post — must go through admin re-review
+                if (SelectedPost.Admin_Approval_Status == "Approved")
+                {
+                    var confirm = MessageBox.Show(
+                        $"Editing \"{SelectedPost.Title}\" will send it back for admin review.\n\nYour post will be hidden from donors until re-approved. Continue?",
+                        "Resubmit for Approval", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                    if (confirm != MessageBoxResult.Yes) return;
+
+                    try
+                    {
+                        IsBusy = true;
+                        // Submit as pending edit — live columns stay unchanged until admin approves
+                        var pendingEdit = new NeedsPostModel
+                        {
+                            NeedsPost_ID = SelectedPost.NeedsPost_ID,
+                            Title = Title.Trim(),
+                            Description = Description.Trim(),
+                            Urgency = Urgency,
+                            ImagePath = ImagePath
+                        };
+                        await KapwaDataService.SubmitNeedsPostEditForReview(pendingEdit);
+                        await LoadMyPostsAsync();
+                        MessageBox.Show(
+                            "✅ Your edits have been submitted for admin review.\n" +
+                            "Your post will reappear with the new details once approved.",
+                            "Submitted", MessageBoxButton.OK, MessageBoxImage.Information);
+                        ClearSelectionCommand.Execute(null);
+                    }
+                    catch { }
+                    finally { IsBusy = false; }
+                    return;
+                }
+
+                // Post is Pending or Rejected — direct update is fine, resets to Pending
                 try
                 {
                     IsBusy = true;
@@ -225,12 +251,10 @@ namespace KapwaKuha.ViewModels
                     SelectedPost.Description = Description.Trim();
                     SelectedPost.Urgency = Urgency;
                     SelectedPost.ImagePath = ImagePath;
-                    // Reset approval to Pending — admin must re-review
                     SelectedPost.Admin_Approval_Status = "Pending";
 
                     await KapwaDataService.UpdateNeedsPost(SelectedPost);
 
-                    // Refresh in list
                     var idx = MyPosts.IndexOf(SelectedPost);
                     if (idx >= 0) { MyPosts.RemoveAt(idx); MyPosts.Insert(idx, SelectedPost); }
 

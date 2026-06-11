@@ -126,49 +126,51 @@ namespace KapwaKuha.ViewModels
             });
 
             // ── Items ─────────────────────────────────────────────────────────
-            // REPLACE THIS ENTIRE BLOCK:
-            ApproveItemCommand = new AsyncRelayCommand(async param =>
+            ApproveNeedsPostCommand = new AsyncRelayCommand(async param =>
             {
-                if (param is not ItemModel item) return;
-                var r = MessageBox.Show(
-                    $"Approve item \"{item.Item_Name}\"?\nThis will make it visible to beneficiaries.",
-                    "Confirm Approval", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (r != MessageBoxResult.Yes) return;
+                if (param is not NeedsPostModel post) return;
+
+                var dialog = new View.AdminApproveNeedsPostDialog(post);
+                // Set owner so CenterOwner works
+                dialog.Owner = Application.Current.MainWindow;
+                bool? result = dialog.ShowDialog();
+                if (result != true) return;
+
+                string chosenUrgency = dialog.ChosenUrgency;
+
                 try
                 {
-                    await KapwaDataService.ApproveItem(item.Item_ID);
-                    await KapwaDataService.CreateNotification(
-                        item.Donor_ID, "Approval",
-                        $"✅ Your item \"{item.Item_Name}\" has been approved and is now visible.",
-                        item.Item_ID);
+                    await KapwaDataService.ApproveNeedsPost(post.NeedsPost_ID, chosenUrgency);
+                    // Get the actual beneficiary ID (Users.UserID), NOT the Org_ID
+                    string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
+                    if (!string.IsNullOrEmpty(beneId))
+                        await KapwaDataService.CreateNotification(
+                            beneId, "Approval",
+                            $"✅ Your needs post \"{post.Title}\" has been approved as {chosenUrgency} urgency and is now visible to donors.",
+                            post.NeedsPost_ID);
                     await LoadGatekeeperQueuesAsync();
                     await LoadMetricsAsync();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Failed to approve item: {ex.Message}", "Error",
+                    MessageBox.Show($"Failed to approve needs post: {ex.Message}", "Error",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
 
-            // REPLACE THIS ENTIRE BLOCK:
             RejectItemCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not ItemModel item) return;
 
-                string reason = Microsoft.VisualBasic.Interaction.InputBox(
-                    $"Enter rejection reason for \"{item.Item_Name}\":\n(The donor will see this and can edit + resubmit.)",
-                    "Rejection Reason",
-                    "Please revise your item post and resubmit.");
+                var rejectDlg = new View.AdminRejectReasonDialog(
+                    $"Reject \"{item.Item_Name}\"",
+                    "The donor will see this reason and can edit & resubmit.");
+                rejectDlg.Owner = Application.Current.MainWindow;
+                if (rejectDlg.ShowDialog() != true) return;
 
-                if (reason == null) return;
+                string reason = rejectDlg.Reason;
                 if (string.IsNullOrWhiteSpace(reason))
                     reason = "Your item was rejected. Please edit and resubmit.";
-
-                var r = MessageBox.Show(
-                    $"Reject \"{item.Item_Name}\"?\n\nReason: {reason}",
-                    "Confirm Rejection", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (r != MessageBoxResult.Yes) return;
 
                 try
                 {
@@ -309,29 +311,27 @@ namespace KapwaKuha.ViewModels
             {
                 if (param is not NeedsPostModel post) return;
 
-                // Prompt admin for a rejection reason
-                string reason = Microsoft.VisualBasic.Interaction.InputBox(
-                    $"Enter a rejection reason for \"{post.Title}\":\n(This will be shown to the beneficiary so they know what to fix.)",
-                    "Rejection Reason",
-                    "Please revise your post and resubmit.");
+                // Use a proper pop-out dialog instead of InputBox
+                var rejectDlg = new View.AdminRejectReasonDialog(
+                    $"Reject \"{post.Title}\"",
+                    "The beneficiary will see this reason and can edit & resubmit.");
+                rejectDlg.Owner = Application.Current.MainWindow;
+                if (rejectDlg.ShowDialog() != true) return;
 
-                // Cancelled — don't reject
-                if (reason == null) return;
+                string reason = rejectDlg.Reason;
                 if (string.IsNullOrWhiteSpace(reason))
                     reason = "Your post was rejected. Please edit and resubmit.";
-
-                var r = MessageBox.Show(
-                    $"Reject \"{post.Title}\"?\n\nReason: {reason}\n\nThe beneficiary will see this reason and can edit & resubmit.",
-                    "Confirm Rejection", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (r != MessageBoxResult.Yes) return;
 
                 try
                 {
                     await KapwaDataService.RejectNeedsPost(post.NeedsPost_ID, reason);
-                    await KapwaDataService.CreateNotification(
-                        post.Org_ID, "Approval",
-                        $"❌ Your needs post \"{post.Title}\" was not approved.\n\nReason: {reason}\n\nPlease edit your post and resubmit for re-review.",
-                        post.NeedsPost_ID);
+                    // Get the actual beneficiary UserID, NOT the Org_ID
+                    string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
+                    if (!string.IsNullOrEmpty(beneId))
+                        await KapwaDataService.CreateNotification(
+                            beneId, "Approval",
+                            $"❌ Your needs post \"{post.Title}\" was not approved.\n\nReason: {reason}\n\nPlease edit your post and resubmit for re-review.",
+                            post.NeedsPost_ID);
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch (Exception ex)

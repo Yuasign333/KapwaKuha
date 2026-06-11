@@ -213,20 +213,17 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <!-- Item image -->
+                                           
                                                     <Border Grid.Column="0" Width="110" Height="110"
-                                                            CornerRadius="10" ClipToBounds="True"
-                                                            Background="#EBF7FB" VerticalAlignment="Top"
-                                                            Cursor="Hand">
-                                                        <Border.ToolTip>
-                                                            <ToolTip>
-                                                                <Image Source="{Binding Item_ImagePath}" MaxWidth="480" MaxHeight="480"
-                                                                       Stretch="Uniform"/>
-                                                            </ToolTip>
-                                                        </Border.ToolTip>
+                                             CornerRadius="10" ClipToBounds="True"
+                                Background="#EBF7FB" VerticalAlignment="Top"
+                                 Cursor="Hand"
+                             MouseLeftButtonUp="ItemImage_Click"
+                                Tag="{Binding Item_ImagePath}">
                                                         <Grid>
                                                             <TextBlock Text="📦" FontSize="38"
-                                                                       HorizontalAlignment="Center"
-                                                                       VerticalAlignment="Center" Opacity="0.5">
+                                     HorizontalAlignment="Center"
+                                VerticalAlignment="Center" Opacity="0.5">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility" Value="Visible"/>

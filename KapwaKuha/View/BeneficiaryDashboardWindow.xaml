@@ -822,15 +822,21 @@
                                                                 </Border>
 
                                                                 <!-- Rejection reason — only when rejected -->
+                                                                <!-- Replace the rejection reason Border in BeneficiaryDashboardWindow.xaml -->
                                                                 <Border CornerRadius="6" Padding="8,4" Margin="0,0,0,6"
         Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1">
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
                                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                                             <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding HasRejectionNote}" Value="True">
+                                                                                <!-- Only show if rejected AND has a rejection note -->
+                                                                                <MultiDataTrigger>
+                                                                                    <MultiDataTrigger.Conditions>
+                                                                                        <Condition Binding="{Binding HasRejectionNote}" Value="True"/>
+                                                                                        <Condition Binding="{Binding IsApproved}" Value="False"/>
+                                                                                    </MultiDataTrigger.Conditions>
                                                                                     <Setter Property="Visibility" Value="Visible"/>
-                                                                                </DataTrigger>
+                                                                                </MultiDataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>

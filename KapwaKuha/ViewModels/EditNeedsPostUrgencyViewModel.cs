@@ -96,16 +96,19 @@ namespace KapwaKuha.ViewModels
             SaveUrgencyCommand = new AsyncRelayCommand(async _ =>
             {
                 if (SelectedPost == null) return;
-                var confirm = MessageBox.Show(
-                    $"Submit your edits to \"{SelectedPost.Title}\" for admin review?\n\nYour post will be hidden from donors until re-approved.",
+
+                string confirmMsg = SelectedPost.Admin_Approval_Status == "Approved"
+                    ? $"Editing \"{SelectedPost.Title}\" will send it back for admin review.\n\nIt will be hidden until re-approved. Continue?"
+                    : $"Submit your edits to \"{SelectedPost.Title}\" for admin review?\n\nYour post will be hidden from donors until re-approved.";
+
+                var confirm = MessageBox.Show(confirmMsg,
                     "Confirm Edit Submission", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (confirm != MessageBoxResult.Yes) return;
+
                 try
                 {
                     IsBusy = true;
 
-                    // Build a TEMP model with the proposed values — do NOT mutate SelectedPost
-                    // (live columns stay unchanged in DB until admin approves)
                     var pendingEdit = new NeedsPostModel
                     {
                         NeedsPost_ID = SelectedPost.NeedsPost_ID,
@@ -115,14 +118,28 @@ namespace KapwaKuha.ViewModels
                         ImagePath = EditImagePath
                     };
 
-                    await KapwaDataService.SubmitNeedsPostEditForReview(pendingEdit);
+                    if (SelectedPost.Admin_Approval_Status == "Approved")
+                    {
+                        // Live post — use the snapshot path so live columns stay intact until admin re-approves
+                        await KapwaDataService.SubmitNeedsPostEditForReview(pendingEdit);
+                    }
+                    else
+                    {
+                        // Pending or Rejected — direct update, just set back to Pending
+                        SelectedPost.Title = pendingEdit.Title;
+                        SelectedPost.Description = pendingEdit.Description;
+                        SelectedPost.Urgency = pendingEdit.Urgency;
+                        SelectedPost.ImagePath = pendingEdit.ImagePath;
+                        SelectedPost.Admin_Approval_Status = "Pending";
+                        await KapwaDataService.UpdateNeedsPost(SelectedPost);
+                    }
 
                     MessageBox.Show(
                         "✅ Your edits have been submitted for admin review.\n" +
                         "Your post will be re-activated with the new details once approved.",
                         "Submitted", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    await LoadPostsAsync(); // reload from DB — post will now show as Pending
+                    await LoadPostsAsync();
                 }
                 catch { }
                 finally { IsBusy = false; }

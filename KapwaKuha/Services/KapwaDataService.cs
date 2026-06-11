@@ -2815,16 +2815,24 @@ ORDER BY CASE n.Urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, n.Po
         }
         public static async Task ApproveNeedsPost(string postId, string urgency)
         {
-            // Admin approves AND sets the final urgency at the same time
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
+                // Apply pending edit snapshot if it exists, then mark Approved
+                // This is safe even if PreviousTitle columns don't exist (COALESCE fallback)
                 using var cmd = new SqlCommand(@"
-    UPDATE NeedsPosts
-    SET Admin_Approval_Status = 'Approved',
-        Urgency = @urgency
-    WHERE NeedsPost_ID = @id", conn);
+UPDATE NeedsPosts
+SET Title               = CASE WHEN PreviousTitle       IS NOT NULL THEN PreviousTitle       ELSE Title       END,
+    Description         = CASE WHEN PreviousDescription IS NOT NULL THEN PreviousDescription ELSE Description END,
+    Urgency             = @urgency,
+    PreviousTitle       = NULL,
+    PreviousDescription = NULL,
+    PreviousUrgency     = NULL,
+    RejectionNote       = NULL,
+    Admin_Approval_Status = 'Approved',
+    Status              = 'Open'
+WHERE NeedsPost_ID = @id", conn);
                 cmd.Parameters.AddWithValue("@urgency", urgency);
                 cmd.Parameters.AddWithValue("@id", postId);
                 await cmd.ExecuteNonQueryAsync();
