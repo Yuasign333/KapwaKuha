@@ -564,16 +564,16 @@
                                                                 <StackPanel>
                                                                     <TextBlock Text="BEFORE" FontSize="9" FontWeight="Bold"
                                                                                Foreground="#EF4444" Margin="0,0,0,5"/>
-                                                                    <TextBlock Text="{Binding PreviousTitle}"
+                                                                    <TextBlock Text="{Binding Title}"
                                                                                FontSize="12" FontWeight="SemiBold"
                                                                                Foreground="#7F1D1D" TextWrapping="Wrap"/>
-                                                                    <TextBlock Text="{Binding PreviousDescription}"
+                                                                    <TextBlock Text="{Binding Description}"
                                                                                FontSize="11" Foreground="#991B1B"
                                                                                TextWrapping="Wrap" Margin="0,3,0,4"
                                                                                MaxHeight="50" TextTrimming="CharacterEllipsis"/>
                                                                     <TextBlock FontSize="11" Foreground="#B91C1C">
                                                                         <Run Text="Urgency: "/>
-                                                                        <Run Text="{Binding PreviousUrgency, Mode=OneWay}" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding Urgency, Mode=OneWay}" FontWeight="Bold"/>
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                             </Border>
@@ -588,16 +588,16 @@
                                                                 <StackPanel>
                                                                     <TextBlock Text="AFTER" FontSize="9" FontWeight="Bold"
                                                                                Foreground="#16A34A" Margin="0,0,0,5"/>
-                                                                    <TextBlock Text="{Binding Title}"
+                                                                    <TextBlock Text="{Binding PreviousTitle}"
                                                                                FontSize="12" FontWeight="SemiBold"
                                                                                Foreground="#14532D" TextWrapping="Wrap"/>
-                                                                    <TextBlock Text="{Binding Description}"
+                                                                    <TextBlock Text="{Binding PreviousDescription}"
                                                                                FontSize="11" Foreground="#166534"
                                                                                TextWrapping="Wrap" Margin="0,3,0,4"
                                                                                MaxHeight="50" TextTrimming="CharacterEllipsis"/>
                                                                     <TextBlock FontSize="11" Foreground="#15803D">
                                                                         <Run Text="Urgency: "/>
-                                                                        <Run Text="{Binding Urgency, Mode=OneWay}" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding PreviousUrgency, Mode=OneWay}" FontWeight="Bold"/>
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                             </Border>
@@ -740,7 +740,73 @@
                         </Grid>
                     </Border>
 
+                    <!-- ── 6. ADMIN SUPPORT INBOX ── -->
+                    <Border Style="{StaticResource GlassCard}" CornerRadius="16" Padding="20,16" Margin="0,16,0,16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+                                <TextBlock Text="💬 Support Inbox" FontSize="16" FontWeight="Bold"
+                       Foreground="#0A2540" VerticalAlignment="Center"/>
+                                <Border Background="#DBEAFE" CornerRadius="10" Padding="8,2" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding SupportThreadCount}" FontSize="12"
+                           FontWeight="Bold" Foreground="#1D4ED8"/>
+                                </Border>
+                            </StackPanel>
+                            <ListView Grid.Row="1" ItemsSource="{Binding SupportThreads}"
+                  Background="Transparent" BorderThickness="0" MaxHeight="260"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="10,8" CornerRadius="8" Margin="0,2"
+                            Background="White" BorderBrush="#E5E7EB" BorderThickness="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13"
+                                           FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                    <TextBlock Text="{Binding LastMessage}" FontSize="11"
+                                           Foreground="#6B7280" TextTrimming="CharacterEllipsis"
+                                           MaxWidth="320"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                    Command="{Binding DataContext.OpenSupportThreadCommand,
+                                        RelativeSource={RelativeSource AncestorType=ListView}}"
+                                    CommandParameter="{Binding}"
+                                    Content="Reply" Height="30" Padding="12,0"
+                                    FontSize="11" FontWeight="Bold"
+                                    Foreground="White" BorderThickness="0" Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border CornerRadius="8" Background="#0077B6">
+                                                                <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Grid>
+                    </Border>
+
                 </StackPanel>
+                
             </ScrollViewer>
 
         </Grid>

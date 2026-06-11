@@ -21,5 +21,12 @@ namespace KapwaKuha.View
 
             Loaded += (s, e) => NavigationService.SetCurrent(this);
         }
+        private void SupportBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new View.AdminSupportChatWindow(
+                UserSession.UserId,
+                UserSession.Role);
+            win.ShowDialog();
+        }
     }
 }

@@ -211,6 +211,8 @@
                                    Foreground="#03045E" FontSize="16" FontWeight="Bold"
                                    VerticalAlignment="Center" Margin="14,0,0,0"/>
 
+
+
                         <!-- Profile chip -->
                         <Border Grid.Column="2" CornerRadius="20" Padding="4,4,12,4"
                                 VerticalAlignment="Center"
@@ -270,10 +272,11 @@
                     </Grid>
                 </Border>
 
+
                 <!-- Scrollable body -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,0,0">
                     <StackPanel>
-                        
+
 
                         <!-- Two-column row: My Impact + Messages -->
                         <Grid>
@@ -795,8 +798,8 @@
                                                                            FontSize="11" Foreground="#0077B6"
                                                                            Margin="0,2,0,6"/>
 
-                                                               
-                                                               
+
+
                                                                 <!-- Sidebar CLOSED: Edit Post -->
                                                                 <!-- Single Edit Post button — always visible, never changes text -->
                                                                 <!-- Sidebar CLOSED: Edit Post -->
@@ -1041,6 +1044,9 @@
 
                     </StackPanel>
                 </ScrollViewer>
+                <Button Content="Support" Style="{StaticResource LinkBtn}"
+Foreground="White" Margin="420,0,12,0"
+Click="SupportBtn_Click"/>
             </Grid>
         </Grid>
     </Grid>

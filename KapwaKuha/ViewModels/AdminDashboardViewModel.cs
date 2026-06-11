@@ -87,6 +87,16 @@ namespace KapwaKuha.ViewModels
         }
         public bool HasLoadError => !string.IsNullOrEmpty(LoadError);
 
+        // ── Support Inbox ─────────────────────────────────────────────────────────
+        public ObservableCollection<KapwaDataService.AdminSupportThread> SupportThreads { get; } = new();
+        private int _supportThreadCount;
+        public int SupportThreadCount
+        {
+            get => _supportThreadCount;
+            set { _supportThreadCount = value; OnPropertyChanged(); }
+        }
+        public ICommand OpenSupportThreadCommand { get; }
+
         // ── Commands ─────────────────────────────────────────────────────────
         public ICommand ApproveItemCommand { get; }
         public ICommand RejectItemCommand { get; }
@@ -106,7 +116,17 @@ namespace KapwaKuha.ViewModels
             _adminId = adminId;
             WelcomeText = $"Admin Panel — {UserSession.FullName}";
 
+            OpenSupportThreadCommand = new RelayCommand(param =>
+            {
+                if (param is not KapwaDataService.AdminSupportThread thread) return;
+                var win = new View.AdminSupportChatWindow(thread.UserId, thread.Role, adminMode: true);
+                win.ShowDialog();
+                // Refresh support inbox after admin replies
+                _ = LoadSupportInboxAsync();
+            });
+
             // ── Items ─────────────────────────────────────────────────────────
+            // REPLACE THIS ENTIRE BLOCK:
             ApproveItemCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not ItemModel item) return;
@@ -131,17 +151,17 @@ namespace KapwaKuha.ViewModels
                 }
             });
 
+            // REPLACE THIS ENTIRE BLOCK:
             RejectItemCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not ItemModel item) return;
 
-                // Ask admin for a rejection reason
                 string reason = Microsoft.VisualBasic.Interaction.InputBox(
                     $"Enter rejection reason for \"{item.Item_Name}\":\n(The donor will see this and can edit + resubmit.)",
                     "Rejection Reason",
                     "Please revise your item post and resubmit.");
 
-                if (reason == null) return; // cancelled
+                if (reason == null) return;
                 if (string.IsNullOrWhiteSpace(reason))
                     reason = "Your item was rejected. Please edit and resubmit.";
 
@@ -254,44 +274,27 @@ namespace KapwaKuha.ViewModels
             });
 
             // ── Needs Posts ───────────────────────────────────────────────────
+            // In AdminDashboardViewModel.cs — replace ApproveNeedsPostCommand with:
             ApproveNeedsPostCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not NeedsPostModel post) return;
 
-                string chosenUrgency = post.Urgency ?? "Medium";
+                // Show a proper urgency-picker dialog instead of chained MessageBoxes
+                var dialog = new View.AdminApproveNeedsPostDialog(post);
+                bool? result = dialog.ShowDialog();
+                if (result != true) return; // cancelled
 
-                var result = MessageBox.Show(
-                    $"Approve needs post \"{post.Title}\" from {post.Org_Name}?\n\n" +
-                    $"Submitted urgency: {post.Urgency}\n\n" +
-                    "Click YES to approve at this urgency level.\n" +
-                    "Click NO to approve but override urgency (you will be prompted).",
-                    "Approve Needs Post", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Cancel) return;
-
-                if (result == MessageBoxResult.No)
-                {
-                    var highResult = MessageBox.Show(
-                        "Set urgency to HIGH (🔴 Urgent)?\n\nYes = High  |  No = proceed to next option",
-                        "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                    if (highResult == MessageBoxResult.Yes)
-                        chosenUrgency = "High";
-                    else
-                    {
-                        var medResult = MessageBox.Show(
-                            "Set urgency to MEDIUM (🟡 Moderate)?\n\nYes = Medium  |  No = Low",
-                            "Set Urgency", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        chosenUrgency = medResult == MessageBoxResult.Yes ? "Medium" : "Low";
-                    }
-                }
+                string chosenUrgency = dialog.ChosenUrgency;
 
                 try
                 {
                     await KapwaDataService.ApproveNeedsPost(post.NeedsPost_ID, chosenUrgency);
-                    await KapwaDataService.CreateNotification(
-                        post.Org_ID, "Approval",
-                        $"✅ Your needs post \"{post.Title}\" has been approved as {chosenUrgency} urgency and is now visible to donors.",
-                        post.NeedsPost_ID);
+                    string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
+                    if (!string.IsNullOrEmpty(beneId))
+                        await KapwaDataService.CreateNotification(
+                            beneId, "Approval",
+                            $"✅ Your needs post \"{post.Title}\" has been approved as {chosenUrgency} urgency and is now visible to donors.",
+                            post.NeedsPost_ID);
                     await LoadGatekeeperQueuesAsync();
                     await LoadMetricsAsync();
                 }
@@ -498,12 +501,16 @@ namespace KapwaKuha.ViewModels
                 OpenReports = reports.Count;
 
                 IsLoadingItems = IsLoadingBenes = IsLoadingReports = IsLoadingNeedsPosts = false;
+
+                _ = LoadSupportInboxAsync();
             });
         }
 
         // ── UI-thread helper ──────────────────────────────────────────────────
         private static void SafeDispatch(Action action)
         {
+
+            
             try
             {
                 if (Application.Current == null) return;
@@ -511,8 +518,21 @@ namespace KapwaKuha.ViewModels
                     action();
                 else
                     Application.Current.Dispatcher.Invoke(action);
+
+
             }
             catch { /* swallow dispatch errors during shutdown */ }
+        }
+
+        private async Task LoadSupportInboxAsync()
+        {
+            var threads = await KapwaDataService.GetAdminSupportInbox();
+            SafeDispatch(() =>
+            {
+                SupportThreads.Clear();
+                foreach (var t in threads) SupportThreads.Add(t);
+                SupportThreadCount = threads.Count;
+            });
         }
     }
 }

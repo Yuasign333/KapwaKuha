@@ -1,0 +1,78 @@
+﻿<Window x:Class="KapwaKuha.View.AdminApproveNeedsPostDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Approve Needs Post"
+        Height="340" Width="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        FontFamily="Segoe UI">
+    <Border Background="White" CornerRadius="16">
+        <Grid Margin="32,28">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="✅ Approve Needs Post"
+                       FontSize="20" FontWeight="Bold" Foreground="#0A2540" Margin="0,0,0,4"/>
+            <TextBlock Grid.Row="1" x:Name="PostTitleLabel"
+                       FontSize="13" Foreground="#6B7280" Margin="0,0,0,20" TextWrapping="Wrap"/>
+
+            <TextBlock Grid.Row="2" Text="Set Urgency Level" FontSize="13" FontWeight="SemiBold"
+                       Foreground="#0A2540" Margin="0,0,0,10"/>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,6">
+                <RadioButton x:Name="RbLow"   Content="🟢 Low"    GroupName="Urgency"
+                             FontSize="13" Margin="0,0,20,0" Cursor="Hand"/>
+                <RadioButton x:Name="RbMed"   Content="🟡 Medium" GroupName="Urgency"
+                             FontSize="13" Margin="0,0,20,0" Cursor="Hand" IsChecked="True"/>
+                <RadioButton x:Name="RbHigh"  Content="🔴 High"   GroupName="Urgency"
+                             FontSize="13" Cursor="Hand"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Text="The beneficiary will be notified of this approval."
+                       FontSize="11" Foreground="#9CA3AF" Margin="0,8,0,0"/>
+
+            <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right"
+                        Margin="0,20,0,0">
+                <Button x:Name="CancelBtn" Content="Cancel"
+                        Width="90" Height="38" Margin="0,0,12,0"
+                        Background="White" BorderBrush="#D1D5DB" BorderThickness="1"
+                        FontSize="13" Cursor="Hand" Click="CancelBtn_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border CornerRadius="8" Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button x:Name="ApproveBtn" Content="Approve"
+                        Width="110" Height="38"
+                        FontSize="13" FontWeight="Bold" Foreground="White"
+                        BorderThickness="0" Cursor="Hand" Click="ApproveBtn_Click">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border CornerRadius="8">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#00B4D8" Offset="0"/>
+                                        <GradientStop Color="#0077B6" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

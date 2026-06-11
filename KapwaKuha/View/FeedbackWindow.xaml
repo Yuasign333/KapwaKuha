@@ -27,12 +27,23 @@
                        HorizontalAlignment="Center" Margin="0,0,0,28"/>
 
             <!-- Star selector -->
+            <!-- Star selector — fixed: no LinkBtn, proper ControlTemplate with ContentPresenter -->
             <StackPanel Grid.Row="2" Orientation="Horizontal"
-                        HorizontalAlignment="Center" Margin="0,0,0,8">
+            HorizontalAlignment="Center" Margin="0,0,0,8">
                 <Button Command="{Binding SetStarCommand}" CommandParameter="1"
-                        Style="{StaticResource LinkBtn}" FontSize="36" Padding="4,0"
-                        Foreground="{Binding Star1Filled, Converter={StaticResource BoolToVis}}">
-                    <TextBlock Text="★">
+            Background="Transparent" BorderThickness="0"
+            FontSize="36" Padding="4,0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock Text="★" FontSize="36">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#D1D5DB"/>
@@ -46,8 +57,19 @@
                     </TextBlock>
                 </Button>
                 <Button Command="{Binding SetStarCommand}" CommandParameter="2"
-                        Style="{StaticResource LinkBtn}" FontSize="36" Padding="4,0">
-                    <TextBlock Text="★">
+            Background="Transparent" BorderThickness="0"
+            FontSize="36" Padding="4,0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock Text="★" FontSize="36">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#D1D5DB"/>
@@ -61,8 +83,19 @@
                     </TextBlock>
                 </Button>
                 <Button Command="{Binding SetStarCommand}" CommandParameter="3"
-                        Style="{StaticResource LinkBtn}" FontSize="36" Padding="4,0">
-                    <TextBlock Text="★">
+            Background="Transparent" BorderThickness="0"
+            FontSize="36" Padding="4,0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock Text="★" FontSize="36">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#D1D5DB"/>
@@ -76,8 +109,19 @@
                     </TextBlock>
                 </Button>
                 <Button Command="{Binding SetStarCommand}" CommandParameter="4"
-                        Style="{StaticResource LinkBtn}" FontSize="36" Padding="4,0">
-                    <TextBlock Text="★">
+            Background="Transparent" BorderThickness="0"
+            FontSize="36" Padding="4,0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock Text="★" FontSize="36">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#D1D5DB"/>
@@ -91,8 +135,19 @@
                     </TextBlock>
                 </Button>
                 <Button Command="{Binding SetStarCommand}" CommandParameter="5"
-                        Style="{StaticResource LinkBtn}" FontSize="36" Padding="4,0">
-                    <TextBlock Text="★">
+            Background="Transparent" BorderThickness="0"
+            FontSize="36" Padding="4,0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <TextBlock Text="★" FontSize="36">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="#D1D5DB"/>

@@ -97,22 +97,32 @@ namespace KapwaKuha.ViewModels
             {
                 if (SelectedPost == null) return;
                 var confirm = MessageBox.Show(
-                    $"Submit your edits to \"{SelectedPost.Title}\" for admin review?\n\nYour post will be hidden until re-approved.",
+                    $"Submit your edits to \"{SelectedPost.Title}\" for admin review?\n\nYour post will be hidden from donors until re-approved.",
                     "Confirm Edit Submission", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (confirm != MessageBoxResult.Yes) return;
                 try
                 {
                     IsBusy = true;
-                    SelectedPost.Urgency = SelectedUrgency;
-                    SelectedPost.Title = EditTitle.Trim();
-                    SelectedPost.Description = EditDescription.Trim();
-                    SelectedPost.ImagePath = EditImagePath;
-                    // Submit edit for admin review — sets Pending, stores snapshot
-                    await KapwaDataService.SubmitNeedsPostEditForReview(SelectedPost);
+
+                    // Build a TEMP model with the proposed values — do NOT mutate SelectedPost
+                    // (live columns stay unchanged in DB until admin approves)
+                    var pendingEdit = new NeedsPostModel
+                    {
+                        NeedsPost_ID = SelectedPost.NeedsPost_ID,
+                        Title = EditTitle.Trim(),
+                        Description = EditDescription.Trim(),
+                        Urgency = SelectedUrgency,
+                        ImagePath = EditImagePath
+                    };
+
+                    await KapwaDataService.SubmitNeedsPostEditForReview(pendingEdit);
+
                     MessageBox.Show(
-                        "✅ Your edits have been submitted for admin review.\nYour post will be re-activated once approved.",
+                        "✅ Your edits have been submitted for admin review.\n" +
+                        "Your post will be re-activated with the new details once approved.",
                         "Submitted", MessageBoxButton.OK, MessageBoxImage.Information);
-                    await LoadPostsAsync();
+
+                    await LoadPostsAsync(); // reload from DB — post will now show as Pending
                 }
                 catch { }
                 finally { IsBusy = false; }

@@ -104,39 +104,55 @@ namespace KapwaKuha.ViewModels
             ToggleReportCommand = new RelayCommand(_ =>
                 ReportPanelVisible = !ReportPanelVisible);
 
+            // In UserProfileViewModel.cs (or wherever report command is)
+            // Replace existing report submission with:
             SubmitReportCommand = new AsyncRelayCommand(async _ =>
             {
-                ReportErrorVisible = false;
-                if (string.IsNullOrWhiteSpace(ReportDescription))
+                // 1. Ask report type
+                string reportType = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Report type (FakeItem / Fraud / Spam / Inappropriate):",
+                    "Report User", "Spam");
+                if (string.IsNullOrWhiteSpace(reportType)) return;
+                if (!new[] { "FakeItem", "Fraud", "Spam", "Inappropriate" }.Contains(reportType))
+                { MessageBox.Show("Invalid report type."); return; }
+
+                // 2. Ask description
+                string description = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Describe the issue (required):", "Report Details", "");
+                if (string.IsNullOrWhiteSpace(description)) return;
+
+                // 3. Ask for optional proof image
+                string proofPath = string.Empty;
+                var attachResult = MessageBox.Show(
+                    "Attach a proof image? (screenshot, photo of item, etc.)\n\nClick YES to attach.",
+                    "Attach Proof", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (attachResult == MessageBoxResult.Yes)
                 {
-                    ReportError = "Please describe the issue.";
-                    ReportErrorVisible = true;
-                    return;
+                    var dlg = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Filter = "Images (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp",
+                        Title = "Select Proof Image"
+                    };
+                    if (dlg.ShowDialog() == true) proofPath = dlg.FileName;
                 }
+
+                var confirm = MessageBox.Show(
+                    $"Report this user for {reportType}?\n\nDescription: {description}",
+                    "Confirm Report", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (confirm != MessageBoxResult.Yes) return;
+
                 try
                 {
                     string reportId = await KapwaDataService.GetNextReportId();
-                    var report = new UserReportModel
-                    {
-                        Report_ID = reportId,
-                        Reporter_ID = _viewerId,
-                        Reported_ID = TargetId,
-                        Report_Type = ReportType,
-                        Description = ReportDescription,
-                        Status = "Open"
-                    };
-                    await KapwaDataService.FileUserReport(report);
-                    MessageBox.Show(
-                        $"✅ Report submitted (ID: {reportId}).\nOur admin team will review it shortly.",
-                        "Report Filed", MessageBoxButton.OK, MessageBoxImage.Information);
-                    ReportPanelVisible = false;
-                    ReportDescription = string.Empty;
-                    ReportErrorVisible = false;
+                    await KapwaDataService.FileUserReport(
+             reportId, _viewerId, TargetId,
+             reportType, description, proofPath);
+                        MessageBox.Show("✅ Report submitted. Our team will review it shortly.",
+                        "Reported", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    ReportError = "Failed to submit: " + ex.Message;
-                    ReportErrorVisible = true;
+                    MessageBox.Show("Failed to submit report: " + ex.Message);
                 }
             });
 

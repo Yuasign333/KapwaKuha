@@ -12,6 +12,8 @@ namespace KapwaKuha.View
                 var vm = new DonorDashboardViewModel(donorId);
                 DataContext = vm;
 
+
+
                 // ── Wire up carousel scroll commands to the named ScrollViewer ──
                 // The ViewModel exposes an Action the code-behind fills in after InitializeComponent.
                 Loaded += (s, e) =>
@@ -33,6 +35,13 @@ namespace KapwaKuha.View
                     }
                 };
             }
+        private void SupportBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new View.AdminSupportChatWindow(
+                UserSession.UserId,
+                UserSession.Role);
+            win.ShowDialog();
+        }
     }
     
 }

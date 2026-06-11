@@ -2159,11 +2159,11 @@ WHERE b.Beneficiary_ID = @id", conn);
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand("SELECT COUNT(*) FROM UserReports", conn);
-                int n = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-                return $"RPT{n + 1:D3}";
+                using var cmd = new SqlCommand(
+                    "SELECT 'RPT' + RIGHT('000' + CAST(ISNULL(MAX(CAST(SUBSTRING(Report_ID,4,LEN(Report_ID)) AS INT)),0)+1 AS NVARCHAR(10)), 3) FROM UserReports", conn);
+                return (await cmd.ExecuteScalarAsync())?.ToString() ?? "RPT001";
             }
-            catch { return $"RPT{DateTime.Now.Ticks % 900 + 100:D3}"; }
+            catch { return "RPT001"; }
         }
 
         public static async Task FileUserReport(UserReportModel report)
@@ -2484,13 +2484,13 @@ WHERE i.Item_ID = @id", conn))
                     }
                 }
 
-                // 3. Send the actual "do you want this donation?" message from donor to beneficiary
+       // 3. Send the actual "do you want this donation?" message from donor to beneficiary
+                // IMPORTANT: message MUST contain "reserved for you" for IsSystemDirectTarget to fire
+                // and MUST contain 'Item: "NAME"' exactly for the image/item lookup parser
                 string offerMsg =
-                    $"📦 Hi! I have a donation reserved specifically for you:\n\n" +
-                    $"📋 Item: \"{itemName}\"\n" +
-                    $"🏷 Category: {categoryName}\n" +
-                    $"⭐ Condition: {itemCondition}\n\n" +
-                    $"Would you like to accept this donation? Please reply YES or NO so I can arrange the handoff. 😊";
+                    $"📦 A donation has been reserved for you! " +
+                    $"Item: \"{itemName}\" ({itemCondition}, {categoryName}). " +
+                    $"Check your Claim Tracker to accept it.";
 
                 using var chatCmd = new SqlCommand("sp_SaveChatMessage", conn);
                 chatCmd.CommandType = System.Data.CommandType.StoredProcedure;
@@ -2863,28 +2863,138 @@ ORDER BY CASE n.Urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, n.Po
 
         public static async Task SubmitNeedsPostEditForReview(NeedsPostModel post)
         {
-            using var conn = new SqlConnection(_conn);
-            await conn.OpenAsync();
-            // First read the current live values as "previous"
-            using (var read = new SqlCommand(
-                "SELECT Title, Description, Urgency FROM NeedsPosts WHERE NeedsPost_ID=@Id", conn))
+            try
             {
-               
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                // CORRECT LOGIC:
+                // Save the PROPOSED edits into PreviousTitle/Description/Urgency (used as "pending new values")
+                // Do NOT touch the live Title/Description/Urgency — those stay as-is until admin approves.
+                // Set Admin_Approval_Status = 'Pending' so the post disappears from donor browse
+                // until the admin reviews and calls sp_ApproveNeedsPost (which writes Previous* → live).
+                using var cmd = new SqlCommand(@"
+UPDATE NeedsPosts
+SET PreviousTitle       = @NewTitle,
+    PreviousDescription = @NewDescription,
+    PreviousUrgency     = @NewUrgency,
+    ImagePath           = @NewImage,
+    Admin_Approval_Status = 'Pending'
+WHERE NeedsPost_ID = @Id", conn);
+
+                cmd.Parameters.AddWithValue("@NewTitle", post.Title.Trim());
+                cmd.Parameters.AddWithValue("@NewDescription", post.Description?.Trim() ?? "");
+                cmd.Parameters.AddWithValue("@NewUrgency", post.Urgency);
+                cmd.Parameters.AddWithValue("@NewImage", post.ImagePath ?? "");
+                cmd.Parameters.AddWithValue("@Id", post.NeedsPost_ID);
+                await cmd.ExecuteNonQueryAsync();
             }
-            using var cmd = new SqlCommand(
-                "UPDATE NeedsPosts SET Title=@T, Description=@D, Urgency=@U, ImagePath=@I, " +
-                "Admin_Approval_Status='Pending', Status='Open', " +
-                "PreviousTitle=@PT, PreviousDescription=@PD, PreviousUrgency=@PU " +
-                "WHERE NeedsPost_ID=@Id", conn);
-            cmd.Parameters.AddWithValue("@T", post.Title);
-            cmd.Parameters.AddWithValue("@D", post.Description ?? "");
-            cmd.Parameters.AddWithValue("@U", post.Urgency);
-            cmd.Parameters.AddWithValue("@I", post.ImagePath ?? "");
-          
-            cmd.Parameters.AddWithValue("@Id", post.NeedsPost_ID);
-            await cmd.ExecuteNonQueryAsync();
+            catch (Exception ex) { MessageBox.Show("SubmitNeedsPostEditForReview failed: " + ex.Message); throw; }
         }
 
+        public static async Task<string> GetActiveBeneficiaryIdByOrg(string orgId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_GetActiveBeneficiaryIdByOrg", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@OrgId", orgId);
+                var result = await cmd.ExecuteScalarAsync();
+                return result?.ToString() ?? string.Empty;
+            }
+            catch { return string.Empty; }
+        }
+
+        // ── Report with proof image ───────────────────────────────────────────────
+        public static async Task FileUserReport(
+            string reportId, string reporterId, string reportedId,
+            string reportType, string description, string proofImagePath = "")
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_FileUserReport", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@ReportId", reportId);
+                cmd.Parameters.AddWithValue("@ReporterId", reporterId);
+                cmd.Parameters.AddWithValue("@ReportedId", reportedId);
+                cmd.Parameters.AddWithValue("@ReportType", reportType);
+                cmd.Parameters.AddWithValue("@Description", description);
+                cmd.Parameters.AddWithValue("@ProofImagePath", proofImagePath);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex) { MessageBox.Show("FileUserReport failed: " + ex.Message); throw; }
+        }
+
+
+
+        // ── Admin support chat ────────────────────────────────────────────────────
+        public static async Task<List<ChatMessage>> GetAdminSupportMessages(string userId)
+        {
+            var list = new List<ChatMessage>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_GetAdminSupportMessages", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                {
+                    string senderId = r["SenderId"].ToString()!;
+                    list.Add(new ChatMessage
+                    {
+                        Id = Convert.ToInt32(r["Id"]),
+                        SenderId = senderId,
+                        ReceiverId = r["ReceiverId"].ToString()!,
+                        Text = r["Message"].ToString()!,
+                        Time = Convert.ToDateTime(r["SentAt"]).ToString("hh:mm tt"),
+                        IsFromUser = senderId == userId
+                    });
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("GetAdminSupportMessages failed: " + ex.Message); }
+            return list;
+        }
+
+        public class AdminSupportThread
+        {
+            public string UserId { get; set; } = string.Empty;
+            public string DisplayName { get; set; } = string.Empty;
+            public string ProfilePicturePath { get; set; } = string.Empty;
+            public string Role { get; set; } = string.Empty;
+            public string LastMessage { get; set; } = string.Empty;
+            public int UnreadCount { get; set; }
+        }
+
+        public static async Task<List<AdminSupportThread>> GetAdminSupportInbox()
+        {
+            var list = new List<AdminSupportThread>();
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand("sp_GetAdminSupportInbox", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                using var r = await cmd.ExecuteReaderAsync();
+                while (await r.ReadAsync())
+                    list.Add(new AdminSupportThread
+                    {
+                        UserId = r["UserID"].ToString()!,
+                        DisplayName = r["DisplayName"].ToString()!,
+                        ProfilePicturePath = r["ProfilePicturePath"].ToString()!,
+                        Role = r["Role"].ToString()!,
+                        LastMessage = r["LastMessage"]?.ToString() ?? string.Empty,
+                        UnreadCount = Convert.ToInt32(r["UnreadCount"])
+                    });
+            }
+            catch (Exception ex) { MessageBox.Show("GetAdminSupportInbox failed: " + ex.Message); }
+            return list;
+        }
         public static async Task RejectNeedsPost(string postId, string rejectionNote)
         {
             try

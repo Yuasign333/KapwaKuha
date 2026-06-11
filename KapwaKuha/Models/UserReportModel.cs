@@ -40,5 +40,9 @@ namespace KapwaKuha.Models
             "Dismissed" => "#9E9E9E",
             _ => "#9E9E9E"
         };
+
+        public string ProofImagePath { get; set; } = string.Empty;
+        public bool HasProofImage =>
+            !string.IsNullOrEmpty(ProofImagePath) && System.IO.File.Exists(ProofImagePath);
     }
 }
