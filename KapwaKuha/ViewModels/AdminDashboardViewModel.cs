@@ -96,9 +96,21 @@ namespace KapwaKuha.ViewModels
             get => _supportThreadCount;
             set { _supportThreadCount = value; OnPropertyChanged(); }
         }
-        public ICommand OpenSupportThreadCommand { get; }
+
+       
+
+        public ObservableCollection<KapwaDataService.AdminSupportThread> DonorThreads { get; } = new();
+        public ObservableCollection<KapwaDataService.AdminSupportThread> InstBeneThreads { get; } = new();
+        public ObservableCollection<KapwaDataService.AdminSupportThread> IndepBeneThreads { get; } = new();
+
+        public bool HasDonorThreads => DonorThreads.Count > 0;
+        public bool HasInstBeneThreads => InstBeneThreads.Count > 0;
+        public bool HasIndepBeneThreads => IndepBeneThreads.Count > 0;
+
 
         // ── Commands ─────────────────────────────────────────────────────────
+        public ICommand OpenSupportThreadCommand { get; }
+
         public ICommand ApproveItemCommand { get; }
         public ICommand RejectItemCommand { get; }
         public ICommand ApproveBeneficiaryCommand { get; }
@@ -300,6 +312,7 @@ namespace KapwaKuha.ViewModels
                 if (param is not NeedsPostModel post) return;
 
                 var dialog = new View.AdminApproveNeedsPostDialog(post);
+                // Set owner so CenterOwner works
                 dialog.Owner = Application.Current.MainWindow;
                 bool? result = dialog.ShowDialog();
                 if (result != true) return;
@@ -309,6 +322,7 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.ApproveNeedsPost(post.NeedsPost_ID, chosenUrgency);
+                    // Get the actual beneficiary ID (Users.UserID), NOT the Org_ID
                     string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
                     if (!string.IsNullOrEmpty(beneId))
                         await KapwaDataService.CreateNotification(
@@ -329,6 +343,7 @@ namespace KapwaKuha.ViewModels
             {
                 if (param is not NeedsPostModel post) return;
 
+                // Use a proper pop-out dialog instead of InputBox
                 var rejectDlg = new View.AdminRejectReasonDialog(
                     $"Reject \"{post.Title}\"",
                     "The beneficiary will see this reason and can edit & resubmit.");
@@ -342,6 +357,7 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.RejectNeedsPost(post.NeedsPost_ID, reason);
+                    // Get the actual beneficiary UserID, NOT the Org_ID
                     string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
                     if (!string.IsNullOrEmpty(beneId))
                         await KapwaDataService.CreateNotification(
@@ -534,7 +550,30 @@ namespace KapwaKuha.ViewModels
 
         private async Task LoadSupportInboxAsync()
         {
+            // FILE: ViewModels/AdminDashboardViewModel.cs
+            // REPLACE the SupportThreads loading block with:
+
             var threads = await KapwaDataService.GetAdminSupportInbox();
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                SupportThreads.Clear();
+                DonorThreads.Clear();
+                InstBeneThreads.Clear();
+                IndepBeneThreads.Clear();
+
+                foreach (var t in threads)
+                {
+                    SupportThreads.Add(t);
+                    if (t.Role == "Donor") DonorThreads.Add(t);
+                    else if (t.Role == "InstitutionalBeneficiary") InstBeneThreads.Add(t);
+                    else if (t.Role == "IndependentBeneficiary") IndepBeneThreads.Add(t);
+                }
+
+                SupportThreadCount = threads.Count;
+                OnPropertyChanged(nameof(HasDonorThreads));
+                OnPropertyChanged(nameof(HasInstBeneThreads));
+                OnPropertyChanged(nameof(HasIndepBeneThreads));
+            });
             SafeDispatch(() =>
             {
                 SupportThreads.Clear();

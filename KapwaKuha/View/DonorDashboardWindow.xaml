@@ -189,7 +189,6 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Top bar -->
                 <Border Grid.Row="0" Background="#AAFFFFFF">
                     <Border.Effect>
                         <DropShadowEffect Color="#0077B6" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
@@ -200,75 +199,97 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Command="{Binding HamburgerCommand}"
-        Content="☰" Foreground="#03045E" Background="Transparent"
-        BorderThickness="0" FontSize="22" Cursor="Hand" VerticalAlignment="Center"/>
 
-                        <!-- Col 1 intentionally left empty — greeting moved to body -->
-                        <TextBlock Grid.Column="1"/>
+                        <Button Grid.Column="0" Command="{Binding HamburgerCommand}"
+                Content="☰" Foreground="#03045E" Background="Transparent"
+                BorderThickness="0" FontSize="22" Cursor="Hand" VerticalAlignment="Center"/>
 
                         <TextBlock Grid.Column="1" Text="{Binding WelcomeText}"
-                                   Foreground="#03045E" FontSize="16" FontWeight="Bold"
-                                   VerticalAlignment="Center" Margin="14,0,0,0"/>
+                   Foreground="#03045E" FontSize="16" FontWeight="Bold"
+                   VerticalAlignment="Center" Margin="14,0,0,0"
+                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
 
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
+                            <Button Command="{Binding ContactAdminCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    VerticalAlignment="Center" Margin="0,0,12,0" Cursor="Hand"
+                    Width="36" Height="36">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="CircleBg" Background="#EBF7FB" CornerRadius="18">
+                                            <TextBlock Text="🎧" FontSize="15" Foreground="#03045E"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CircleBg" Property="Background" Value="#90E0EF"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
 
-                        <!-- Profile chip -->
-                        <Border Grid.Column="2" CornerRadius="20" Padding="4,4,12,4"
-                                VerticalAlignment="Center"
-                                Background="#E6FFFFFF" BorderBrush="#B390E0EF" BorderThickness="1" Cursor="Hand">
-                            <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding MyAccountCommand}"/>
-                            </Border.InputBindings>
-                            <StackPanel Orientation="Horizontal">
-                                <Border Width="36" Height="36" CornerRadius="18" ClipToBounds="True"
-                                        Cursor="Hand" Margin="0,0,8,0">
-                                    <Border.InputBindings>
-                                        <MouseBinding MouseAction="LeftClick" Command="{Binding MyAccountCommand}"/>
-                                    </Border.InputBindings>
-                                    <Grid>
-                                        <Border Background="#EBF7FB" CornerRadius="18"/>
-                                        <TextBlock Text="👤" FontSize="20"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Item_Status}" Value="Claimed">
-                                                            <Setter Property="IsEnabled" Value="False"/>
-                                                            <Setter Property="Foreground" Value="#999999"/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Item_Status}" Value="Reserved">
-                                                            <Setter Property="IsEnabled" Value="False"/>
-                                                            <Setter Property="Foreground" Value="#999999"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                        <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill">
-                                            <Image.Clip>
-                                                <EllipseGeometry RadiusX="18" RadiusY="18" Center="18,18"/>
-                                            </Image.Clip>
-                                            <Image.Style>
-                                                <Style TargetType="Image">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding HasPicture}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Image.Style>
-                                        </Image>
-                                    </Grid>
-                                </Border>
-                                <TextBlock Text="{Binding UserLabel}" FontSize="12"
-                                           Foreground="#03045E" FontWeight="Bold" VerticalAlignment="Center"/>
-                                <TextBlock Text=" ▼" FontSize="9" Foreground="#5E7A8A"
-                                           VerticalAlignment="Center" Margin="6,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                            <Border CornerRadius="20" Padding="4,4,12,4"
+                    VerticalAlignment="Center"
+                    Background="#E6FFFFFF" BorderBrush="#B390E0EF" BorderThickness="1" Cursor="Hand">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding MyAccountCommand}"/>
+                                </Border.InputBindings>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="36" Height="36" CornerRadius="18" ClipToBounds="True"
+                            Cursor="Hand" Margin="0,0,8,0">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick" Command="{Binding MyAccountCommand}"/>
+                                        </Border.InputBindings>
+                                        <Grid>
+                                            <Border Background="#EBF7FB" CornerRadius="18"/>
+                                            <TextBlock Text="👤" FontSize="20"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Item_Status}" Value="Claimed">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Foreground" Value="#999999"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Item_Status}" Value="Reserved">
+                                                                <Setter Property="IsEnabled" Value="False"/>
+                                                                <Setter Property="Foreground" Value="#999999"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill">
+                                                <Image.Clip>
+                                                    <EllipseGeometry RadiusX="18" RadiusY="18" Center="18,18"/>
+                                                </Image.Clip>
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                        </Grid>
+                                    </Border>
+
+                                    <TextBlock Text="{Binding UserLabel}" FontSize="12"
+                               Foreground="#03045E" FontWeight="Bold" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+
+                                    <TextBlock Text=" ▼" FontSize="9" Foreground="#5E7A8A"
+                               VerticalAlignment="Center" Margin="6,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -701,190 +722,352 @@
                                               HorizontalScrollBarVisibility="Hidden"
                                               VerticalScrollBarVisibility="Disabled"
                                                MinHeight="230">
-                                    <StackPanel Orientation="Horizontal">
+                                   <!-- My Posts filter row -->
+                                    <StackPanel Orientation="Vertical">
 
-                                        <ItemsControl ItemsSource="{Binding MyPosts}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal"/>
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Width="220" Margin="0,0,14,0" CornerRadius="16"
-                                                            ClipToBounds="True" BorderThickness="1">
-                                                        <Border.BorderBrush>
-                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                                <GradientStop Color="White" Offset="0"/>
-                                                                <GradientStop Color="#33FFFF" Offset="1"/>
-                                                            </LinearGradientBrush>
-                                                        </Border.BorderBrush>
-                                                        <Border.Background>
-                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                                <GradientStop Color="#CCFFFFFF" Offset="0"/>
-                                                                <GradientStop Color="#AAFFFFFF" Offset="1"/>
-                                                            </LinearGradientBrush>
-                                                        </Border.Background>
-                                                        <Border.Effect>
-                                                            <DropShadowEffect Color="#00B4D8" BlurRadius="12" ShadowDepth="0" Opacity="0.12"/>
-                                                        </Border.Effect>
-                                                        <StackPanel>
-                                                            <Border Height="140" ClipToBounds="True">
-                                                                <Grid>
-                                                                    <Border Background="#EBF7FB"/>
-                                                                    <TextBlock Text="📦" FontSize="40"
-                                                                               HorizontalAlignment="Center"
-                                                                               VerticalAlignment="Center"
-                                                                               Opacity="0.5">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="TextBlock">
-                                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding HasItemImage}" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                    </TextBlock>
-                                                                    <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill">
-                                                                        <Image.Style>
-                                                                            <Style TargetType="Image">
-                                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding HasItemImage}" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </Image.Style>
-                                                                    </Image>
-                                                                    <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                                            Margin="0,8,8,0" CornerRadius="8" Padding="8,3"
-                                                                            Background="{Binding StatusBadgeBackground}">
-                                                                        <TextBlock Text="{Binding Item_Status}"
-                                                                                   FontSize="10" FontWeight="SemiBold"
-                                                                                   Foreground="{Binding StatusBadgeColor}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                            <Button Content="All" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="All"
+                Height="28" Padding="12,0" Margin="0,0,6,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                     </Border>
-                                                                </Grid>
-                                                            </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterAll}" Value="True">
+                                                                <Setter Property="Background" Value="#0077B6"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="Live" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="Live"
+                Height="28" Padding="12,0" Margin="0,0,6,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterLive}" Value="True">
+                                                                <Setter Property="Background" Value="#059669"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="Pending" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="Pending"
+                Height="28" Padding="12,0" Margin="0,0,6,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterPending}" Value="True">
+                                                                <Setter Property="Background" Value="#D97706"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="Rejected" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="Rejected"
+                Height="28" Padding="12,0" Margin="0,0,6,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterRejected}" Value="True">
+                                                                <Setter Property="Background" Value="#DC2626"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="Available" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="Available"
+                Height="28" Padding="12,0" Margin="0,0,6,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterAvailable}" Value="True">
+                                                                <Setter Property="Background" Value="#0077B6"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="Reserved" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="Reserved"
+                Height="28" Padding="12,0" Margin="0,0,6,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterReserved}" Value="True">
+                                                                <Setter Property="Background" Value="#7C3AED"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="Claimed" Command="{Binding SetMyPostsFilterCommand}" CommandParameter="Claimed"
+                Height="28" Padding="12,0" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Background" Value="#F1F5F9"/>
+                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="14" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding FilterClaimed}" Value="True">
+                                                                <Setter Property="Background" Value="#374151"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
 
-                                                            <StackPanel Margin="14,10,14,14">
-                                                                <TextBlock Text="{Binding Item_Name}"
-                                                                           FontSize="13" FontWeight="Bold"
-                                                                           Foreground="#03045E"
-                                                                           TextTrimming="CharacterEllipsis"/>
+                                        <StackPanel Orientation="Horizontal">
 
-                                                                <!-- Add this right after the Item_Name TextBlock in the MyPosts DataTemplate -->
-                                                                <Border CornerRadius="6" Padding="8,2" HorizontalAlignment="Left" Margin="0,4,0,0"
-        Background="{Binding ApprovalBadgeBackground}">
-                                                                    <TextBlock FontSize="10" FontWeight="Bold" Foreground="{Binding ApprovalBadgeColor}">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="TextBlock">
-                                                                                <Setter Property="Text" Value="⏳ Pending Review"/>
+                                            <ItemsControl ItemsSource="{Binding MyPosts}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Width="220" Margin="0,0,14,0" CornerRadius="16"
+                            ClipToBounds="True" BorderThickness="1">
+                                                            <Border.BorderBrush>
+                                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                    <GradientStop Color="White" Offset="0"/>
+                                                                    <GradientStop Color="#33FFFF" Offset="1"/>
+                                                                </LinearGradientBrush>
+                                                            </Border.BorderBrush>
+                                                            <Border.Background>
+                                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                    <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                                                                    <GradientStop Color="#AAFFFFFF" Offset="1"/>
+                                                                </LinearGradientBrush>
+                                                            </Border.Background>
+                                                            <Border.Effect>
+                                                                <DropShadowEffect Color="#00B4D8" BlurRadius="12" ShadowDepth="0" Opacity="0.12"/>
+                                                            </Border.Effect>
+
+                                                            <StackPanel>
+                                                                <Border Height="140" ClipToBounds="True">
+                                                                    <Grid>
+                                                                        <Border Background="#EBF7FB"/>
+                                                                        <TextBlock Text="📦" FontSize="40"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5">
+                                                                            <TextBlock.Style>
+                                                                                <Style TargetType="TextBlock">
+                                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding HasItemImage}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </TextBlock.Style>
+                                                                        </TextBlock>
+                                                                        <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill">
+                                                                            <Image.Style>
+                                                                                <Style TargetType="Image">
+                                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding HasItemImage}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Image.Style>
+                                                                        </Image>
+                                                                        <Border HorizontalAlignment="Right" VerticalAlignment="Top"
+                                            Margin="0,8,8,0" CornerRadius="8" Padding="8,3"
+                                            Background="{Binding StatusBadgeBackground}">
+                                                                            <TextBlock Text="{Binding Item_Status}" FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{Binding StatusBadgeColor}"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </Border>
+
+                                                                <StackPanel Margin="14,10,14,14">
+                                                                    <TextBlock Text="{Binding Item_Name}" FontSize="13" FontWeight="Bold"
+                                           Foreground="#03045E" TextTrimming="CharacterEllipsis"/>
+
+                                                                    <Border CornerRadius="6" Padding="8,2" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                        Background="{Binding ApprovalBadgeBackground}">
+                                                                        <TextBlock FontSize="10" FontWeight="Bold" Foreground="{Binding ApprovalBadgeColor}">
+                                                                            <TextBlock.Style>
+                                                                                <Style TargetType="TextBlock">
+                                                                                    <Setter Property="Text" Value="⏳ Pending Review"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
+                                                                                            <Setter Property="Text" Value="✅ Live"/>
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
+                                                                                            <Setter Property="Text" Value="❌ Rejected"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </TextBlock.Style>
+                                                                        </TextBlock>
+                                                                    </Border>
+
+                                                                    <TextBlock Text="{Binding Category_Name}" FontSize="11" Foreground="#0077B6" Margin="0,2,0,6"/>
+
+                                                                    <Button Command="{Binding DataContext.EditPostCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}" Height="34" BorderThickness="0" Cursor="Hand"
+                                        FontSize="12" FontWeight="SemiBold" Foreground="White">
+                                                                        <Button.Style>
+                                                                            <Style TargetType="Button">
+                                                                                <Setter Property="IsEnabled" Value="True"/>
+                                                                                <Setter Property="Opacity" Value="1"/>
+                                                                                <Setter Property="Template">
+                                                                                    <Setter.Value>
+                                                                                        <ControlTemplate TargetType="Button">
+                                                                                            <Border CornerRadius="10" x:Name="Bd">
+                                                                                                <Border.Background>
+                                                                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                                                        <GradientStop Color="#00B4D8" Offset="0"/>
+                                                                                                        <GradientStop Color="#0077B6" Offset="1"/>
+                                                                                                    </LinearGradientBrush>
+                                                                                                </Border.Background>
+                                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                            </Border>
+                                                                                            <ControlTemplate.Triggers>
+                                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                                    <Setter Property="Opacity" Value="0.85"/>
+                                                                                                </Trigger>
+                                                                                                <Trigger Property="IsEnabled" Value="False">
+                                                                                                    <Setter TargetName="Bd" Property="Background" Value="#B0BEC5"/>
+                                                                                                    <Setter Property="Opacity" Value="0.5"/>
+                                                                                                    <Setter Property="Cursor" Value="Arrow"/>
+                                                                                                </Trigger>
+                                                                                            </ControlTemplate.Triggers>
+                                                                                        </ControlTemplate>
+                                                                                    </Setter.Value>
+                                                                                </Setter>
                                                                                 <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
-                                                                                        <Setter Property="Text" Value="✅ Live"/>
+                                                                                    <DataTrigger Binding="{Binding Item_Status}" Value="Claimed">
+                                                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                                                        <Setter Property="Foreground" Value="#999999"/>
                                                                                     </DataTrigger>
-                                                                                    <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
-                                                                                        <Setter Property="Text" Value="❌ Rejected"/>
+                                                                                    <DataTrigger Binding="{Binding Item_Status}" Value="Reserved">
+                                                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                                                        <Setter Property="Foreground" Value="#999999"/>
                                                                                     </DataTrigger>
                                                                                 </Style.Triggers>
                                                                             </Style>
-                                                                        </TextBlock.Style>
-                                                                    </TextBlock>
-                                                                </Border>
-                                                                <TextBlock Text="{Binding Category_Name}"
-                                                                           FontSize="11" Foreground="#0077B6"
-                                                                           Margin="0,2,0,6"/>
-
-
-
-                                                                <!-- Sidebar CLOSED: Edit Post -->
-                                                                <!-- Single Edit Post button — always visible, never changes text -->
-                                                                <!-- Sidebar CLOSED: Edit Post -->
-                                                                <!-- Single Edit Post button — always visible, never changes text -->
-                                                                <Button Command="{Binding DataContext.EditPostCommand,
-    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-        CommandParameter="{Binding}"
-        Height="34" BorderThickness="0" Cursor="Hand"
-        FontSize="12" FontWeight="SemiBold"
-        Foreground="White">
-                                                                    <Button.Style>
-                                                                        <Style TargetType="Button">
-                                                                            <Setter Property="IsEnabled" Value="True"/>
-                                                                            <Setter Property="Opacity" Value="1"/>
-                                                                            <Setter Property="Template">
-                                                                                <Setter.Value>
-                                                                                    <ControlTemplate TargetType="Button">
-                                                                                        <Border CornerRadius="10" x:Name="Bd">
-                                                                                            <Border.Background>
-                                                                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                                                                    <GradientStop Color="#00B4D8" Offset="0"/>
-                                                                                                    <GradientStop Color="#0077B6" Offset="1"/>
-                                                                                                </LinearGradientBrush>
-                                                                                            </Border.Background>
-                                                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                                        </Border>
-                                                                                        <ControlTemplate.Triggers>
-                                                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                                                <Setter Property="Opacity" Value="0.85"/>
-                                                                                            </Trigger>
-                                                                                            <Trigger Property="IsEnabled" Value="False">
-                                                                                                <Setter TargetName="Bd" Property="Background" Value="#B0BEC5"/>
-                                                                                                <Setter Property="Opacity" Value="0.5"/>
-                                                                                                <Setter Property="Cursor" Value="Arrow"/>
-                                                                                            </Trigger>
-                                                                                        </ControlTemplate.Triggers>
-                                                                                    </ControlTemplate>
-                                                                                </Setter.Value>
-                                                                            </Setter>
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding Item_Status}" Value="Claimed">
-                                                                                    <Setter Property="IsEnabled" Value="False"/>
-                                                                                    <Setter Property="Foreground" Value="#999999"/>
-                                                                                </DataTrigger>
-                                                                                <DataTrigger Binding="{Binding Item_Status}" Value="Reserved">
-                                                                                    <Setter Property="IsEnabled" Value="False"/>
-                                                                                    <Setter Property="Foreground" Value="#999999"/>
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </Button.Style>
-                                                                    <TextBlock Text="Edit Post"/>
-                                                                </Button>
+                                                                        </Button.Style>
+                                                                        <TextBlock Text="Edit Post"/>
+                                                                    </Button>
+                                                                </StackPanel>
                                                             </StackPanel>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
 
-                                        <!-- Add post button -->
-                                        <Button Command="{Binding PostItemCommand}"
-                                                Width="220"  Height="230" Margin="0,0,0,0"
-                                                Background="Transparent" BorderThickness="0" Cursor="Hand">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border CornerRadius="16" Background="#18CAF0F8"
-                                                            BorderBrush="#7090E0EF" BorderThickness="2">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Opacity" Value="0.9"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <TextBlock Text="+" FontSize="42" FontWeight="Light"
-                                                           Foreground="#0077B6" HorizontalAlignment="Center" Opacity="0.7"/>
-                                                <TextBlock Text="Add Post" FontSize="12" FontWeight="SemiBold"
-                                                           Foreground="#0077B6" HorizontalAlignment="Center"
-                                                           Opacity="0.8" Margin="0,4,0,0"/>
-                                            </StackPanel>
-                                        </Button>
+                                            <Button Command="{Binding PostItemCommand}"
+                Width="220" Height="230" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border CornerRadius="16" Background="#18CAF0F8" BorderBrush="#7090E0EF" BorderThickness="2">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Opacity" Value="0.9"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock Text="+" FontSize="42" FontWeight="Light" Foreground="#0077B6" HorizontalAlignment="Center" Opacity="0.7"/>
+                                                    <TextBlock Text="Add Post" FontSize="12" FontWeight="SemiBold" Foreground="#0077B6" HorizontalAlignment="Center" Opacity="0.8" Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                        </StackPanel>
 
                                     </StackPanel>
                                 </ScrollViewer>
@@ -1044,9 +1227,7 @@
 
                     </StackPanel>
                 </ScrollViewer>
-                <Button Content="Support" Style="{StaticResource LinkBtn}"
-Foreground="White" Margin="420,0,12,0"
-Click="SupportBtn_Click"/>
+                
             </Grid>
         </Grid>
     </Grid>

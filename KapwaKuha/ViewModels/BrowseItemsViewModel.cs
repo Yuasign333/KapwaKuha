@@ -38,6 +38,8 @@ namespace KapwaKuha.ViewModels
             }
         }
 
+
+
         private string _filterCondition = "Any";
         public string FilterCondition
         {

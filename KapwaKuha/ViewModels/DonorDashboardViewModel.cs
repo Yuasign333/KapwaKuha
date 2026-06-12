@@ -132,6 +132,36 @@ namespace KapwaKuha.ViewModels
             set { _hasNoTransactions = value; OnPropertyChanged(); }
         }
 
+        // ── My Posts filter ────────────────────────────────────────────────────
+        private string _myPostsFilter = "All";
+        public string MyPostsFilter
+        {
+            get => _myPostsFilter;
+            set
+            {
+                _myPostsFilter = value;
+                OnPropertyChanged();
+                RefreshFilteredPosts();
+                OnPropertyChanged(nameof(FilterAll));
+                OnPropertyChanged(nameof(FilterLive));
+                OnPropertyChanged(nameof(FilterPending));
+                OnPropertyChanged(nameof(FilterRejected));
+                OnPropertyChanged(nameof(FilterClaimed));
+                OnPropertyChanged(nameof(FilterAvailable));
+                OnPropertyChanged(nameof(FilterReserved));
+            }
+        }
+        public bool FilterAll => _myPostsFilter == "All";
+        public bool FilterLive => _myPostsFilter == "Live";
+        public bool FilterPending => _myPostsFilter == "Pending";
+        public bool FilterRejected => _myPostsFilter == "Rejected";
+        public bool FilterClaimed => _myPostsFilter == "Claimed";
+        public bool FilterAvailable => _myPostsFilter == "Available";
+        public bool FilterReserved => _myPostsFilter == "Reserved";
+
+      public ObservableCollection<ItemModel> FilteredMyPosts { get; } = new();
+
+     
         // ── REQUIREMENT 4: Carousel scroll hook (filled by code-behind) ───────
         /// <summary>
         /// The code-behind assigns this after InitializeComponent so the ViewModel
@@ -157,15 +187,25 @@ namespace KapwaKuha.ViewModels
         public ICommand CarouselLeftCommand { get; }   // REQUIREMENT 4
         public ICommand CarouselRightCommand { get; }   // REQUIREMENT 4
 
+        public ICommand ContactAdminCommand { get; }
+
+        public ICommand SetMyPostsFilterCommand { get; }
+
+
         // Carousel scroll step in pixels
         private const double CarouselStep = 234.0; // card width 220 + margin 14
 
         // ── Constructor ───────────────────────────────────────────────────────
+
         public DonorDashboardViewModel(string donorId)
         {
             _donorId = donorId;
             WelcomeText = $"Welcome back, {UserSession.FullName}!";
             UserLabel = $"Donor: {UserSession.Username}";
+
+            ContactAdminCommand = new RelayCommand(_ =>
+    NavigationService.Navigate(
+        new View.ChatWindow(_donorId, "A001", "Admin Support", "Donor")));
 
             // ── REQUIREMENT 2: Hamburger toggles sidebar ──────────────────────
             HamburgerCommand = new RelayCommand(_ => IsSidebarOpen = !IsSidebarOpen);
@@ -175,6 +215,11 @@ namespace KapwaKuha.ViewModels
             // make it a no-op or re-navigate as needed). A simple navigate to self.
             NavigateDashboardCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.DonorDashboardWindow(_donorId)));
+
+            SetMyPostsFilterCommand = new RelayCommand(param =>
+            {
+                if (param is string f) MyPostsFilter = f;
+            });
 
             PostItemCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.PostItemWindow(_donorId)));
@@ -347,10 +392,30 @@ namespace KapwaKuha.ViewModels
                     TransactionStatus = Transactions.Any()
                         ? $"{Transactions.Count} completed donation(s)"
                         : "No transactions yet";
+              
+                    Application.Current.Dispatcher.Invoke(() => RefreshFilteredPosts());
                 });
             }
             catch { HasNoTransactions = true; }
             finally { IsLoadingTransactions = false; }
+        }
+        private void RefreshFilteredPosts()
+        {
+            FilteredMyPosts.Clear();
+            foreach (var item in MyPosts)
+            {
+                bool show = _myPostsFilter switch
+                {
+                    "Live" => item.Admin_Approval_Status == "Approved",
+                    "Pending" => item.Admin_Approval_Status == "Pending",
+                    "Rejected" => item.Admin_Approval_Status == "Rejected",
+                    "Claimed" => item.Item_Status == "Claimed",
+                    "Available" => item.Item_Status == "Available",
+                    "Reserved" => item.Item_Status == "Reserved",
+                    _ => true
+                };
+                if (show) FilteredMyPosts.Add(item);
+            }
         }
     }
 }

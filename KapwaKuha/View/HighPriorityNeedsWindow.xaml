@@ -61,40 +61,57 @@
 
                     <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="16,12">
                         <Border.Effect>
-                            <DropShadowEffect Color="#C0304A" BlurRadius="12" ShadowDepth="0" Opacity="0.08"/>
+                            <DropShadowEffect Color="#0077B6" BlurRadius="12" ShadowDepth="0" Opacity="0.08"/>
                         </Border.Effect>
+
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1"
-                                    Background="#F0F8FB" Padding="10,0" Margin="0,0,14,0">
+                            <Border Grid.Column="0" CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1"
+                Background="#F0F8FB" Padding="10,0" Margin="0,0,12,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="🔍" FontSize="12"
-                                               VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#5E7A8A"/>
+                           VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#5E7A8A"/>
                                     <TextBox Grid.Column="1"
-                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                             Height="34" Background="Transparent" BorderThickness="0"
-                                             Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Height="34" Background="Transparent" BorderThickness="0"
+                         Foreground="#03045E" FontSize="12" VerticalContentAlignment="Center"/>
                                 </Grid>
                             </Border>
 
-                            <Border Grid.Column="1" CornerRadius="8" BorderBrush="#90E0EF"
-                                    BorderThickness="1.5" Background="#F0F8FF" Margin="16,0,0,0">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,12,0">
+                                <TextBlock Text="Filter:" FontSize="12" Foreground="#5E7A8A" FontWeight="SemiBold" 
+                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <Border CornerRadius="8" BorderBrush="#90E0EF" BorderThickness="1.5" Background="#F0F8FF">
+                                    <ComboBox SelectedValue="{Binding BeneTypeFilter, Mode=TwoWay}"
+                          SelectedValuePath="Tag"
+                          Width="160" Height="34" Background="Transparent"
+                          BorderThickness="0" FontSize="12" Padding="10,0" VerticalContentAlignment="Center">
+                                        <ComboBoxItem Content="All Beneficiaries" Tag="All"/>
+                                        <ComboBoxItem Content="Institutional Only" Tag="Institutional"/>
+                                        <ComboBoxItem Content="Independent Only" Tag="Independent"/>
+                                    </ComboBox>
+                                </Border>
+                            </StackPanel>
+
+                            <Border Grid.Column="2" CornerRadius="8" BorderBrush="#90E0EF"
+                BorderThickness="1.5" Background="#F0F8FF" VerticalAlignment="Center">
                                 <ComboBox SelectedValue="{Binding FilterUrgency}"
-                                          SelectedValuePath="Tag"
-                                          Width="160" Height="34" Background="Transparent"
-                                          BorderThickness="0" FontSize="12" Padding="10,0">
-                                    <ComboBoxItem Tag="All"    Content="All"/>
-                                    <ComboBoxItem Tag="High"   Content="🔴 High (Urgent)"/>
-                                    <ComboBoxItem Tag="Medium" Content="🟡 Medium"/>
-                                    <ComboBoxItem Tag="Low"    Content="🟢 Low"/>
+                      SelectedValuePath="Tag"
+                      Width="160" Height="34" Background="Transparent"
+                      BorderThickness="0" FontSize="12" Padding="10,0" VerticalContentAlignment="Center">
+                                    <ComboBoxItem Tag="All"     Content="All Levels"/>
+                                    <ComboBoxItem Tag="High"    Content="🔴 High (Urgent)"/>
+                                    <ComboBoxItem Tag="Medium"  Content="🟡 Medium"/>
+                                    <ComboBoxItem Tag="Low"     Content="🟢 Low"/>
                                 </ComboBox>
                             </Border>
                         </Grid>

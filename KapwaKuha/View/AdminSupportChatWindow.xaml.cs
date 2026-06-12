@@ -1,6 +1,7 @@
 ﻿// FILE: View/AdminSupportChatWindow.xaml.cs
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -11,11 +12,49 @@ namespace KapwaKuha.View
 {
     public partial class AdminSupportChatWindow : Window
     {
-        private readonly string _userId;   // the logged-in user (donor or bene)
-        private readonly string _role;     // "Donor" / "Beneficiary" / "Admin"
-
-        // When opened as ADMIN (browsing support inbox), _adminMode = true and _userId = target user
+        private readonly string _userId;
+        private readonly string _role;
         private readonly bool _adminMode;
+
+        // ── Auto-reply rules: keyword → response ─────────────────────────────
+        private static readonly (string[] Keywords, string Reply)[] _autoReplies = new[]
+        {
+            (new[] { "help", "assist", "support" },
+             "👋 Hi! I'm the KapwaKuha support bot. I can help you with donations, claims, and account issues. " +
+             "Please describe your concern and our admin team will get back to you shortly."),
+
+            (new[] { "claim", "pickup", "collect" },
+             "📦 For claim-related concerns, please check your **Claim Tracker** in your dashboard. " +
+             "If an item shows 'Pending Release', your donor has been notified. " +
+             "Still stuck? Describe the issue and an admin will assist."),
+
+            (new[] { "donation", "donate", "item", "post" },
+             "🎁 For donation or item posting questions, make sure your item has been approved by an admin before it appears publicly. " +
+             "Check the status badge on your Active Listings."),
+
+            (new[] { "account", "login", "password", "ban", "suspended" },
+             "🔐 For account issues like login problems or a suspended account, please provide your username " +
+             "and a brief description. An admin will review your case within 24 hours."),
+
+            (new[] { "approval", "pending", "review", "waiting" },
+             "⏳ Items and needs posts are reviewed by our admin team. Approval typically takes less than 24 hours. " +
+             "If it's been longer, please share your post title and we'll look into it."),
+
+            (new[] { "rating", "star", "feedback", "review" },
+             "⭐ Donor ratings are given by beneficiaries after a successful handoff is marked as Released. " +
+             "You can view your rating on your profile."),
+
+            (new[] { "organization", "org", "institution", "register" },
+             "🏫 To register as an Institutional Beneficiary, your account must use a valid organizational email. " +
+             "Make sure your details match your organization's official records."),
+
+            (new[] { "report", "scam", "fraud", "fake" },
+             "🚩 To report a user, open their profile and click **Report User**. " +
+             "Provide a detailed description and any proof. Admins will review within 48 hours."),
+
+            (new[] { "thank", "thanks", "salamat", "ty" },
+             "😊 You're welcome! Is there anything else I can help you with?"),
+        };
 
         public AdminSupportChatWindow(string userId, string role, bool adminMode = false)
         {
@@ -35,7 +74,6 @@ namespace KapwaKuha.View
                 var items = new List<SupportChatItem>();
                 foreach (var m in msgs)
                 {
-                    // In admin mode: admin's own messages are "from user" (right-aligned)
                     bool fromMe = _adminMode ? (m.SenderId == "A001") : m.IsFromUser;
                     items.Add(new SupportChatItem
                     {
@@ -51,11 +89,7 @@ namespace KapwaKuha.View
             });
         }
 
-        private async void SendBtn_Click(object sender, RoutedEventArgs e)
-        {
-            await SendMessage();
-        }
-
+        private async void SendBtn_Click(object sender, RoutedEventArgs e) => await SendMessage();
         private async void InputBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter) await SendMessage();
@@ -67,21 +101,43 @@ namespace KapwaKuha.View
             if (string.IsNullOrEmpty(text)) return;
             InputBox.Text = string.Empty;
 
-            // sender is A001 in admin mode, otherwise the logged-in user
             string senderId = _adminMode ? "A001" : _userId;
             string receiverId = _adminMode ? _userId : "A001";
 
             await KapwaDataService.SaveChatMessage(senderId, receiverId, text);
+
+            // Auto-reply only when a user (not admin) sends
+            if (!_adminMode)
+            {
+                string? autoReply = GetAutoReply(text);
+                if (autoReply != null)
+                {
+                    // Small delay so reply feels natural
+                    await Task.Delay(600);
+                    await KapwaDataService.SaveChatMessage("A001", _userId, autoReply);
+                }
+            }
+
             await LoadMessages();
         }
 
-        private void BackBtn_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Checks the user's message for known keywords and returns an automated reply, or null if none match.
+        /// </summary>
+        private static string? GetAutoReply(string userMessage)
         {
-            Close();
+            string lower = userMessage.ToLowerInvariant();
+            foreach (var (keywords, reply) in _autoReplies)
+            {
+                if (keywords.Any(k => lower.Contains(k)))
+                    return reply;
+            }
+            return null;
         }
+
+        private void BackBtn_Click(object sender, RoutedEventArgs e) => Close();
     }
 
-    // Simple display model for support chat
     public class SupportChatItem
     {
         public string Text { get; set; } = string.Empty;

@@ -213,17 +213,18 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <!-- Item image -->
-                                           
+
+                                                    <!-- Replace the item image Border (Cursor="Hand" section) with this: -->
                                                     <Border Grid.Column="0" Width="110" Height="110"
-                                             CornerRadius="10" ClipToBounds="True"
-                                Background="#EBF7FB" VerticalAlignment="Top"
-                                 Cursor="Hand"
-                             MouseLeftButtonUp="ItemImage_Click"
-                                Tag="{Binding Item_ImagePath}">
+        CornerRadius="10" ClipToBounds="True"
+        Background="#EBF7FB" VerticalAlignment="Top"
+        Cursor="Hand"
+        MouseLeftButtonUp="ItemImage_Click"
+        Tag="{Binding Item_ImagePath}">
                                                         <Grid>
                                                             <TextBlock Text="📦" FontSize="38"
-                                     HorizontalAlignment="Center"
-                                VerticalAlignment="Center" Opacity="0.5">
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" Opacity="0.5">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Setter Property="Visibility" Value="Visible"/>
@@ -536,11 +537,10 @@
                                                     </Grid>
 
                                                     <!-- Needs Post image (zoomable) -->
-                                                    <Border Margin="0,8,0,0" CornerRadius="8" ClipToBounds="True"
-        Cursor="Hand" Height="140"
-        Tag="{Binding ImagePath}">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
+                                                    <!-- Needs Post image — small thumbnail top-left + "photo only updated" note -->
+                                                    <Grid Margin="0,8,0,0">
+                                                        <Grid.Style>
+                                                            <Style TargetType="Grid">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding HasImage}" Value="True">
@@ -548,14 +548,50 @@
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </Border.Style>
-                                                        <Border.InputBindings>
-                                                            <MouseBinding MouseAction="LeftClick"
-                      Command="{Binding DataContext.ZoomImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                      CommandParameter="{Binding ImagePath}"/>
-                                                        </Border.InputBindings>
-                                                        <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
-                                                    </Border>
+                                                        </Grid.Style>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- Thumbnail -->
+                                                        <Border Grid.Column="0" Width="72" Height="72" CornerRadius="8" ClipToBounds="True"
+            Cursor="Hand" Margin="0,0,10,0"
+            Tag="{Binding ImagePath}">
+                                                            <Border.InputBindings>
+                                                                <MouseBinding MouseAction="LeftClick"
+                          Command="{Binding DataContext.ZoomImageCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                          CommandParameter="{Binding ImagePath}"/>
+                                                            </Border.InputBindings>
+                                                            <Image Source="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                                        </Border>
+
+                                                        <!-- "Photo only" note for edit-only-image resubmissions -->
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock FontSize="11" Foreground="#6B7280">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <!-- Show this note only when it's an edit AND only the image was changed
+                             (PreviousTitle equals Title = text unchanged = photo-only update) -->
+                                                                            <MultiDataTrigger>
+                                                                                <MultiDataTrigger.Conditions>
+                                                                                    <Condition Binding="{Binding IsEdit}" Value="True"/>
+                                                                                    <Condition Binding="{Binding PreviousTitle}" Value="{Binding Title}"/>
+                                                                                </MultiDataTrigger.Conditions>
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </MultiDataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+            <Run Text="📷 " FontSize="13"/>
+            <Run Text="Only the photo was updated in this resubmission." FontWeight="SemiBold"/>
+                                                            </TextBlock>
+                                                            <TextBlock Text="Click thumbnail to preview full image."
+                   FontSize="10" Foreground="#9CA3AF" Margin="0,3,0,0"/>
+                                                        </StackPanel>
+                                                    </Grid>
 
                                                     <!-- Before / After diff panel -->
                                                     <Border Margin="0,10,0,0" CornerRadius="8"
@@ -802,53 +838,157 @@
                            FontWeight="Bold" Foreground="#1D4ED8"/>
                                 </Border>
                             </StackPanel>
-                            <ListView Grid.Row="1" ItemsSource="{Binding SupportThreads}"
-                  Background="Transparent" BorderThickness="0" MaxHeight="260"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Padding="10,8" CornerRadius="8" Margin="0,2"
-                            Background="White" BorderBrush="#E5E7EB" BorderThickness="1">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13"
+                            <!-- FILE: View/AdminDashboardWindow.xaml -->
+                            <!-- REPLACE the existing Support Inbox ListView (ItemsSource="{Binding SupportThreads}") with: -->
+
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="260">
+                                <StackPanel>
+                                    <!-- Donor Messages -->
+                                    <TextBlock Text="🧑‍💼  Donor Messages"
+                   FontSize="11" FontWeight="Bold" Foreground="#64748B"
+                   Margin="0,0,0,4" Visibility="{Binding HasDonorThreads, Converter={StaticResource BoolToVis}}"/>
+                                    <ItemsControl ItemsSource="{Binding DonorThreads}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,6" Padding="12,10" CornerRadius="8"
+                            Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="{Binding DisplayName}" FontSize="13"
                                            FontWeight="SemiBold" Foreground="#0A2540"/>
-                                                    <TextBlock Text="{Binding LastMessage}" FontSize="11"
+                                                            <TextBlock Text="{Binding LastMessage}" FontSize="11"
                                            Foreground="#6B7280" TextTrimming="CharacterEllipsis"
                                            MaxWidth="320"/>
-                                                </StackPanel>
-                                                <Button Grid.Column="1"
-                                    Command="{Binding DataContext.OpenSupportThreadCommand,
-                                        RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1"
+                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     CommandParameter="{Binding}"
                                     Content="Reply" Height="30" Padding="12,0"
                                     FontSize="11" FontWeight="Bold"
                                     Foreground="White" BorderThickness="0" Cursor="Hand">
-                                                    <Button.Template>
-                                                        <ControlTemplate TargetType="Button">
-                                                            <Border CornerRadius="8" Background="#0077B6">
-                                                                <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
-                                                            </Border>
-                                                        </ControlTemplate>
-                                                    </Button.Template>
-                                                </Button>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="6">
+                                                                        <Border.Background>
+                                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                                <GradientStop Color="#00B4D8" Offset="0"/>
+                                                                                <GradientStop Color="#0077B6" Offset="1"/>
+                                                                            </LinearGradientBrush>
+                                                                        </Border.Background>
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- Institutional Beneficiary Messages -->
+                                    <TextBlock Text="🏢  Institutional Beneficiary Messages"
+                   FontSize="11" FontWeight="Bold" Foreground="#64748B"
+                   Margin="0,10,0,4" Visibility="{Binding HasInstBeneThreads, Converter={StaticResource BoolToVis}}"/>
+                                    <ItemsControl ItemsSource="{Binding InstBeneThreads}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,6" Padding="12,10" CornerRadius="8"
+                            Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="{Binding DisplayName}" FontSize="13"
+                                           FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                            <TextBlock Text="{Binding LastMessage}" FontSize="11"
+                                           Foreground="#6B7280" TextTrimming="CharacterEllipsis"
+                                           MaxWidth="320"/>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1"
+                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Content="Reply" Height="30" Padding="12,0"
+                                    FontSize="11" FontWeight="Bold"
+                                    Foreground="White" BorderThickness="0" Cursor="Hand">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="6" Background="#16A34A">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- Independent Beneficiary Messages -->
+                                    <TextBlock Text="👤  Independent Beneficiary Messages"
+                   FontSize="11" FontWeight="Bold" Foreground="#64748B"
+                   Margin="0,10,0,4" Visibility="{Binding HasIndepBeneThreads, Converter={StaticResource BoolToVis}}"/>
+                                    <ItemsControl ItemsSource="{Binding IndepBeneThreads}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Margin="0,0,0,6" Padding="12,10" CornerRadius="8"
+                            Background="#FEF9EC" BorderBrush="#FDE68A" BorderThickness="1">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Grid.Column="0">
+                                                            <TextBlock Text="{Binding DisplayName}" FontSize="13"
+                                           FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                            <TextBlock Text="{Binding LastMessage}" FontSize="11"
+                                           Foreground="#6B7280" TextTrimming="CharacterEllipsis"
+                                           MaxWidth="320"/>
+                                                        </StackPanel>
+                                                        <Button Grid.Column="1"
+                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Content="Reply" Height="30" Padding="12,0"
+                                    FontSize="11" FontWeight="Bold"
+                                    Foreground="White" BorderThickness="0" Cursor="Hand">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border CornerRadius="6" Background="#D97706">
+                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- Empty state -->
+                                    <TextBlock Text="No messages yet."
+                   FontSize="12" Foreground="#94A3B8" HorizontalAlignment="Center"
+                   Margin="0,20">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SupportThreadCount}" Value="0">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </ScrollViewer>
                         </Grid>
                     </Border>
 

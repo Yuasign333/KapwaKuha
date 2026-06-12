@@ -12,6 +12,7 @@ namespace KapwaKuha.ViewModels
     {
         private readonly string _beneficiaryId;
         private string _orgId = string.Empty;
+        private bool _isIndependent = false;
 
         private string _title = string.Empty;
         private string _description = string.Empty;
@@ -91,17 +92,12 @@ namespace KapwaKuha.ViewModels
                 {
                     Title = value.Title;
                     Description = value.Description;
-                    // NOTE: urgency is NOT pre-filled for edit —
-                    // admin controls final urgency; bene may only edit title/desc/image
                     Urgency = value.Urgency;
                     ImagePath = value.ImagePath ?? string.Empty;
                 }
             }
         }
 
-        // Only allow edit if post is NOT approved (live posts can't be edited without re-review)
-        // NEW — for new posts (null selection), inputs are always enabled
-        //       for editing, only block if the post is already Approved (live)
         public bool CanEditSelected => _selectedPost == null || _selectedPost.Admin_Approval_Status != "Approved";
 
         public ICommand BackCommand { get; }
@@ -136,7 +132,6 @@ namespace KapwaKuha.ViewModels
                 if (dlg.ShowDialog() == true) ImagePath = dlg.FileName;
             });
 
-            // ── NEW POST ──────────────────────────────────────────────────────
             PostNeedCommand = new AsyncRelayCommand(async _ =>
             {
                 ErrorVisible = false;
@@ -144,9 +139,14 @@ namespace KapwaKuha.ViewModels
                 { ErrorMessage = "Title is required."; ErrorVisible = true; return; }
                 if (string.IsNullOrWhiteSpace(Description))
                 { ErrorMessage = "Description is required."; ErrorVisible = true; return; }
+
+                // For institutional bene, orgId must be resolved.
+                // For independent, we use the beneficiaryId itself as Org_ID
+                // (or a special "INDEP" prefix — make sure DB allows this).
+                // Here we use _orgId which for indep is set to beneficiaryId in LoadOrgIdAsync.
                 if (string.IsNullOrEmpty(_orgId))
                 {
-                    ErrorMessage = "Your organization could not be found. Please try again.";
+                    ErrorMessage = "Could not resolve your account. Please try again.";
                     ErrorVisible = true;
                     return;
                 }
@@ -168,7 +168,6 @@ namespace KapwaKuha.ViewModels
                     };
                     await KapwaDataService.PostNeedsRequest(post);
 
-                    // Re-load so the card immediately shows the ⏳ Awaiting badge from DB
                     await LoadMyPostsAsync();
 
                     Title = Description = ImagePath = string.Empty;
@@ -182,7 +181,6 @@ namespace KapwaKuha.ViewModels
                 finally { IsBusy = false; }
             });
 
-            // ── SELECT POST FROM LIST ─────────────────────────────────────────
             SelectPostCommand = new RelayCommand(post =>
             {
                 if (post is NeedsPostModel p) SelectedPost = p;
@@ -198,8 +196,6 @@ namespace KapwaKuha.ViewModels
                 ErrorVisible = false;
             });
 
-            // ── UPDATE EXISTING POST ──────────────────────────────────────────
-            // ── UPDATE EXISTING POST ──────────────────────────────────────────
             UpdateNeedCommand = new AsyncRelayCommand(async _ =>
             {
                 if (SelectedPost == null) return;
@@ -210,7 +206,6 @@ namespace KapwaKuha.ViewModels
                 if (string.IsNullOrWhiteSpace(Description))
                 { ErrorMessage = "Description is required."; ErrorVisible = true; return; }
 
-                // Gate: cannot directly edit a live (Approved) post — must go through admin re-review
                 if (SelectedPost.Admin_Approval_Status == "Approved")
                 {
                     var confirm = MessageBox.Show(
@@ -221,7 +216,6 @@ namespace KapwaKuha.ViewModels
                     try
                     {
                         IsBusy = true;
-                        // Submit as pending edit — live columns stay unchanged until admin approves
                         var pendingEdit = new NeedsPostModel
                         {
                             NeedsPost_ID = SelectedPost.NeedsPost_ID,
@@ -243,7 +237,6 @@ namespace KapwaKuha.ViewModels
                     return;
                 }
 
-                // Post is Pending or Rejected — direct update is fine, resets to Pending
                 try
                 {
                     IsBusy = true;
@@ -269,7 +262,6 @@ namespace KapwaKuha.ViewModels
                 finally { IsBusy = false; }
             });
 
-            // ── DELETE ────────────────────────────────────────────────────────
             DeleteNeedCommand = new AsyncRelayCommand(async _ =>
             {
                 if (SelectedPost == null) return;
@@ -290,7 +282,6 @@ namespace KapwaKuha.ViewModels
                 finally { IsBusy = false; }
             });
 
-            _ = LoadMyPostsAsync();
             _ = LoadOrgIdAsync();
         }
 
@@ -298,13 +289,20 @@ namespace KapwaKuha.ViewModels
         {
             try
             {
+                // Try institutional bene first
                 var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
                 if (bene != null)
                 {
                     _orgId = bene.Organization_ID;
-                    // Reload posts now that we have the real orgId
-                    await LoadMyPostsAsync();
+                    _isIndependent = false;
                 }
+                else
+                {
+                    // Independent beneficiary — use their own ID as the org/poster identifier
+                    _orgId = _beneficiaryId;
+                    _isIndependent = true;
+                }
+                await LoadMyPostsAsync();
             }
             catch { }
         }
@@ -314,7 +312,13 @@ namespace KapwaKuha.ViewModels
             if (string.IsNullOrEmpty(_orgId)) return;
             try
             {
-                var posts = await KapwaDataService.GetNeedsPostsByOrg(_orgId);
+                List<NeedsPostModel> posts;
+                if (_isIndependent)
+                    // For independent bene, org_id was stored as beneficiaryId
+                    posts = await KapwaDataService.GetNeedsPostsByOrg(_orgId);
+                else
+                    posts = await KapwaDataService.GetNeedsPostsByOrg(_orgId);
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     MyPosts.Clear();

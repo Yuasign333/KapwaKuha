@@ -81,6 +81,8 @@ namespace KapwaKuha.Models
                 OnPropertyChanged(nameof(HasRejectionNote));
             }
         }
+
+
         public bool HasRejectionNote => !string.IsNullOrEmpty(RejectionNote);
         public bool IsRejected => Admin_Approval_Status == "Rejected";
         // Pending: can edit if Available

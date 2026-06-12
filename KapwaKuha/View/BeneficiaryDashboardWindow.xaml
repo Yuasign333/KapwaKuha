@@ -189,7 +189,6 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Top bar -->
                 <Border Grid.Row="0" Background="#AAFFFFFF">
                     <Border.Effect>
                         <DropShadowEffect Color="#0077B6" BlurRadius="10" ShadowDepth="0" Opacity="0.10"/>
@@ -202,69 +201,90 @@
                         </Grid.ColumnDefinitions>
 
                         <Button Grid.Column="0" Command="{Binding HamburgerCommand}"
-                                Content="☰" Foreground="#03045E" Background="Transparent"
-                                BorderThickness="0" FontSize="22" Cursor="Hand" VerticalAlignment="Center"/>
+                Content="☰" Foreground="#03045E" Background="Transparent"
+                BorderThickness="0" FontSize="22" Cursor="Hand" VerticalAlignment="Center"/>
 
                         <TextBlock Grid.Column="1" Text="{Binding WelcomeText}"
-                                   Foreground="#03045E" FontSize="16" FontWeight="Bold"
-                                   VerticalAlignment="Center" Margin="14,0,0,0" TextWrapping="NoWrap"
-                                   TextTrimming="CharacterEllipsis"/>
+                   Foreground="#03045E" FontSize="16" FontWeight="Bold"
+                   VerticalAlignment="Center" Margin="14,0,0,0" TextWrapping="NoWrap"
+                   TextTrimming="CharacterEllipsis"/>
 
-                        <!-- Profile chip -->
-                        <Border Grid.Column="2" CornerRadius="20" Padding="4,4,12,4"
-                                VerticalAlignment="Center"
-                                Background="#E6FFFFFF" BorderBrush="#B390E0EF" BorderThickness="1"
-                                Cursor="Hand">
-                            <Border.InputBindings>
-                                <MouseBinding MouseAction="LeftClick" Command="{Binding MyBAccountCommand}"/>
-                            </Border.InputBindings>
-                            <StackPanel Orientation="Horizontal">
-                                <Border Width="36" Height="36" CornerRadius="18" ClipToBounds="True"
-                                        Cursor="Hand" Margin="0,0,8,0">
-                                    <Border.InputBindings>
-                                        <MouseBinding MouseAction="LeftClick" Command="{Binding MyBAccountCommand}"/>
-                                    </Border.InputBindings>
-                                    <Grid>
-                                        <Border Background="#EBF7FB" CornerRadius="18"/>
-                                        <TextBlock Text="👤" FontSize="20"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding HasPicture}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                        <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill">
-                                            <Image.Clip>
-                                                <EllipseGeometry RadiusX="18" RadiusY="18" Center="18,18"/>
-                                            </Image.Clip>
-                                            <Image.Style>
-                                                <Style TargetType="Image">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding HasPicture}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Image.Style>
-                                        </Image>
-                                    </Grid>
-                                </Border>
-                                <TextBlock Text="{Binding UserLabel}" FontSize="12"
-                                           Foreground="#03045E" FontWeight="Bold" VerticalAlignment="Center"/>
-                                <TextBlock Text=" ▼" FontSize="9" Foreground="#5E7A8A"
-                                           VerticalAlignment="Center" Margin="6,2,0,0"/>
-                            </StackPanel>
-                        </Border>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+
+                            <Button Command="{Binding ContactAdminCommand}"
+                    Background="Transparent" BorderThickness="0"
+                    VerticalAlignment="Center" Margin="0,0,12,0" Cursor="Hand"
+                    Width="36" Height="36">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="CircleBg" Background="#EBF7FB" CornerRadius="18">
+                                            <TextBlock Text="🎧" FontSize="15" Foreground="#03045E"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="CircleBg" Property="Background" Value="#90E0EF"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <Border CornerRadius="20" Padding="4,4,12,4"
+                    VerticalAlignment="Center"
+                    Background="#E6FFFFFF" BorderBrush="#B390E0EF" BorderThickness="1"
+                    Cursor="Hand">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding MyBAccountCommand}"/>
+                                </Border.InputBindings>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="36" Height="36" CornerRadius="18" ClipToBounds="True"
+                            Cursor="Hand" Margin="0,0,8,0">
+                                        <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick" Command="{Binding MyBAccountCommand}"/>
+                                        </Border.InputBindings>
+                                        <Grid>
+                                            <Border Background="#EBF7FB" CornerRadius="18"/>
+                                            <TextBlock Text="👤" FontSize="20"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <Image Source="{Binding ProfilePicturePath}" Stretch="UniformToFill">
+                                                <Image.Clip>
+                                                    <EllipseGeometry RadiusX="18" RadiusY="18" Center="18,18"/>
+                                                </Image.Clip>
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="{Binding UserLabel}" FontSize="12"
+                               Foreground="#03045E" FontWeight="Bold" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" ▼" FontSize="9" Foreground="#5E7A8A"
+                               VerticalAlignment="Center" Margin="6,2,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
                     </Grid>
                 </Border>
-
                 <!-- Scrollable body -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20,16,0">
                     <StackPanel>
@@ -523,7 +543,7 @@
                                     </StackPanel>
 
                                     <!-- Chat user list with PROFILE PICTURES -->
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="260">
+                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="230">
                                         <ItemsControl ItemsSource="{Binding RecentChats}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
@@ -724,7 +744,7 @@
                                             </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border Width="220" MinHeight="320" Margin="0,0,14,0" CornerRadius="16"
+                                                    <Border  Width="220"  Height="300" Margin="0,0,14,0" CornerRadius="16"
                                                             ClipToBounds="True" BorderThickness="1">
                                                         <Border.BorderBrush>
                                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">

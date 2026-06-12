@@ -318,7 +318,17 @@
                                                 <Border Background="#F5F5F5" CornerRadius="6" Padding="8,4">
                                                     <TextBlock Text="{Binding StorageDaysDisplay}" FontSize="11" Foreground="#666"/>
                                                 </Border>
+
+                                                <!-- Beneficiary type badge -->
+                                                <Border CornerRadius="6" Background="{Binding BeneTypeBadgeColor}"
+        Padding="8,3" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding BeneTypeBadge}" FontSize="10" FontWeight="Bold"
+               Foreground="{Binding BeneTypeBadgeTextColor}"/>
+                                                </Border>
+
+
                                             </StackPanel>
+                                            
 
                                             <Button Command="{Binding DataContext.SelectItemCommand,
                               RelativeSource={RelativeSource AncestorType=ItemsControl}}"

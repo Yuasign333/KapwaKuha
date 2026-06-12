@@ -1,4 +1,6 @@
 ﻿// FILE: ViewModels/HighPriorityNeedsViewModel.cs
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -12,40 +14,66 @@ namespace KapwaKuha.ViewModels
     {
         private readonly string _donorId;
 
+        // This is your single source of truth bound to your View's ItemsSource
         public ObservableCollection<NeedsPostModel> NeedsPosts { get; } = new();
+
         private bool _isBusy;
         public bool IsBusy { get => _isBusy; set { _isBusy = value; OnPropertyChanged(); } }
 
-        // Add to the class:
-        private System.Collections.Generic.List<NeedsPostModel> _allPosts = new();
+        // Master reference cache list containing all unprocessed raw posts from DB
+        private List<NeedsPostModel> _allPosts = new();
 
         private string _filterUrgency = "All";
         public string FilterUrgency
         {
             get => _filterUrgency;
-            set { _filterUrgency = value; OnPropertyChanged(); ApplyFilter(); }
+            set { _filterUrgency = value; OnPropertyChanged(); ApplyAllFilters(); }
         }
 
         private string _searchText = string.Empty;
         public string SearchText
         {
             get => _searchText;
-            set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
+            set { _searchText = value; OnPropertyChanged(); ApplyAllFilters(); }
         }
 
+        private string _beneTypeFilter = "All";
+        public string BeneTypeFilter
+        {
+            get => _beneTypeFilter;
+            set { _beneTypeFilter = value; OnPropertyChanged(); ApplyAllFilters(); }
+        }
 
-        private void ApplyFilter()
+        /// <summary>
+        /// Consolidated Filter Core Logic Evaluation
+        /// Combines Search Text, Urgency Level, and Beneficiary Type synchronously
+        /// </summary>
+        private void ApplyAllFilters()
         {
             NeedsPosts.Clear();
-            var q = _searchText.Trim().ToLower();
-            foreach (var p in _allPosts)
+            var searchTarget = _searchText.Trim().ToLower();
+
+            foreach (var post in _allPosts)
             {
-                bool matchUrgency = _filterUrgency == "All" || p.Urgency == _filterUrgency;
-                bool matchSearch = string.IsNullOrEmpty(q) ||
-                                    p.Title.ToLower().Contains(q) ||
-                                    p.Description.ToLower().Contains(q) ||
-                                    p.Org_Name.ToLower().Contains(q);
-                if (matchUrgency && matchSearch) NeedsPosts.Add(p);
+                // 1. Evaluate Urgency Filter Condition
+                bool matchUrgency = _filterUrgency == "All" ||
+                                    string.Equals(post.Urgency, _filterUrgency, StringComparison.OrdinalIgnoreCase);
+
+                // 2. Evaluate Beneficiary Type Condition (Matches tags: "All", "Institutional", "Independent")
+                bool matchBeneType = _beneTypeFilter == "All" ||
+                                     string.Equals(post.BeneTypeBadge, _beneTypeFilter, StringComparison.OrdinalIgnoreCase);
+
+                // 3. Evaluate Free-Text Search Queries
+                bool matchSearch = string.IsNullOrEmpty(searchTarget) ||
+                                   (post.Title?.ToLower().Contains(searchTarget) ?? false) ||
+                                   (post.Description?.ToLower().Contains(searchTarget) ?? false) ||
+                                   (post.Org_Name?.ToLower().Contains(searchTarget) ?? false);
+
+                // If the post matches all 3 criteria simultaneously, display it in the view
+                if (matchUrgency && matchBeneType && matchSearch)
+                {
+                    NeedsPosts.Add(post);
+                }
             }
         }
 
@@ -66,7 +94,6 @@ namespace KapwaKuha.ViewModels
             {
                 if (post is not NeedsPostModel selected) return;
 
-                // Guard: must have a resolved beneficiary to target
                 if (string.IsNullOrEmpty(selected.RequesterBeneficiaryId))
                 {
                     MessageBox.Show(
@@ -77,25 +104,19 @@ namespace KapwaKuha.ViewModels
                     return;
                 }
 
-                // Navigate to PostItem:
-                //   - Pre-fill title from the need
-                //   - Lock to DirectTarget mode
-                //   - Pass the DYNAMIC Org_ID so the VM can filter beneficiaries
-                //   - Also pass the specific RequesterBeneficiaryId so it pre-selects correctly
                 NavigationService.Navigate(
-    new View.PostItemWindow(
-        _donorId,
-        prefillTitle: selected.Title,
-        lockedOrgId: selected.Org_ID,
-        lockDirect: true,
-        lockedBeneficiaryId: selected.RequesterBeneficiaryId,
-        linkedNeedsPostId: selected.NeedsPost_ID));
+                    new View.PostItemWindow(
+                        _donorId,
+                        prefillTitle: selected.Title,
+                        lockedOrgId: selected.Org_ID,
+                        lockDirect: true,
+                        lockedBeneficiaryId: selected.RequesterBeneficiaryId,
+                        linkedNeedsPostId: selected.NeedsPost_ID));
             });
 
             _ = LoadPostsAsync();
         }
 
-        // REPLACE LoadPostsAsync entirely:
         private async System.Threading.Tasks.Task LoadPostsAsync()
         {
             IsBusy = true;
@@ -104,11 +125,14 @@ namespace KapwaKuha.ViewModels
                 var posts = await KapwaDataService.GetOpenNeedsPosts();
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    _allPosts = posts;
-                    ApplyFilter();   // ← uses filter instead of direct add
+                    _allPosts = posts ?? new List<NeedsPostModel>();
+                    ApplyAllFilters();
                 });
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading posts: {ex.Message}");
+            }
             finally { IsBusy = false; }
         }
     }

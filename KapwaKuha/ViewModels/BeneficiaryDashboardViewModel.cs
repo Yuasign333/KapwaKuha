@@ -70,6 +70,36 @@ namespace KapwaKuha.ViewModels
             set { _hasNoNeedsPosts = value; OnPropertyChanged(); }
         }
 
+        // ── Needs posts filter ──────────────────────────────────────────────────
+        private string _needsPostFilter = "All";
+        public string NeedsPostFilter
+        {
+            get => _needsPostFilter;
+            set
+            {
+                _needsPostFilter = value;
+                OnPropertyChanged();
+                RefreshFilteredNeedsPosts();
+                OnPropertyChanged(nameof(NeedsFilterAll));
+                OnPropertyChanged(nameof(NeedsFilterLive));
+                OnPropertyChanged(nameof(NeedsFilterPending));
+                OnPropertyChanged(nameof(NeedsFilterRejected));
+                OnPropertyChanged(nameof(NeedsFilterHigh));
+                OnPropertyChanged(nameof(NeedsFilterMedium));
+                OnPropertyChanged(nameof(NeedsFilterLow));
+            }
+        }
+        public bool NeedsFilterAll => _needsPostFilter == "All";
+        public bool NeedsFilterLive => _needsPostFilter == "Live";
+        public bool NeedsFilterPending => _needsPostFilter == "Pending";
+        public bool NeedsFilterRejected => _needsPostFilter == "Rejected";
+        public bool NeedsFilterHigh => _needsPostFilter == "High";
+        public bool NeedsFilterMedium => _needsPostFilter == "Medium";
+        public bool NeedsFilterLow => _needsPostFilter == "Low";
+
+        public ObservableCollection<NeedsPostModel> FilteredNeedsPosts { get; } = new();
+
+
         // ── Collections ───────────────────────────────────────────────────────
         public ObservableCollection<TransactionRow> Transactions { get; } = new();
         public ObservableCollection<DashboardChatRow> RecentChats { get; } = new();
@@ -96,6 +126,9 @@ namespace KapwaKuha.ViewModels
         public ICommand CarouselLeftCommand { get; }
         public ICommand CarouselRightCommand { get; }
 
+        public ICommand SetNeedsPostFilterCommand { get; }
+        public ICommand ContactAdminCommand { get; }
+
         public BeneficiaryDashboardViewModel(string beneficiaryId)
         {
             _beneficiaryId = beneficiaryId;
@@ -106,10 +139,19 @@ namespace KapwaKuha.ViewModels
             HamburgerCommand = new RelayCommand(_ => IsSidebarOpen = !IsSidebarOpen);
             NavigateDashboardCommand = new RelayCommand(_ => { });
 
+            ContactAdminCommand = new RelayCommand(_ =>
+    NavigationService.Navigate(
+        new View.ChatWindow(_beneficiaryId, "A001", "Admin Support", "Beneficiary")));
+
             BrowseItemsCommand = new RelayCommand(param =>
             {
                 string category = param is string s && !string.IsNullOrWhiteSpace(s) ? s : "All";
                 NavigationService.Navigate(new View.BrowseItemsWindow(_beneficiaryId, category));
+            });
+
+            SetNeedsPostFilterCommand = new RelayCommand(param =>
+            {
+                if (param is string f) NeedsPostFilter = f;
             });
 
             BrowseByCategoryCommand = new RelayCommand(param =>
@@ -249,6 +291,7 @@ namespace KapwaKuha.ViewModels
                     var sorted = posts.OrderBy(ApprovalOrder).ThenByDescending(p => p.Post_Date);
                     foreach (var p in sorted) MyNeedsPosts.Add(p);
                     HasNoNeedsPosts = !MyNeedsPosts.Any();
+                    Application.Current.Dispatcher.Invoke(() => RefreshFilteredNeedsPosts());
                 });
             }
             catch { HasNoNeedsPosts = true; }
@@ -277,6 +320,25 @@ namespace KapwaKuha.ViewModels
                 });
             }
             catch { HasNoChats = true; }
+        }
+        private void RefreshFilteredNeedsPosts()
+        {
+            FilteredNeedsPosts.Clear();
+            foreach (var p in MyNeedsPosts)
+            {
+                bool show = _needsPostFilter switch
+                {
+                    "Live" => p.Admin_Approval_Status == "Approved",
+                    "Pending" => p.Admin_Approval_Status == "Pending",
+                    "Rejected" => p.Admin_Approval_Status == "Rejected",
+                    "High" => p.Urgency == "High",
+                    "Medium" => p.Urgency == "Medium",
+                    "Low" => p.Urgency == "Low",
+                    _ => true
+                };
+                if (show) FilteredNeedsPosts.Add(p);
+            }
+            HasNoNeedsPosts = !FilteredNeedsPosts.Any();
         }
     }
 }

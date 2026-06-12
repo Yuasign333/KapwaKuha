@@ -1,5 +1,6 @@
 ﻿// FILE: ViewModels/BeneficiaryProfileViewModel.cs
 using System;
+using System.Net;
 using System.Windows;
 using System.Windows.Input;
 using KapwaKuha.Commands;
@@ -35,6 +36,29 @@ namespace KapwaKuha.ViewModels
         // Keep OrgName alias so any old XAML binding doesn't break
         public string OrgName { get => _orgName; set { _orgName = value; OnPropertyChanged(); OnPropertyChanged(nameof(OrganizationName)); } }
 
+        private bool _isInstitutional = true;
+        public bool IsInstitutional
+        {
+            get => _isInstitutional;
+            set { _isInstitutional = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsIndependent)); }
+        }
+        public bool IsIndependent => !_isInstitutional;
+
+        private string _address = string.Empty;
+        public string Address
+        {
+            get => _address;
+            set { _address = value; OnPropertyChanged(); }
+        }
+
+
+        private string _email = string.Empty;
+        public string Email
+        {
+            get => _email;
+            set { _email = value; OnPropertyChanged(); }
+        }
+
         public ICommand BackCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand BrowsePictureCommand { get; }
@@ -63,11 +87,19 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     IsBusy = true;
-                    await KapwaDataService.UpdateBeneficiaryProfile(
-                        _beneficiaryId, Username, PicturePath,
-                        OrganizationName, OrgAddress, OrgContact);
-                    MessageBox.Show("✅ Profile updated!",
-                        "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (IsInstitutional)
+                    {
+                        await KapwaDataService.UpdateBeneficiaryProfile(
+                            _beneficiaryId, Username, PicturePath,
+                            OrganizationName, OrgAddress, OrgContact);
+                    }
+                    else
+                    {
+                        await KapwaDataService.UpdateIndepBeneficiaryProfile(
+                            _beneficiaryId, Username, PicturePath, Address);
+                    }
+                    MessageBox.Show("✅ Profile updated!", "Saved",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
@@ -102,19 +134,39 @@ namespace KapwaKuha.ViewModels
             LoadProfile();
         }
 
+        // FILE: ViewModels/BeneficiaryProfileViewModel.cs
+        // REPLACE the LoadProfile method entirely:
+
         private async void LoadProfile()
         {
             try
             {
                 var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
-                if (bene == null) return;
-                FullName = bene.Beneficiary_FullName;
-                Username = bene.Beneficiary_Username;
-                Contact = bene.Beneficiary_Contact;
-                OrganizationName = bene.Organization_Name;
-                OrgAddress = bene.Organization_Address;
-                OrgContact = bene.Organization_Contact;
-                PicturePath = bene.ProfilePicturePath ?? string.Empty;
+                if (bene != null)
+                {
+                    FullName = bene.Beneficiary_FullName;
+                    Username = bene.Beneficiary_Username;
+                    Contact = bene.Beneficiary_Contact;
+                    OrganizationName = bene.Organization_Name;
+                    OrgAddress = bene.Organization_Address;
+                    OrgContact = bene.Organization_Contact;
+                    PicturePath = bene.ProfilePicturePath ?? string.Empty;
+                    IsInstitutional = true;
+                }
+                else
+                {
+                    var (fullName, username, contact, address, picPath, _) =
+                        await KapwaDataService.GetIndepBeneficiaryById(_beneficiaryId);
+                    FullName = fullName;
+                    Username = username;
+                    Contact = contact;
+                    Address = address;
+                    PicturePath = picPath;
+                    IsInstitutional = false;
+                }
+                // Load email for all bene types
+                var user = await KapwaDataService.GetUserById(_beneficiaryId);
+                Email = user?.Email ?? "";
             }
             catch { }
         }

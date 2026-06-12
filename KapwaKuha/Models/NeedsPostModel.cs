@@ -37,6 +37,14 @@ namespace KapwaKuha.Models
                 OnPropertyChanged(nameof(HasRejectionNote));
             }
         }
+
+       
+        public bool IsIndependent => string.IsNullOrEmpty(Org_ID) || Org_ID.StartsWith("IB") == false;
+        public string BeneTypeBadge => string.IsNullOrEmpty(Org_ID) || Org_ID == RequesterBeneficiaryId
+            ? "Independent"
+            : "Institutional";
+        public string BeneTypeBadgeColor => BeneTypeBadge == "Institutional" ? "#EFF6FF" : "#F0FDF4";
+        public string BeneTypeBadgeTextColor => BeneTypeBadge == "Institutional" ? "#1D4ED8" : "#15803D";
         public bool HasRejectionNote => !string.IsNullOrEmpty(RejectionNote);
 
         // ── Urgency ──────────────────────────────────────────────────────────

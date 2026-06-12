@@ -206,6 +206,24 @@
                             </StackPanel>
                         </Grid>
 
+                      
+                        <Grid Margin="0,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Email Address" Style="{StaticResource HCILabel}"/>
+                                <Border Style="{StaticResource HCIReadOnlyInput}">
+                                    <TextBox Text="{Binding Email}" Height="42" Background="Transparent"
+                     BorderThickness="0" FontSize="14" IsReadOnly="True"
+                     Foreground="#64748B" VerticalContentAlignment="Center"
+                     ToolTip="Email cannot be changed here."/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
                         <Button Command="{Binding SaveCommand}" Height="48" Margin="0,20,0,0"
                                 FontSize="15" FontWeight="Bold" Foreground="White"
                                 BorderThickness="0" Cursor="Hand" Width="220" HorizontalAlignment="Right">

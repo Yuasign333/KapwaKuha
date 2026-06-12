@@ -94,17 +94,19 @@ namespace KapwaKuha.Services
                     bool isActive = Convert.ToBoolean(r["IsActive"]);
                     bool isBlacklist = Convert.ToBoolean(r["IsBlacklisted"]);
                     r.Close();
-
-                    // FIX: block blacklisted users entirely — no reactivation path
                     if (isBlacklist)
                     {
-                        System.Windows.MessageBox.Show(
-                            "Your account has been permanently suspended due to policy violations.\nContact support if you believe this is an error.",
-                            "Account Suspended", System.Windows.MessageBoxButton.OK,
-                            System.Windows.MessageBoxImage.Error);
+                        var (strikes, banReason) = await GetUserStrikesAndBanInfo(userId);
+                        string reason = string.IsNullOrWhiteSpace(banReason)
+                            ? "Repeated policy violations."
+                            : banReason;
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var banWin = new View.BannedAccountWindow(reason, strikes);
+                            banWin.ShowDialog();
+                        });
                         return (false, "", "", "");
                     }
-
                     if (!isActive)
                     {
                         var reactivate = System.Windows.MessageBox.Show(
@@ -161,10 +163,15 @@ namespace KapwaKuha.Services
 
                     if (isBlacklist)
                     {
-                        System.Windows.MessageBox.Show(
-                            "Your account has been permanently suspended.",
-                            "Account Suspended", System.Windows.MessageBoxButton.OK,
-                            System.Windows.MessageBoxImage.Error);
+                        var (strikes, banReason) = await GetUserStrikesAndBanInfo(userId);
+                        string reason = string.IsNullOrWhiteSpace(banReason)
+                            ? "Repeated policy violations."
+                            : banReason;
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var banWin = new View.BannedAccountWindow(reason, strikes);
+                            banWin.ShowDialog();
+                        });
                         return (false, "", "", "");
                     }
 
@@ -1475,6 +1482,9 @@ WHERE Item_ID = @id", conn);
         // NEEDS POSTS  (organization wishlists)
         // ══════════════════════════════════════════════════════════════════════
 
+        // FILE: Services/KapwaDataService.cs
+        // REPLACE the entire GetOpenNeedsPosts method
+
         public static async Task<List<NeedsPostModel>> GetOpenNeedsPosts()
         {
             var list = new List<NeedsPostModel>();
@@ -1482,24 +1492,8 @@ WHERE Item_ID = @id", conn);
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand(@"
-SELECT n.NeedsPost_ID, n.Org_ID, n.Title, n.Description,
-       n.Urgency, n.Status, n.Post_Date,
-       n.Admin_Approval_Status,
-       ISNULL(n.ImagePath,'') AS ImagePath,
-       o.Organization_Name   AS Org_Name,
-       (SELECT TOP 1 b.Beneficiary_ID
-        FROM Beneficiaries b
-        WHERE b.Organization_ID = n.Org_ID
-          AND b.Beneficiary_AccountStatus = 'Active'
-        ORDER BY b.Beneficiary_ID) AS RequesterBeneficiaryId
-FROM NeedsPosts n
-JOIN Organization o ON o.Organization_ID = n.Org_ID
-WHERE n.Status = 'Open'
-  AND n.Admin_Approval_Status = 'Approved'
-ORDER BY
-    CASE n.Urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END,
-    n.Post_Date DESC", conn);
+                using var cmd = new SqlCommand("sp_GetOpenNeedsPosts", conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync())
                 {
@@ -1512,15 +1506,43 @@ ORDER BY
                         Description = r["Description"].ToString() ?? "",
                         Urgency = r["Urgency"].ToString() ?? "Medium",
                         Status = r["Status"].ToString() ?? "Open",
-                        Admin_Approval_Status = r["Admin_Approval_Status"].ToString() ?? "Pending",
+                        Admin_Approval_Status = "Approved",
                         Post_Date = Convert.ToDateTime(r["Post_Date"]),
                         ImagePath = r["ImagePath"].ToString() ?? "",
+                        RejectionNote = r["RejectionNote"].ToString() ?? "",
                         RequesterBeneficiaryId = r["RequesterBeneficiaryId"]?.ToString() ?? ""
                     });
                 }
             }
             catch (Exception ex) { MessageBox.Show("GetOpenNeedsPosts failed: " + ex.Message); }
             return list;
+        }
+
+        // FILE: Services/KapwaDataService.cs
+        // ADD this helper method (put it near the other auth methods)
+
+        public static async Task<(int Strikes, string BanReason)> GetUserStrikesAndBanInfo(string userId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(@"
+SELECT u.StrikesCount,
+       ISNULL((SELECT TOP 1 Description FROM UserReports
+               WHERE Reported_ID = u.UserID
+                 AND Status = 'Reviewed'
+                 AND Admin_Action_Taken IN ('Strike','Ban')
+               ORDER BY Filed_At DESC), '') AS BanReason
+FROM Users u WHERE u.UserID = @id", conn);
+                cmd.Parameters.AddWithValue("@id", userId);
+                using var r = await cmd.ExecuteReaderAsync();
+                if (await r.ReadAsync())
+                    return (Convert.ToInt32(r["StrikesCount"]),
+                            r["BanReason"].ToString() ?? "");
+            }
+            catch { }
+            return (0, "");
         }
 
         public static async Task PostNeedsRequest(NeedsPostModel post)
@@ -1995,20 +2017,24 @@ WHERE b.Beneficiary_ID = @id", conn);
         // ══════════════════════════════════════════════════════════════════════
 
         public static async Task<(bool OK, string UserId, string FullName, string Username)>
-            LoginIndependentBeneficiary(string username, string password)
+    LoginIndependentBeneficiary(string username, string password)
         {
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
+
+                // FIX: Added u.IsBlacklisted to the SELECT statement
                 using var cmd = new SqlCommand(@"
-            SELECT ib.IndepBene_ID, ib.FullName, ib.Username, u.IsActive,
+            SELECT ib.IndepBene_ID, ib.FullName, ib.Username, u.IsActive, u.IsBlacklisted,
                    u.Admin_Approval_Status
             FROM IndependentBeneficiaries ib
             INNER JOIN Users u ON u.UserID = ib.IndepBene_ID
             WHERE ib.Username = @uname AND u.Password = @pw", conn);
+
                 cmd.Parameters.AddWithValue("@uname", username);
                 cmd.Parameters.AddWithValue("@pw", password);
+
                 using var r = await cmd.ExecuteReaderAsync();
                 if (await r.ReadAsync())
                 {
@@ -2016,9 +2042,12 @@ WHERE b.Beneficiary_ID = @id", conn);
                     string fullName = r["FullName"].ToString() ?? "";
                     string uname = r["Username"].ToString() ?? "";
                     bool isActive = Convert.ToBoolean(r["IsActive"]);
+                    // FIX: Successfully reading the blacklist status from the database row
+                    bool isBlacklist = Convert.ToBoolean(r["IsBlacklisted"]);
                     string approval = r["Admin_Approval_Status"].ToString() ?? "";
                     r.Close();
 
+                    // 1. Check Approval Status first
                     if (approval == "Pending")
                     {
                         System.Windows.MessageBox.Show(
@@ -2035,6 +2064,24 @@ WHERE b.Beneficiary_ID = @id", conn);
                             System.Windows.MessageBoxImage.Error);
                         return (false, "", "", "");
                     }
+
+                    // 2. Check Blacklist Status
+                    if (isBlacklist)
+                    {
+                        var (strikes, banReason) = await GetUserStrikesAndBanInfo(userId);
+                        string reason = string.IsNullOrWhiteSpace(banReason)
+                            ? "Repeated policy violations."
+                            : banReason;
+
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var banWin = new View.BannedAccountWindow(reason, strikes);
+                            banWin.ShowDialog();
+                        });
+                        return (false, "", "", "");
+                    }
+
+                    // 3. Check Deactivation/Reactivation status
                     if (!isActive)
                     {
                         var reactivate = System.Windows.MessageBox.Show(
@@ -2042,22 +2089,72 @@ WHERE b.Beneficiary_ID = @id", conn);
                             "Account Deactivated",
                             System.Windows.MessageBoxButton.YesNo,
                             System.Windows.MessageBoxImage.Question);
+
                         if (reactivate != System.Windows.MessageBoxResult.Yes)
                             return (false, "", "", "");
+
                         using var c1 = new SqlCommand(
                             "UPDATE Users SET IsActive = 1 WHERE UserID = @id", conn);
                         c1.Parameters.AddWithValue("@id", userId);
                         await c1.ExecuteNonQueryAsync();
+
                         using var c2 = new SqlCommand(
                             "UPDATE IndependentBeneficiaries SET AccountStatus = 'Active' WHERE IndepBene_ID = @id", conn);
                         c2.Parameters.AddWithValue("@id", userId);
                         await c2.ExecuteNonQueryAsync();
+
+                        System.Windows.MessageBox.Show("Account successfully reactivated! Welcome back.", "Success");
                     }
+
                     return (true, userId, fullName, uname);
                 }
             }
-            catch (Exception ex) { System.Windows.MessageBox.Show("LoginIndependentBeneficiary failed: " + ex.Message); }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("LoginIndependentBeneficiary failed: " + ex.Message);
+            }
             return (false, "", "", "");
+        }
+
+
+        public static async Task<UserModel?> GetUserById(string userId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(
+                    "SELECT UserID, Role, ISNULL(Email,'') AS Email, IsBlacklisted, StrikesCount, Admin_Approval_Status FROM Users WHERE UserID = @id", conn);
+                cmd.Parameters.AddWithValue("@id", userId);
+                using var r = await cmd.ExecuteReaderAsync();
+                if (await r.ReadAsync())
+                    return new Models.UserModel
+                    {
+                        UserID = r["UserID"].ToString() ?? "",
+                        Role = r["Role"].ToString() ?? "",
+                        Email = r["Email"].ToString() ?? "",
+                        IsBlacklisted = Convert.ToBoolean(r["IsBlacklisted"]),
+                        StrikesCount = Convert.ToInt32(r["StrikesCount"]),
+                        Admin_Approval_Status = r["Admin_Approval_Status"].ToString() ?? ""
+                    };
+            }
+            catch (Exception ex) { MessageBox.Show("GetUserById failed: " + ex.Message); }
+            return null;
+        }
+
+ 
+
+        public static async Task SendStrikeNotificationChat(string reportedUserId, int newStrikeCount)
+        {
+            try
+            {
+                string msg = newStrikeCount >= 3
+                    ? $"⛔ Your account has been permanently banned after receiving {newStrikeCount} strikes for violating KapwaKuha's community guidelines. If you believe this is an error, contact support."
+                    : $"⚠️ You have received a warning strike ({newStrikeCount}/3) on your KapwaKuha account due to a reported policy violation. Please review our community guidelines. Accumulating 3 strikes will result in a permanent ban.";
+
+                await SaveChatMessage("A001", reportedUserId, msg);
+            }
+            catch { }
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -2196,14 +2293,85 @@ WHERE b.Beneficiary_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(
-                    "SELECT dbo.fn_GetDonorAverageRating(@did)", conn);
-                cmd.Parameters.AddWithValue("@did", donorId);
+                    "SELECT dbo.fn_GetDonorAverageRating(@id)", conn);
+                cmd.Parameters.AddWithValue("@id", donorId);
                 var result = await cmd.ExecuteScalarAsync();
-                return result == null || result is DBNull ? 0.0 : Convert.ToDouble(result);
+                return result == DBNull.Value ? 0.0 : Convert.ToDouble(result);
             }
             catch { return 0.0; }
         }
 
+        public static async Task UpsertFeedback(string feedbackId, string donorId,
+    string claimId, int stars, string comment)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                // Update if exists, insert if not
+                using var cmd = new SqlCommand(@"
+            IF EXISTS (SELECT 1 FROM Feedback WHERE Claim_ID = @ClaimId AND Donor_ID = @DonorId)
+                UPDATE Feedback SET Stars = @Stars, Comment = @Comment, RatedAt = GETDATE()
+                WHERE Claim_ID = @ClaimId AND Donor_ID = @DonorId
+            ELSE
+                INSERT INTO Feedback (Feedback_ID, Donor_ID, Claim_ID, Stars, Comment, RatedAt)
+                VALUES (@FeedbackId, @DonorId, @ClaimId, @Stars, @Comment, GETDATE())", conn);
+                cmd.Parameters.AddWithValue("@FeedbackId", feedbackId);
+                cmd.Parameters.AddWithValue("@DonorId", donorId);
+                cmd.Parameters.AddWithValue("@ClaimId", claimId);
+                cmd.Parameters.AddWithValue("@Stars", stars);
+                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex) { MessageBox.Show("UpsertFeedback failed: " + ex.Message); }
+        }
+
+        public static async Task<(string FullName, string Username, string Contact,
+    string Address, string ProfilePicturePath, string AccountStatus)> GetIndepBeneficiaryById(string id)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(@"
+            SELECT FullName, Username, ContactNumber, ISNULL(Address,'') AS Address,
+                   ISNULL(ProfilePicturePath,'') AS ProfilePicturePath, AccountStatus
+            FROM IndependentBeneficiaries WHERE IndepBene_ID = @id", conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                using var r = await cmd.ExecuteReaderAsync();
+                if (await r.ReadAsync())
+                    return (r["FullName"].ToString() ?? "",
+                            r["Username"].ToString() ?? "",
+                            r["ContactNumber"].ToString() ?? "",
+                            r["Address"].ToString() ?? "",
+                            r["ProfilePicturePath"].ToString() ?? "",
+                            r["AccountStatus"].ToString() ?? "Active");
+            }
+            catch (Exception ex) { MessageBox.Show("GetIndepBeneficiaryById: " + ex.Message); }
+            return ("", "", "", "", "", "Active");
+        }
+
+        public static async Task UpdateIndepBeneficiaryProfile(string id, string username,
+            string profilePic, string address)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+                using var cmd = new SqlCommand(@"
+            UPDATE IndependentBeneficiaries
+            SET Username = @u, ProfilePicturePath = @pic,
+                Address = ISNULL(@addr, Address)
+            WHERE IndepBene_ID = @id", conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.Parameters.AddWithValue("@u", username);
+                cmd.Parameters.AddWithValue("@pic", profilePic ?? "");
+                cmd.Parameters.AddWithValue("@addr", string.IsNullOrWhiteSpace(address)
+                    ? (object)DBNull.Value : address);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex) { MessageBox.Show("UpdateIndepBeneficiaryProfile: " + ex.Message); throw; }
+        }
         public static async Task<bool> HasAlreadyRatedClaim(string claimId)
         {
             try
@@ -2788,6 +2956,17 @@ WHERE UserID = @id", conn);
                 cmd.Parameters.AddWithValue("@AdminNotes", adminNotes);
                 cmd.Parameters.AddWithValue("@ActionTaken", actionTaken);
                 await cmd.ExecuteNonQueryAsync();
+
+                if (actionTaken == "Strike")
+                {
+                    // get updated count
+                    using var conn2 = new SqlConnection(_conn);
+                    await conn2.OpenAsync();
+                    using var cntCmd = new SqlCommand("SELECT StrikesCount FROM Users WHERE UserID = @uid", conn2);
+                    cntCmd.Parameters.AddWithValue("@uid", reportedId);
+                    int newCount = Convert.ToInt32(await cntCmd.ExecuteScalarAsync());
+                    await SendStrikeNotificationChat(reportedId, newCount);
+                }
             }
             catch (Exception ex)
             {

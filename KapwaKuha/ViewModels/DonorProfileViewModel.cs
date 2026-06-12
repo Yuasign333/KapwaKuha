@@ -18,6 +18,15 @@ namespace KapwaKuha.ViewModels
         private bool _isBusy;
         private string _donorStatus = "Active";
 
+    
+
+        private string _email = string.Empty;
+        public string Email
+        {
+            get => _email;
+            set { _email = value; OnPropertyChanged(); }
+        }
+
         public string FullName
         {
             get => _fullName;
@@ -133,6 +142,8 @@ namespace KapwaKuha.ViewModels
                 Address = donor.Donor_Address ?? "";
                 PicturePath = donor.ProfilePicturePath ?? "";
                 DonorStatus = donor.Donor_AccountStatus ?? "Active";
+                var user = await KapwaDataService.GetUserById(_donorId);
+                Email = user?.Email ?? "";
             }
             catch { }
         }
