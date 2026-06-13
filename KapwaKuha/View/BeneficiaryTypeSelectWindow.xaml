@@ -26,16 +26,16 @@
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,40">
                     <Image Source="https://i.imgur.com/FHFRQxB.png"
                            Width="60" Height="60"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-30,0,0,-50"/>
                     <TextBlock Text="Kapwa" Foreground="White"
-                               FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                               FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,0,-60"Margin="-10,0,0,-50"/>
                     <TextBlock Text="Kuha" Foreground="White"
-                               FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+                               FontSize="24" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,0,-50"/>
                 </StackPanel>
                 <TextBlock Text="Who are you as a beneficiary?"
                            Foreground="White" FontSize="36" FontWeight="SemiBold"
-                           TextWrapping="Wrap" Margin="0,0,0,24" LineHeight="46"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#CCFFFFff" FontSize="15" LineHeight="24">
+                           TextWrapping="Wrap" Margin="-15,0,0,24" LineHeight="46"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#CCFFFFff" FontSize="15" LineHeight="24" Margin="-10,0,0,0">
                     Institutional Beneficiaries are part of a registered organization.
                     Independent Beneficiaries are individual citizens seeking assistance.
                 </TextBlock>
