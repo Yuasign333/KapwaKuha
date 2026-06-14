@@ -271,11 +271,15 @@ WHERE Beneficiary_ID LIKE 'B[0-9][0-9][0-9]'", conn);
                 cmd.Parameters.AddWithValue("@SecurityA", securityAnswer);
                 await cmd.ExecuteNonQueryAsync();
 
-                // Save email to Users table
+             
+                // Save email to BOTH Users and Donors tables automatically
                 if (!string.IsNullOrWhiteSpace(email))
                 {
-                    using var emailCmd = new SqlCommand(
-                        "UPDATE Users SET Email = @email WHERE UserID = @id", conn);
+                    string syncEmailQuery = @"
+        UPDATE Users SET Email = @email WHERE UserID = @id;
+        UPDATE Donors SET Email = @email WHERE Donor_ID = @id;";
+
+                    using var emailCmd = new SqlCommand(syncEmailQuery, conn);
                     emailCmd.Parameters.AddWithValue("@email", email);
                     emailCmd.Parameters.AddWithValue("@id", donor.Donor_ID);
                     await emailCmd.ExecuteNonQueryAsync();
@@ -3322,6 +3326,83 @@ WHERE NeedsPost_ID = @id", conn);
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex) { System.Windows.MessageBox.Show("RejectNeedsPost failed: " + ex.Message); throw; }
+        }
+
+        public static async Task BlacklistUser(string userId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                // 🛠️ Fix: Updates the central Users table AND sets role-specific tables to 'Inactive'
+                string query = @"
+                    UPDATE Users SET IsBlacklisted = 1, IsActive = 0 WHERE UserID = @id;
+                    UPDATE Donors SET Donor_AccountStatus = 'Inactive' WHERE Donor_ID = @id;
+                    UPDATE IndependentBeneficiaries SET AccountStatus = 'Inactive' WHERE IndepBene_ID = @id;
+                    UPDATE InstitutionalBeneficiaries SET Beneficiaries_Status = 'Inactive' WHERE Beneficiary_ID = @id;";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@id", userId);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("BlacklistUser failed: " + ex.Message);
+                throw;
+            }
+        }
+
+        // ── UPDATED METHOD: ADD STRIKE & AUTO-BAN ACROSS ALL TABLES ─────────
+        public static async Task AddStrike(string userId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                int currentStrikes = 0;
+                using (var cmdCheck = new SqlCommand("SELECT StrikesCount FROM Users WHERE UserID = @id", conn))
+                {
+                    cmdCheck.Parameters.AddWithValue("@id", userId);
+                    var result = await cmdCheck.ExecuteScalarAsync();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        currentStrikes = Convert.ToInt32(result);
+                    }
+                }
+
+                currentStrikes++;
+
+                if (currentStrikes >= 3)
+                {
+                    // 🛠️ Fix: If hitting 3 strikes, automatically sets role-specific tables to 'Inactive' as well
+                    string banQuery = @"
+                        UPDATE Users SET StrikesCount = @strikes, IsBlacklisted = 1, IsActive = 0 WHERE UserID = @id;
+                        UPDATE Donors SET Donor_AccountStatus = 'Inactive' WHERE Donor_ID = @id;
+                        UPDATE IndependentBeneficiaries SET AccountStatus = 'Inactive' WHERE IndepBene_ID = @id;
+                        UPDATE InstitutionalBeneficiaries SET Beneficiaries_Status = 'Inactive' WHERE Beneficiary_ID = @id;";
+
+                    using var cmdBan = new SqlCommand(banQuery, conn);
+                    cmdBan.Parameters.AddWithValue("@strikes", currentStrikes);
+                    cmdBan.Parameters.AddWithValue("@id", userId);
+                    await cmdBan.ExecuteNonQueryAsync();
+
+                    System.Windows.MessageBox.Show($"User reached {currentStrikes} strikes and has been automatically banned.", "Account Suspended", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    using var cmdStrike = new SqlCommand("UPDATE Users SET StrikesCount = @strikes WHERE UserID = @id", conn);
+                    cmdStrike.Parameters.AddWithValue("@strikes", currentStrikes);
+                    cmdStrike.Parameters.AddWithValue("@id", userId);
+                    await cmdStrike.ExecuteNonQueryAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("AddStrike failed: " + ex.Message);
+                throw;
+            }
         }
     }
 

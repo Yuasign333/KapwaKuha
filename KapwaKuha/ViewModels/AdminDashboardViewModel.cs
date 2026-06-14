@@ -588,11 +588,8 @@ namespace KapwaKuha.ViewModels
 
         private async Task LoadSupportInboxAsync()
         {
-            // FILE: ViewModels/AdminDashboardViewModel.cs
-            // REPLACE the SupportThreads loading block with:
-
             var threads = await KapwaDataService.GetAdminSupportInbox();
-            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            await Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 SupportThreads.Clear();
                 DonorThreads.Clear();
@@ -611,12 +608,6 @@ namespace KapwaKuha.ViewModels
                 OnPropertyChanged(nameof(HasDonorThreads));
                 OnPropertyChanged(nameof(HasInstBeneThreads));
                 OnPropertyChanged(nameof(HasIndepBeneThreads));
-            });
-            SafeDispatch(() =>
-            {
-                SupportThreads.Clear();
-                foreach (var t in threads) SupportThreads.Add(t);
-                SupportThreadCount = threads.Count;
             });
         }
     }

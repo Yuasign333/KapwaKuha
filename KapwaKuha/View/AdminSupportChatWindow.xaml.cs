@@ -62,9 +62,16 @@ namespace KapwaKuha.View
             _userId = userId;
             _role = role;
             _adminMode = adminMode;
+
+            // 🛠️ NEW: Change Top Bar text if an Admin is viewing the chat
+            if (_adminMode)
+            {
+                TopBarTitle.Text = $"Chat with User: {_userId}";
+                TopBarSubtitle.Text = $"Role: {_role}";
+            }
+
             _ = LoadMessages();
         }
-
         private async Task LoadMessages()
         {
             var msgs = await KapwaDataService.GetAdminSupportMessages(_userId);

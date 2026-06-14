@@ -1,6 +1,8 @@
 ﻿using KapwaKuha.ViewModels;
 using KapwaKuha.Services;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace KapwaKuha.View
 {
@@ -79,5 +81,13 @@ namespace KapwaKuha.View
             popup.Content = img;
             popup.ShowDialog();
         }
+
+        private void AdminInboxListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // TODO: Implement logic for handling double-click on support thread item
+            // Example: var selectedItem = AdminInboxListView.SelectedItem;
+        }
+
+       
     }
 }

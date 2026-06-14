@@ -21,8 +21,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- TOPBAR -->
-        <!-- Replace the header content in AdminSupportChatWindow.xaml TopBar -->
         <Border Grid.Row="0" Background="#0077B6">
             <Grid Margin="20,0">
                 <Grid.ColumnDefinitions>
@@ -30,65 +28,60 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
                 <Button Grid.Column="0" x:Name="BackBtn"
-                Content="← Back" Background="Transparent" BorderThickness="0"
-                Foreground="White" FontSize="13" Cursor="Hand"
-                VerticalAlignment="Center" Click="BackBtn_Click"/>
+                        Content="← Back" Background="Transparent" BorderThickness="0"
+                        Foreground="White" FontSize="13" Cursor="Hand"
+                        VerticalAlignment="Center" Click="BackBtn_Click"/>
+
                 <StackPanel Grid.Column="1" Orientation="Horizontal"
-                    HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <!-- Support icon -->
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Border Width="32" Height="32" CornerRadius="16"
-                    Background="#CAF0F8" Margin="0,0,10,0">
+                            Background="#CAF0F8" Margin="0,0,10,0">
                         <TextBlock Text="💬" FontSize="16"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
+
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="KapwaKuha Support"
-                           FontSize="15" FontWeight="Bold" Foreground="White"/>
-                        <TextBlock Text="Official support channel"
-                           FontSize="10" Foreground="#CAF0F8"/>
+                        <TextBlock x:Name="TopBarTitle" Text="KapwaKuha Support"
+                                   FontSize="15" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock x:Name="TopBarSubtitle" Text="Official support channel"
+                                   FontSize="10" Foreground="#CAF0F8"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- CHAT AREA — only the user's own thread -->
         <Grid Grid.Row="1" Margin="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Messages -->
             <ScrollViewer Grid.Row="0" x:Name="ScrollView"
                           VerticalScrollBarVisibility="Auto" Padding="16,12">
                 <ItemsControl x:Name="MessagesList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,4">
-                                <!-- Sender badge — shown ABOVE the bubble, opposite the alignment -->
-                                <TextBlock FontSize="10" FontWeight="SemiBold" Margin="4,0,4,2"
-                       Opacity="0.55">
+                                <TextBlock Text="{Binding SenderLabel}" FontSize="10" FontWeight="SemiBold" Margin="4,0,4,2" Opacity="0.55">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
-                                            <Setter Property="Text"       Value="KapwaKuha Support"/>
                                             <Setter Property="Foreground"  Value="#0077B6"/>
                                             <Setter Property="HorizontalAlignment" Value="Left"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsFromUser}" Value="True">
-                                                    <Setter Property="Text"       Value="You"/>
-                                                    <Setter Property="Foreground"  Value="#6B7280"/>
                                                     <Setter Property="HorizontalAlignment" Value="Right"/>
+                                                    <Setter Property="Foreground"  Value="#6B7280"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
 
-                                <!-- Bubble -->
                                 <Border MaxWidth="420" Padding="12,8" CornerRadius="12"
-                    HorizontalAlignment="{Binding HAlignment}"
-                    Margin="0,0,0,2">
+                                        HorizontalAlignment="{Binding HAlignment}"
+                                        Margin="0,0,0,2">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Background" Value="White"/>
@@ -119,7 +112,7 @@
                                             </TextBlock.Style>
                                         </TextBlock>
                                         <TextBlock Text="{Binding TimeLabel}" FontSize="10" Opacity="0.6"
-                               HorizontalAlignment="Right" Margin="0,4,0,0">
+                                                   HorizontalAlignment="Right" Margin="0,4,0,0">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Foreground" Value="#6B7280"/>
@@ -139,7 +132,6 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- Input bar -->
             <Border Grid.Row="1" Background="White" BorderBrush="#E5E7EB"
                     BorderThickness="0,1,0,0" Padding="16,10">
                 <Grid>
@@ -153,8 +145,7 @@
                         <TextBox x:Name="InputBox" Background="Transparent"
                                  BorderThickness="0" FontSize="13"
                                  VerticalContentAlignment="Center" Height="40"
-                                 KeyDown="InputBox_KeyDown"
-                                 />
+                                 KeyDown="InputBox_KeyDown"/>
                     </Border>
                     <Button Grid.Column="1" x:Name="SendBtn"
                             Width="44" Height="44" BorderThickness="0"
