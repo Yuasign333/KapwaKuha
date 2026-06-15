@@ -1,10 +1,10 @@
-﻿// FILE: View/AdminSupportChatWindow.xaml.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using KapwaKuha.Models;
 using KapwaKuha.Services;
 
@@ -15,8 +15,8 @@ namespace KapwaKuha.View
         private readonly string _userId;
         private readonly string _role;
         private readonly bool _adminMode;
+        private string _profilePicPath = string.Empty;
 
-        // ── Auto-reply rules: keyword → response ─────────────────────────────
         private static readonly (string[] Keywords, string Reply)[] _autoReplies = new[]
         {
             (new[] { "help", "assist", "support" },
@@ -24,7 +24,7 @@ namespace KapwaKuha.View
              "Please describe your concern and our admin team will get back to you shortly."),
 
             (new[] { "claim", "pickup", "collect" },
-             "📦 For claim-related concerns, please check your **Claim Tracker** in your dashboard. " +
+             "📦 For claim-related concerns, please check your Claim Tracker in your dashboard. " +
              "If an item shows 'Pending Release', your donor has been notified. " +
              "Still stuck? Describe the issue and an admin will assist."),
 
@@ -40,7 +40,7 @@ namespace KapwaKuha.View
              "⏳ Items and needs posts are reviewed by our admin team. Approval typically takes less than 24 hours. " +
              "If it's been longer, please share your post title and we'll look into it."),
 
-            (new[] { "rating", "star", "feedback", "review" },
+            (new[] { "rating", "star", "feedback" },
              "⭐ Donor ratings are given by beneficiaries after a successful handoff is marked as Released. " +
              "You can view your rating on your profile."),
 
@@ -49,35 +49,73 @@ namespace KapwaKuha.View
              "Make sure your details match your organization's official records."),
 
             (new[] { "report", "scam", "fraud", "fake" },
-             "🚩 To report a user, open their profile and click **Report User**. " +
+             "🚩 To report a user, open their profile and click Report User. " +
              "Provide a detailed description and any proof. Admins will review within 48 hours."),
 
             (new[] { "thank", "thanks", "salamat", "ty" },
              "😊 You're welcome! Is there anything else I can help you with?"),
         };
 
-        public AdminSupportChatWindow(string userId, string role, bool adminMode = false)
+        public AdminSupportChatWindow(string userId, string role, bool adminMode = false,
+            string displayName = "", string profilePicPath = "")
         {
             InitializeComponent();
             _userId = userId;
             _role = role;
             _adminMode = adminMode;
+            _profilePicPath = profilePicPath;
 
-            // 🛠️ NEW: Change Top Bar text if an Admin is viewing the chat
-            if (_adminMode)
-            {
-                TopBarTitle.Text = $"Chat with User: {_userId}";
-                TopBarSubtitle.Text = $"Role: {_role}";
-            }
-
+            SetupTopBar(displayName, role);
             _ = LoadMessages();
         }
+
+        private void SetupTopBar(string displayName, string role)
+        {
+            if (_adminMode)
+            {
+                // Show admin badge
+                AdminBadge.Visibility = Visibility.Visible;
+
+                // Title = user's name, subtitle = user ID
+                TopBarTitle.Text = string.IsNullOrEmpty(displayName) ? $"User: {_userId}" : displayName;
+                TopBarSubtitle.Text = $"ID: {_userId}";
+
+                // Role chip
+                RoleChip.Visibility = Visibility.Visible;
+                RoleChipText.Text = role switch
+                {
+                    "Donor" => "🧑‍💼 Donor",
+                    "InstitutionalBeneficiary" => "🏢 Inst. Beneficiary",
+                    "IndependentBeneficiary" => "👤 Indep. Beneficiary",
+                    _ => role
+                };
+
+                // Profile pic
+                if (!string.IsNullOrEmpty(_profilePicPath) && System.IO.File.Exists(_profilePicPath))
+                {
+                    try
+                    {
+                        AvatarBrush.ImageSource = new BitmapImage(new Uri(_profilePicPath));
+                        AvatarEllipse.Visibility = Visibility.Visible;
+                        AvatarEmoji.Visibility = Visibility.Collapsed;
+                    }
+                    catch { /* fallback emoji stays */ }
+                }
+            }
+            else
+            {
+                TopBarTitle.Text = "KapwaKuha Support";
+                TopBarSubtitle.Text = "Official support channel";
+            }
+        }
+
         private async Task LoadMessages()
         {
-            var msgs = await KapwaDataService.GetAdminSupportMessages(_userId);
+            // 🛠️ FIX: Correctly call GetChatMessages for this support thread
+            var msgs = await KapwaDataService.GetChatMessages(_userId, "A001");
+
             Application.Current.Dispatcher.Invoke(() =>
             {
-                MessagesList.ItemsSource = null;
                 var items = new List<SupportChatItem>();
                 foreach (var m in msgs)
                 {
@@ -88,7 +126,9 @@ namespace KapwaKuha.View
                         TimeLabel = m.Time,
                         IsFromUser = fromMe,
                         HAlignment = fromMe ? HorizontalAlignment.Right : HorizontalAlignment.Left,
-                        SenderLabel = fromMe ? "You" : (m.SenderId == "A001" ? "KapwaKuha Support" : m.SenderId),
+                        SenderLabel = fromMe
+                            ? (_adminMode ? "You (Admin)" : "You")
+                            : (m.SenderId == "A001" ? "KapwaKuha Support" : m.SenderId),
                     });
                 }
                 MessagesList.ItemsSource = items;
@@ -111,42 +151,36 @@ namespace KapwaKuha.View
             string senderId = _adminMode ? "A001" : _userId;
             string receiverId = _adminMode ? _userId : "A001";
 
-            // Save the user/admin message
             await KapwaDataService.SaveChatMessage(senderId, receiverId, text);
-            System.Diagnostics.Debug.WriteLine($"Saved message from {senderId} to {receiverId}: {text}");
 
-            // Auto-reply only when a user (not admin) sends
+            // Auto-reply only for user-side messages
             if (!_adminMode)
             {
                 string? autoReply = GetAutoReply(text);
                 if (autoReply != null)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Auto-reply triggered: {autoReply}");
+                    // Show typing indicator
+                    Application.Current.Dispatcher.Invoke(() =>
+                        TypingIndicator.Visibility = Visibility.Visible);
 
-                    // Small delay so reply feels natural
-                    await Task.Delay(1000);
+                    await Task.Delay(1200);
 
-                    // Save and await the auto-reply before loading messages
+                    Application.Current.Dispatcher.Invoke(() =>
+                        TypingIndicator.Visibility = Visibility.Collapsed);
+
                     await KapwaDataService.SaveChatMessage("A001", _userId, autoReply);
-                    System.Diagnostics.Debug.WriteLine($"Saved auto-reply from A001 to {_userId}");
                 }
             }
 
-            // Load and display all messages
             await LoadMessages();
         }
 
-        /// <summary>
-        /// Checks the user's message for known keywords and returns an automated reply, or null if none match.
-        /// </summary>
         private static string? GetAutoReply(string userMessage)
         {
             string lower = userMessage.ToLowerInvariant();
             foreach (var (keywords, reply) in _autoReplies)
-            {
                 if (keywords.Any(k => lower.Contains(k)))
                     return reply;
-            }
             return null;
         }
 

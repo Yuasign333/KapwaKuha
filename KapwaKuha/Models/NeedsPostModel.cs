@@ -113,7 +113,7 @@ namespace KapwaKuha.Models
         public bool IsApproved => Admin_Approval_Status == "Approved";
         public bool IsRejected => Admin_Approval_Status == "Rejected";
         // Beneficiary can edit if not yet Approved
-        public bool CanEdit => Admin_Approval_Status != "Approved";
+        public bool CanEdit => true;
 
         public string ApprovalBadgeBackground => Admin_Approval_Status switch
         {

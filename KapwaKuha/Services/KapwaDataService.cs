@@ -3242,36 +3242,40 @@ WHERE NeedsPost_ID = @Id", conn);
 
 
         // ── Admin support chat ────────────────────────────────────────────────────
-        public static async Task<List<ChatMessage>> GetAdminSupportMessages(string userId)
+        public static async Task<List<AdminSupportThread>> GetAdminSupportInbox()
         {
-            var list = new List<ChatMessage>();
+            var list = new List<AdminSupportThread>();
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
-                using var cmd = new SqlCommand("sp_GetAdminSupportMessages", conn);
+
+                // This calls the stored procedure you just updated in SQL!
+                using var cmd = new SqlCommand("sp_GetAdminSupportInbox", conn);
                 cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@UserId", userId);
+
                 using var r = await cmd.ExecuteReaderAsync();
                 while (await r.ReadAsync())
                 {
-                    string senderId = r["SenderId"].ToString()!;
-                    list.Add(new ChatMessage
+                    list.Add(new AdminSupportThread
                     {
-                        Id = Convert.ToInt32(r["Id"]),
-                        SenderId = senderId,
-                        ReceiverId = r["ReceiverId"].ToString()!,
-                        Text = r["Message"].ToString()!,
-                        Time = Convert.ToDateTime(r["SentAt"]).ToString("hh:mm tt"),
-                        IsFromUser = senderId == userId
+                        UserId = r["UserID"].ToString() ?? string.Empty,
+                        DisplayName = r["DisplayName"].ToString() ?? string.Empty,
+                        ProfilePicturePath = r["ProfilePicturePath"].ToString() ?? string.Empty,
+                        Role = r["Role"].ToString() ?? string.Empty,
+                        LastMessage = r["LastMessage"] != DBNull.Value ? r["LastMessage"].ToString() ?? string.Empty : string.Empty,
+
+                        UnreadCount = r["UnreadCount"] != DBNull.Value ? Convert.ToInt32(r["UnreadCount"]) : 0,
+                        StrikeCount = r["StrikeCount"] != DBNull.Value ? Convert.ToInt32(r["StrikeCount"]) : 0,
+                        IsBanned = r["IsBanned"] != DBNull.Value && Convert.ToBoolean(r["IsBanned"])
                     });
                 }
-                System.Diagnostics.Debug.WriteLine($"GetAdminSupportMessages: Loaded {list.Count} messages for user {userId}");
+                System.Diagnostics.Debug.WriteLine($"GetAdminSupportInbox: Loaded {list.Count} threads.");
             }
-            catch (Exception ex) 
-            { 
-                MessageBox.Show("GetAdminSupportMessages failed: " + ex.Message);
-                System.Diagnostics.Debug.WriteLine($"GetAdminSupportMessages error: {ex}");
+            catch (Exception ex)
+            {
+                MessageBox.Show("GetAdminSupportInbox failed: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine($"GetAdminSupportInbox error: {ex}");
             }
             return list;
         }
@@ -3284,32 +3288,18 @@ WHERE NeedsPost_ID = @Id", conn);
             public string Role { get; set; } = string.Empty;
             public string LastMessage { get; set; } = string.Empty;
             public int UnreadCount { get; set; }
+            public int StrikeCount { get; set; }
+            public bool IsBanned { get; set; }
+
+            // Derived display helpers for XAML
+            public string StrikeBadge => StrikeCount > 0 ? $"⚠️ {StrikeCount}/3 strikes" : string.Empty;
+            public bool HasStrikes => StrikeCount > 0;
+            public string BannedBadge => IsBanned ? "🚫 BANNED" : string.Empty;
+            public string BorderColor => IsBanned ? "#FCA5A5" : (StrikeCount > 0 ? "#FDE68A" : "#E2E8F0");
+            public string BackgroundColor => IsBanned ? "#FFF1F1" : (StrikeCount > 0 ? "#FFFBEB" : "#F8FAFC");
         }
 
-        public static async Task<List<AdminSupportThread>> GetAdminSupportInbox()
-        {
-            var list = new List<AdminSupportThread>();
-            try
-            {
-                using var conn = new SqlConnection(_conn);
-                await conn.OpenAsync();
-                using var cmd = new SqlCommand("sp_GetAdminSupportInbox", conn);
-                cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                using var r = await cmd.ExecuteReaderAsync();
-                while (await r.ReadAsync())
-                    list.Add(new AdminSupportThread
-                    {
-                        UserId = r["UserID"].ToString()!,
-                        DisplayName = r["DisplayName"].ToString()!,
-                        ProfilePicturePath = r["ProfilePicturePath"].ToString()!,
-                        Role = r["Role"].ToString()!,
-                        LastMessage = r["LastMessage"]?.ToString() ?? string.Empty,
-                        UnreadCount = Convert.ToInt32(r["UnreadCount"])
-                    });
-            }
-            catch (Exception ex) { MessageBox.Show("GetAdminSupportInbox failed: " + ex.Message); }
-            return list;
-        }
+
         public static async Task RejectNeedsPost(string postId, string rejectionNote)
         {
             try

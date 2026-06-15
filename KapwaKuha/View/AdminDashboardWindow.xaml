@@ -160,7 +160,7 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button x:Name="LogoutBtn" 
+                    <Button x:Name="LogoutBtn" Click="LogoutBtn_Click"
                             Content="Logout" Foreground="White" FontWeight="SemiBold" FontSize="13"
                             Padding="16,8" Cursor="Hand">
                         <Button.Style>
@@ -209,9 +209,10 @@
 
                 <!-- ══ TAB: OVERVIEW ══ -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              Visibility="{Binding IsChecked, ElementName=TabOverview, Converter={StaticResource BoolToVis}}">
-                    <Grid>
+              Visibility="{Binding IsChecked, ElementName=TabOverview, Converter={StaticResource BoolToVis}}">
+                    <Grid Margin="0,0,0,20">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -222,8 +223,7 @@
                             <TextBlock Text="Real-time application statistics and key metrics summary." FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
                         </StackPanel>
 
-                        <!-- KPI Cards -->
-                        <UniformGrid Grid.Row="1" Columns="4" Rows="1" Margin="0,0,0,28">
+                        <UniformGrid Grid.Row="1" Columns="4" Rows="1" Margin="0,0,0,16">
                             <Border Style="{StaticResource MetricsCardStyle}">
                                 <StackPanel>
                                     <TextBlock Text="Total Donated" Style="{StaticResource MetricsCardTitleStyle}"/>
@@ -250,8 +250,7 @@
                             </Border>
                         </UniformGrid>
 
-                        <!-- Second row KPIs -->
-                        <UniformGrid Grid.Row="2" Columns="4" Rows="1" Margin="0,0,0,0">
+                        <UniformGrid Grid.Row="2" Columns="4" Rows="1" Margin="0,0,0,28">
                             <Border Style="{StaticResource MetricsCardStyle}">
                                 <StackPanel>
                                     <TextBlock Text="Total Claimed" Style="{StaticResource MetricsCardTitleStyle}"/>
@@ -277,6 +276,87 @@
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
+
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="White" CornerRadius="12" BorderBrush="#E5E7EB" BorderThickness="1" Padding="20" Margin="0,0,10,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                                        <TextBlock Text="Donations by Category" FontSize="16" FontWeight="Bold" Foreground="#0A2540"/>
+                                        <TextBlock Text="Distribution of all approved platform items." FontSize="12" Foreground="#64748B"/>
+                                    </StackPanel>
+
+                                    <ItemsControl Grid.Row="1" ItemsSource="{Binding CategoryStats}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,0,0,12">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="100"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="40"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Grid.Column="0" Text="{Binding CategoryName}" FontSize="12" FontWeight="SemiBold" Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
+                                                    <Border Grid.Column="1" Height="10" Background="#F1F5F9" CornerRadius="5" Margin="10,0" VerticalAlignment="Center">
+                                                        <Border HorizontalAlignment="Left" CornerRadius="5" Background="{Binding BarColor}" Width="{Binding BarWidth}"/>
+                                                    </Border>
+
+                                                    <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="12" FontWeight="Bold" Foreground="#0A2540" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="White" CornerRadius="12" BorderBrush="#E5E7EB" BorderThickness="1" Padding="20" Margin="10,0,0,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                                        <TextBlock Text="7-Day Platform Activity" FontSize="16" FontWeight="Bold" Foreground="#0A2540"/>
+                                        <TextBlock Text="New users and successful claims over the last week." FontSize="12" Foreground="#64748B"/>
+                                    </StackPanel>
+
+                                    <ItemsControl Grid.Row="1" ItemsSource="{Binding TimelineStats}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Margin="12,0" VerticalAlignment="Bottom">
+                                                    <Grid Height="140" VerticalAlignment="Bottom" Margin="0,0,0,8">
+                                                        <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-16,0,0"/>
+                                                        <Border Width="24" Background="#0077B6" CornerRadius="4,4,0,0" Height="{Binding BarHeight}" VerticalAlignment="Bottom"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding DayLabel}" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8" HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </Border>
+
+                        </Grid>
                     </Grid>
                 </ScrollViewer>
 
@@ -343,9 +423,9 @@
                                                             </Style>
                                                         </TextBlock.Style>
                                                     </TextBlock>
-                                                    <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill">
-                                                        <Image.Style>
-                                                            <Style TargetType="Image">
+                                                    <Grid>
+                                                        <Grid.Style>
+                                                            <Style TargetType="Grid">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding HasItemImage}" Value="True">
@@ -353,8 +433,16 @@
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </Image.Style>
-                                                    </Image>
+                                                        </Grid.Style>
+
+                                                        <Image Source="{Binding Item_ImagePath}" Stretch="UniformToFill"/>
+
+                                                        <Border CornerRadius="6" Background="#80000000"
+            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+            Margin="0,0,6,6" Padding="6,3">
+                                                            <TextBlock Text="🔍 Zoom" FontSize="10" Foreground="White"/>
+                                                        </Border>
+                                                    </Grid>
                                                 </Grid>
                                             </Border>
 
@@ -397,7 +485,7 @@
 
                 <!-- ══ TAB: NEEDS APPROVALS ══ -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              Visibility="{Binding IsChecked, ElementName=TabNeeds, Converter={StaticResource BoolToVis}}">
+              Visibility="{Binding IsChecked, ElementName=TabNeeds, Converter={StaticResource BoolToVis}}">
                     <StackPanel>
                         <StackPanel Margin="0,0,0,20">
                             <TextBlock Text="Needs Post Approval Queue" FontSize="26" FontWeight="Bold" Foreground="#0A2540"/>
@@ -445,105 +533,130 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <StackPanel>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <Border CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" Margin="0,0,0,6">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                <Setter Property="Background" Value="#FEF3C7"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsEdit}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <TextBlock Text="✏️ EDITED / RESUBMITTED — Review changes below"
-                                                                   FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
-                                                    </Border>
-                                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="#0A2540"/>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                        <TextBlock Foreground="#6B7280" FontSize="12">
-                                                            <Run Text="{Binding Org_Name, Mode=OneWay}"/>
-                                                            <Run Text=" · "/>
-                                                            <Run Text="{Binding PostDateDisplay, Mode=OneWay}" Foreground="#9CA3AF"/>
-                                                        </TextBlock>
-                                                        <Border CornerRadius="6" Padding="8,2" Margin="8,0,0,0" Background="{Binding UrgencyColor}">
-                                                            <TextBlock FontSize="11" FontWeight="Bold" Foreground="{Binding UrgencyTextColor}">
-                                                                <Run Text="{Binding Urgency, Mode=OneWay}"/>
-                                                                <Run Text=" Urgency"/>
-                                                            </TextBlock>
-                                                        </Border>
-                                                    </StackPanel>
-                                                    <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#6B7280"
-                                                               TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
-                                                    <Button Content="✅ Approve + Set Urgency"
-                                                            Command="{Binding DataContext.ApproveNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                            CommandParameter="{Binding}"
-                                                            Style="{StaticResource ActionButtonSuccessStyle}"
-                                                            Padding="14,0" Margin="0,0,8,0" FontSize="12"/>
-                                                    <Button Content="❌ Reject"
-                                                            Command="{Binding DataContext.RejectNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                            CommandParameter="{Binding}"
-                                                            Style="{StaticResource ActionButtonDangerStyle}"
-                                                            Padding="14,0" FontSize="12"/>
-                                                </StackPanel>
-                                            </Grid>
 
-                                            <!-- Before/After diff for edits -->
-                                            <Border Margin="0,10,0,0" CornerRadius="8"
-                                                    Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" Padding="12,10">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsEdit}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Top" CornerRadius="8"
+                                    Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}">
+                                                <Border Width="160" Height="120" CornerRadius="8" Cursor="Hand"
+                                        Tag="{Binding ImagePath}"
+                                        MouseLeftButtonDown="NeedsImage_Click"
+                                        ToolTip="Click to enlarge">
+                                                    <Border.Background>
+                                                        <ImageBrush ImageSource="{Binding ImagePath}" Stretch="UniformToFill"/>
+                                                    </Border.Background>
+                                                    <Border CornerRadius="6" Background="#80000000"
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                            Margin="0,0,6,6" Padding="6,3">
+                                                        <TextBlock Text="🔍 Zoom" FontSize="10" Foreground="White"/>
+                                                    </Border>
+                                                </Border>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="28"/>
-                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <Border Grid.Column="0" Background="#FEF2F2" CornerRadius="6" Padding="10,8">
-                                                        <StackPanel>
-                                                            <TextBlock Text="BEFORE" FontSize="9" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,5"/>
-                                                            <TextBlock Text="{Binding PreviousTitle}" FontSize="12" FontWeight="SemiBold" Foreground="#7F1D1D" TextWrapping="Wrap"/>
-                                                            <TextBlock Text="{Binding PreviousDescription}" FontSize="11" Foreground="#991B1B" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock FontSize="11" Foreground="#B91C1C">
-                                                                <Run Text="Urgency: "/>
-                                                                <Run Text="{Binding PreviousUrgency, Mode=OneWay}" FontWeight="Bold"/>
+                                                    <StackPanel Grid.Column="0">
+                                                        <Border CornerRadius="6" Padding="8,3" HorizontalAlignment="Left" Margin="0,0,0,6">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsEdit}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="✏️ EDITED / RESUBMITTED — Review changes below"
+                                                       FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                            <TextBlock Foreground="#6B7280" FontSize="12" VerticalAlignment="Center">
+                                                <Run Text="{Binding Org_Name, Mode=OneWay}"/>
+                                                <Run Text=" · "/>
+                                                <Run Text="{Binding PostDateDisplay, Mode=OneWay}" Foreground="#9CA3AF"/>
                                                             </TextBlock>
+                                                            <Border CornerRadius="6" Padding="8,2" Margin="8,0,0,0" Background="{Binding UrgencyColor}">
+                                                                <TextBlock FontSize="11" FontWeight="Bold" Foreground="{Binding UrgencyTextColor}">
+                                                    <Run Text="{Binding Urgency, Mode=OneWay}"/>
+                                                    <Run Text=" Urgency"/>
+                                                                </TextBlock>
+                                                            </Border>
                                                         </StackPanel>
-                                                    </Border>
-                                                    <TextBlock Grid.Column="1" Text="→" FontSize="18" FontWeight="Bold"
-                                                               Foreground="#92400E" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                                    <Border Grid.Column="2" Background="#F0FFF4" CornerRadius="6" Padding="10,8">
-                                                        <StackPanel>
-                                                            <TextBlock Text="AFTER" FontSize="9" FontWeight="Bold" Foreground="#16A34A" Margin="0,0,0,5"/>
-                                                            <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="#14532D" TextWrapping="Wrap"/>
-                                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#166534" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock FontSize="11" Foreground="#15803D">
-                                                                <Run Text="Urgency: "/>
-                                                                <Run Text="{Binding Urgency, Mode=OneWay}" FontWeight="Bold"/>
-                                                            </TextBlock>
-                                                        </StackPanel>
-                                                    </Border>
+                                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="#6B7280"
+                                                   TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="12,0,0,0">
+                                                        <Button Content="✅ Approve + Set Urgency"
+                                                Command="{Binding DataContext.ApproveNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ActionButtonSuccessStyle}"
+                                                Padding="14,0" Margin="0,0,8,0" FontSize="12"/>
+                                                        <Button Content="❌ Reject"
+                                                Command="{Binding DataContext.RejectNeedsPostCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource ActionButtonDangerStyle}"
+                                                Padding="14,0" FontSize="12"/>
+                                                    </StackPanel>
                                                 </Grid>
-                                            </Border>
-                                        </StackPanel>
+
+                                                <Border Margin="-180,35,0,0" CornerRadius="8"
+                                        Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" Padding="12,10">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsEdit}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="28"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Background="#FEF2F2" CornerRadius="6" Padding="10,8">
+                                                            <StackPanel>
+                                                                <TextBlock Text="BEFORE" FontSize="9" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,5"/>
+                                                                <TextBlock Text="{Binding PreviousTitle}" FontSize="12" FontWeight="SemiBold" Foreground="#7F1D1D" TextWrapping="Wrap"/>
+                                                                <TextBlock Text="{Binding PreviousDescription}" FontSize="11" Foreground="#991B1B" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock FontSize="11" Foreground="#B91C1C">
+                                                    <Run Text="Urgency: "/>
+                                                    <Run Text="{Binding PreviousUrgency, Mode=OneWay}" FontWeight="Bold"/>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="→" FontSize="18" FontWeight="Bold"
+                                                   Foreground="#92400E" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                        <Border Grid.Column="2" Background="#F0FFF4" CornerRadius="6" Padding="10,8">
+                                                            <StackPanel>
+                                                                <TextBlock Text="AFTER" FontSize="9" FontWeight="Bold" Foreground="#16A34A" Margin="0,0,0,5"/>
+                                                                <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="#14532D" TextWrapping="Wrap"/>
+                                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#166534" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock FontSize="11" Foreground="#15803D">
+                                                    <Run Text="Urgency: "/>
+                                                    <Run Text="{Binding Urgency, Mode=OneWay}" FontWeight="Bold"/>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -693,7 +806,7 @@
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock Foreground="#0A2540" FontWeight="SemiBold" FontSize="14">
                                                     <Run Text="{Binding ReportType, Mode=OneWay}"/>
-                                                    <Run Text=" — "/>
+                                                    <Run Text="-"/>
                                                     <Run Text="{Binding ReportedName, Mode=OneWay}"/>
                                                 </TextBlock>
                                                 <TextBlock Text="{Binding Description}" Foreground="#6B7280" FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis"/>
@@ -751,112 +864,159 @@
                     </StackPanel>
                 </ScrollViewer>
 
+              
                 <!-- ══ TAB: SUPPORT INBOX ══ -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              Visibility="{Binding IsChecked, ElementName=TabSupport, Converter={StaticResource BoolToVis}}">
+              Visibility="{Binding IsChecked, ElementName=TabSupport, Converter={StaticResource BoolToVis}}">
                     <StackPanel>
                         <StackPanel Margin="0,0,0,20">
                             <TextBlock Text="Support Inbox" FontSize="26" FontWeight="Bold" Foreground="#0A2540"/>
                             <TextBlock Text="Manage and respond to active support threads from users." FontSize="13" Foreground="#64748B" Margin="0,4,0,0"/>
                         </StackPanel>
 
+                        <!-- Donor threads -->
                         <TextBlock Text="🧑‍💼  Donor Messages" FontSize="12" FontWeight="Bold" Foreground="#64748B"
-                                   Margin="0,0,0,8" Visibility="{Binding HasDonorThreads, Converter={StaticResource BoolToVis}}"/>
+                   Margin="0,0,0,8" Visibility="{Binding HasDonorThreads, Converter={StaticResource BoolToVis}}"/>
                         <ItemsControl ItemsSource="{Binding DonorThreads}" Margin="0,0,0,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="14,12" CornerRadius="10" Margin="0,0,0,8"
-                                            Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1">
+                            Background="{Binding BackgroundColor}"
+                            BorderBrush="{Binding BorderColor}" BorderThickness="1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"/>
-                                                <TextBlock Text="{Binding LastMessage}" FontSize="12" Foreground="#6B7280" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                    <!-- Ban badge -->
+                                                    <Border CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Background="#FEE2E2"
+                                            Visibility="{Binding IsBanned, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="🚫 BANNED" FontSize="10" FontWeight="Bold" Foreground="#991B1B"/>
+                                                    </Border>
+                                                    <!-- Strike badge -->
+                                                    <Border CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Background="#FEF3C7"
+                                            Visibility="{Binding HasStrikes, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="{Binding StrikeBadge}" FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding LastMessage}" FontSize="12" Foreground="#6B7280"
+                                           TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="1"
-                                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="💬 Reply" Height="34" Padding="14,0"
-                                                    Style="{StaticResource ActionButtonPrimaryStyle}"/>
+                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Content="💬 Reply" Height="34" Padding="14,0"
+                                    Style="{StaticResource ActionButtonPrimaryStyle}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
+                        <!-- Institutional Beneficiary threads -->
                         <TextBlock Text="🏢  Institutional Beneficiary Messages" FontSize="12" FontWeight="Bold" Foreground="#64748B"
-                                   Margin="0,0,0,8" Visibility="{Binding HasInstBeneThreads, Converter={StaticResource BoolToVis}}"/>
+                   Margin="0,0,0,8" Visibility="{Binding HasInstBeneThreads, Converter={StaticResource BoolToVis}}"/>
                         <ItemsControl ItemsSource="{Binding InstBeneThreads}" Margin="0,0,0,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="14,12" CornerRadius="10" Margin="0,0,0,8"
-                                            Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1">
+                            Background="{Binding BackgroundColor}"
+                            BorderBrush="{Binding BorderColor}" BorderThickness="1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"/>
-                                                <TextBlock Text="{Binding LastMessage}" FontSize="12" Foreground="#6B7280" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                    <Border CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Background="#FEE2E2"
+                                            Visibility="{Binding IsBanned, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="🚫 BANNED" FontSize="10" FontWeight="Bold" Foreground="#991B1B"/>
+                                                    </Border>
+                                                    <Border CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Background="#FEF3C7"
+                                            Visibility="{Binding HasStrikes, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="{Binding StrikeBadge}" FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding LastMessage}" FontSize="12" Foreground="#6B7280"
+                                           TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="1"
-                                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="💬 Reply" Height="34" Padding="14,0"
-                                                    Style="{StaticResource ActionButtonSuccessStyle}"/>
+                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Content="💬 Reply" Height="34" Padding="14,0"
+                                    Style="{StaticResource ActionButtonSuccessStyle}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
+                        <!-- Independent Beneficiary threads -->
                         <TextBlock Text="👤  Independent Beneficiary Messages" FontSize="12" FontWeight="Bold" Foreground="#64748B"
-                                   Margin="0,0,0,8" Visibility="{Binding HasIndepBeneThreads, Converter={StaticResource BoolToVis}}"/>
+                   Margin="0,0,0,8" Visibility="{Binding HasIndepBeneThreads, Converter={StaticResource BoolToVis}}"/>
                         <ItemsControl ItemsSource="{Binding IndepBeneThreads}" Margin="0,0,0,16">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Padding="14,12" CornerRadius="10" Margin="0,0,0,8"
-                                            Background="#FEF9EC" BorderBrush="#FDE68A" BorderThickness="1">
+                            Background="{Binding BackgroundColor}"
+                            BorderBrush="{Binding BorderColor}" BorderThickness="1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"/>
-                                                <TextBlock Text="{Binding LastMessage}" FontSize="12" Foreground="#6B7280" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"/>
+                                                    <Border CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Background="#FEE2E2"
+                                            Visibility="{Binding IsBanned, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="🚫 BANNED" FontSize="10" FontWeight="Bold" Foreground="#991B1B"/>
+                                                    </Border>
+                                                    <Border CornerRadius="4" Padding="6,1" Margin="6,0,0,0" Background="#FEF3C7"
+                                            Visibility="{Binding HasStrikes, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="{Binding StrikeBadge}" FontSize="10" FontWeight="Bold" Foreground="#92400E"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding LastMessage}" FontSize="12" Foreground="#6B7280"
+                                           TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
                                             </StackPanel>
                                             <Button Grid.Column="1"
-                                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="💬 Reply" Height="34" Padding="14,0"
-                                                    Style="{StaticResource ActionButtonDangerStyle}"/>
+                                    Command="{Binding DataContext.OpenSupportThreadCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Content="💬 Reply" Height="34" Padding="14,0"
+                                    Style="{StaticResource ActionButtonDangerStyle}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
+                        <!-- Empty state — only show when ALL three lists are empty -->
                         <TextBlock Text="No support messages yet." FontSize="13" Foreground="#94A3B8"
-                                   HorizontalAlignment="Center" Margin="0,40,0,0">
+                   HorizontalAlignment="Center" Margin="0,40,0,0">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SupportThreadCount}" Value="0">
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding HasDonorThreads}"   Value="False"/>
+                                                <Condition Binding="{Binding HasInstBeneThreads}" Value="False"/>
+                                                <Condition Binding="{Binding HasIndepBeneThreads}" Value="False"/>
+                                            </MultiDataTrigger.Conditions>
                                             <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
+                                        </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
                     </StackPanel>
                 </ScrollViewer>
-
             </Grid>
         </Grid>
     </Grid>

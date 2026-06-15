@@ -137,7 +137,7 @@
                                         <TextBlock Text="🔒" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                         <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="#854D0E" VerticalAlignment="Center">
                                             <Run FontWeight="Bold" Text="This post is currently live."/>
-                                            <Run Text=" It cannot be edited while approved. To make changes, delete it and repost."/>
+                                            <Run Text=" Editing a live post will send it back to admin for re-review before changes go public."/>
                                         </TextBlock>
                                     </StackPanel>
                                 </Border>
@@ -378,171 +378,34 @@
 
                         <!-- My Posts list -->
                         <Border Background="#EEFFFFFF" BorderBrush="#88FFFFFF" BorderThickness="1.5"
-                                CornerRadius="20" Padding="24">
+        CornerRadius="20" Padding="24">
                             <Border.Effect>
                                 <DropShadowEffect Color="#0077B6" BlurRadius="20" ShadowDepth="4" Opacity="0.08"/>
                             </Border.Effect>
                             <StackPanel>
-                                <TextBlock Text="📄 My Needs Posts" FontSize="15" FontWeight="Bold"
-                                           Foreground="#0A2540" Margin="0,0,0,16"/>
+                                <TextBlock Text="✨ Daily Inspiration" FontSize="15" FontWeight="Bold"
+                   Foreground="#0A2540" Margin="0,0,0,16"/>
 
-                                <!-- Empty state -->
-                                <StackPanel HorizontalAlignment="Center" Margin="0,20,0,20">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MyPosts.Count}" Value="0">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="📭" FontSize="32" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="No posts yet. Submit one on the left!" FontSize="13"
-                                               Foreground="#9CA3AF" HorizontalAlignment="Center"/>
-                                </StackPanel>
+                                <Border CornerRadius="14" BorderThickness="1" BorderBrush="#E5E7EB" Padding="20,24" Background="White">
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                                <ItemsControl ItemsSource="{Binding MyPosts}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Margin="0,0,0,12" CornerRadius="14"
-                                                    BorderThickness="1" Padding="16,14"
-                                                    Background="White">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="BorderBrush" Value="#E5E7EB"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
-                                                                <Setter Property="BorderBrush" Value="#86EFAC"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
-                                                                <Setter Property="BorderBrush" Value="#FCA5A5"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <StackPanel>
-                                                    <!-- Title -->
-                                                    <TextBlock Text="{Binding Title}" FontSize="14"
-                                                               FontWeight="Bold" Foreground="#0A2540"
-                                                               TextTrimming="CharacterEllipsis"/>
-                                                    <!-- Description preview -->
-                                                    <TextBlock Text="{Binding Description}" FontSize="12"
-                                                               Foreground="#6B7280" Margin="0,4,0,0"
-                                                               TextTrimming="CharacterEllipsis" MaxHeight="36"
-                                                               TextWrapping="Wrap"/>
-                                                    <!-- Urgency + Date row -->
-                                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,6">
-                                                        <Border CornerRadius="6" Padding="8,2"
-                                                                Background="{Binding UrgencyColor}">
-                                                            <TextBlock Text="{Binding Urgency}" FontSize="11"
-                                                                       FontWeight="Bold"
-                                                                       Foreground="{Binding UrgencyTextColor}"/>
-                                                        </Border>
-                                                        <TextBlock Text="{Binding PostDateDisplay}" FontSize="11"
-                                                                   Foreground="#9CA3AF" VerticalAlignment="Center"
-                                                                   Margin="10,0,0,0"/>
-                                                    </StackPanel>
-                                                    <!-- Approval status badge -->
-                                                    <Border CornerRadius="8" Padding="10,4"
-                                                            HorizontalAlignment="Left" Margin="0,2,0,10"
-                                                            Background="{Binding ApprovalBadgeBackground}">
-                                                        <TextBlock Text="{Binding ApprovalBadgeText}"
-                                                                   FontSize="11" FontWeight="SemiBold"
-                                                                   Foreground="{Binding ApprovalBadgeTextColor}"/>
-                                                    </Border>
-                                                    <!-- Rejection reason — visible only when status = Rejected and note exists -->
-                                                    <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
-        CornerRadius="7" Padding="10,7" Margin="0,4,0,0">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding HasRejectionNote}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="💬 " FontSize="13"/>
-                                                            <TextBlock FontSize="12" Foreground="#991B1B" TextWrapping="Wrap">
-            <Run Text="Rejection reason: " FontWeight="SemiBold"/>
-            <Run Text="{Binding RejectionNote}"/>
-                                                            </TextBlock>
-                                                        </StackPanel>
-                                                    </Border>
-                                                    <!-- Action buttons -->
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <Button Command="{Binding DataContext.SelectPostCommand,
-                                                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                                CommandParameter="{Binding}"
-                                                                IsEnabled="{Binding CanEdit}"
-                                                                Height="32" Padding="14,0" FontSize="12"
-                                                                Foreground="White" BorderThickness="0" Cursor="Hand"
-                                                                Margin="0,0,8,0">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border CornerRadius="8" Background="#0077B6"
-                                                                            x:Name="bg" Padding="14,0" Opacity="{TemplateBinding Opacity}">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="bg" Property="Background" Value="#005A8C"/>
-                                                                        </Trigger>
-                                                                        <Trigger Property="IsEnabled" Value="False">
-                                                                            <Setter TargetName="bg" Property="Background" Value="#9CA3AF"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                            <TextBlock FontSize="12" FontWeight="SemiBold">
-                                                                <TextBlock.Style>
-                                                                    <Style TargetType="TextBlock">
-                                                                        <Setter Property="Text" Value="✏️ Edit"/>
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
-                                                                                <Setter Property="Text" Value="🔒 Live — can't edit"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </TextBlock.Style>
-                                                            </TextBlock>
-                                                        </Button>
-                                                        <Button Command="{Binding DataContext.DeleteNeedCommand,
-                                                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                                CommandParameter="{Binding}"
-                                                                Height="32" Padding="14,0" FontSize="12"
-                                                                Foreground="#DC2626" BorderBrush="#DC2626"
-                                                                BorderThickness="1" Background="White" Cursor="Hand">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border CornerRadius="8" Background="{TemplateBinding Background}"
-                                                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                                                            BorderThickness="{TemplateBinding BorderThickness}" x:Name="bg">
-                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                    <ControlTemplate.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter TargetName="bg" Property="Background" Value="#FEE2E2"/>
-                                                                        </Trigger>
-                                                                    </ControlTemplate.Triggers>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                            <TextBlock Text="🗑️ Delete" FontSize="12" FontWeight="SemiBold"/>
-                                                        </Button>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                        <TextBlock Text="“" FontSize="54" FontFamily="Georgia" FontWeight="Bold" 
+                           Foreground="#0077B6" HorizontalAlignment="Center" Margin="0,-20,0,-25" Opacity="0.3"/>
+
+                                        <TextBlock Text="We make a living by what we get, but we make a life by what we give." 
+                           FontSize="15" FontWeight="SemiBold" FontStyle="Italic" Foreground="#0A2540" 
+                           TextAlignment="Center" TextWrapping="Wrap" LineHeight="22" MaxWidth="320"/>
+
+                                        <Border Height="1" Width="40" Background="#0077B6" Opacity="0.4" Margin="0,16,0,12" HorizontalAlignment="Center"/>
+
+                                        <TextBlock Text="— Winston Churchill" FontSize="12" FontWeight="Bold" 
+                           Foreground="#6B7280" HorizontalAlignment="Center"/>
+
+                                    </StackPanel>
+                                </Border>
 
                             </StackPanel>
                         </Border>
-
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

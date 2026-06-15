@@ -97,7 +97,45 @@ namespace KapwaKuha.ViewModels
             set { _supportThreadCount = value; OnPropertyChanged(); }
         }
 
-       
+        // ── Support search ────────────────────────────────────────────────────────
+        private string _supportSearchQuery = string.Empty;
+        public string SupportSearchQuery
+        {
+            get => _supportSearchQuery;
+            set
+            {
+                _supportSearchQuery = value;
+                OnPropertyChanged();
+                RefreshFilteredThreads();
+            }
+        }
+
+        public ObservableCollection<KapwaDataService.AdminSupportThread> DonorThreadsFiltered { get; } = new();
+        public ObservableCollection<KapwaDataService.AdminSupportThread> InstBeneThreadsFiltered { get; } = new();
+        public ObservableCollection<KapwaDataService.AdminSupportThread> IndepBeneThreadsFiltered { get; } = new();
+
+        private void RefreshFilteredThreads()
+        {
+            string q = _supportSearchQuery.ToLowerInvariant().Trim();
+
+            void Filter(
+                ObservableCollection<KapwaDataService.AdminSupportThread> source,
+                ObservableCollection<KapwaDataService.AdminSupportThread> dest)
+            {
+                dest.Clear();
+                foreach (var t in source)
+                    if (string.IsNullOrEmpty(q)
+                        || t.DisplayName.ToLowerInvariant().Contains(q)
+                        || t.LastMessage.ToLowerInvariant().Contains(q)
+                        || t.UserId.ToLowerInvariant().Contains(q))
+                        dest.Add(t);
+            }
+
+            Filter(DonorThreads, DonorThreadsFiltered);
+            Filter(InstBeneThreads, InstBeneThreadsFiltered);
+            Filter(IndepBeneThreads, IndepBeneThreadsFiltered);
+        }
+
 
         public ObservableCollection<KapwaDataService.AdminSupportThread> DonorThreads { get; } = new();
         public ObservableCollection<KapwaDataService.AdminSupportThread> InstBeneThreads { get; } = new();
@@ -134,7 +172,12 @@ namespace KapwaKuha.ViewModels
             OpenSupportThreadCommand = new RelayCommand(param =>
             {
                 if (param is not KapwaDataService.AdminSupportThread thread) return;
-                var win = new View.AdminSupportChatWindow(thread.UserId, thread.Role, adminMode: true);
+                var win = new View.AdminSupportChatWindow(
+                    thread.UserId,
+                    thread.Role,
+                    adminMode: true,
+                    displayName: thread.DisplayName,
+                    profilePicPath: thread.ProfilePicturePath);
                 win.ShowDialog();
                 _ = LoadSupportInboxAsync();
             });
@@ -437,21 +480,23 @@ namespace KapwaKuha.ViewModels
             AdminBanUserCommand = new AsyncRelayCommand(async param =>
             {
                 if (param is not UserReportModel report) return;
-                var r = MessageBox.Show(
-                    $"Permanently BAN user {report.Reported_ID} ({report.Reported_Name})?\n\n" +
-                    "This will blacklist and deactivate their account immediately.",
-                    "Confirm Ban", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (r != MessageBoxResult.Yes) return;
+
+                // Show ban reason dialog — returns null if admin cancelled
+                string? reason = View.AdminDashboardWindow.ShowBanReasonDialog(
+                    report.Reported_Name,
+                    Application.Current.MainWindow);
+                if (reason == null) return;
+
                 try
                 {
                     await KapwaDataService.AdminBanUser(report.Reported_ID);
                     await KapwaDataService.CreateNotification(
                         report.Reported_ID, "AccountAlert",
-                        "⚠️ Your account has been permanently banned due to repeated violations.",
+                        $"⚠️ Your account has been permanently banned.\n\nReason: {reason}",
                         report.Report_ID);
 
                     MessageBox.Show(
-                        $"✅ User {report.Reported_Name} has been permanently banned.",
+                        $"✅ User {report.Reported_Name} has been permanently banned.\n\nReason logged: {reason}",
                         "Ban Applied",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
@@ -608,6 +653,8 @@ namespace KapwaKuha.ViewModels
                 OnPropertyChanged(nameof(HasDonorThreads));
                 OnPropertyChanged(nameof(HasInstBeneThreads));
                 OnPropertyChanged(nameof(HasIndepBeneThreads));
+
+                RefreshFilteredThreads();
             });
         }
     }
