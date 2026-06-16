@@ -3023,17 +3023,24 @@ WHERE UserID = @id", conn);
             catch { return indepBeneId; }
         }
 
-        public static async Task AdminBanUser(string userId)
+        public static async Task AdminBanUser(string userId, string? banReason = null)
         {
             try
             {
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-                    UPDATE Users
-                    SET IsBlacklisted = 1, IsActive = 0
-                    WHERE UserID = @uid", conn);
+            UPDATE Users
+            SET IsBlacklisted = 1,
+                IsActive      = 0,
+                BanReason     = @reason
+            WHERE UserID = @uid;
+            UPDATE Donors SET Donor_AccountStatus = 'Inactive' WHERE Donor_ID = @uid;
+            UPDATE InstitutionalBeneficiaries SET Beneficiaries_Status = 'Inactive' WHERE Beneficiary_ID = @uid;
+            UPDATE IndependentBeneficiaries SET AccountStatus = 'Inactive' WHERE IndepBene_ID = @uid;",
+                    conn);
                 cmd.Parameters.AddWithValue("@uid", userId);
+                cmd.Parameters.AddWithValue("@reason", (object?)(banReason) ?? DBNull.Value);
                 await cmd.ExecuteNonQueryAsync();
             }
             catch (Exception ex)

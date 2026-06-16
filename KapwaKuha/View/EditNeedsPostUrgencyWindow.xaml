@@ -219,6 +219,38 @@
                                          FontSize="14" Foreground="#0A2540" VerticalContentAlignment="Center"/>
                             </Border>
 
+                            <!-- Description -->
+                            <TextBlock Text="Description" FontSize="13" FontWeight="SemiBold"
+           Foreground="#0A2540" Margin="4,0,0,8"/>
+                            <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+        Padding="12,8" Background="White" Margin="0,0,0,16">
+                                <TextBox Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}"
+             MinHeight="80" MaxHeight="140" Background="Transparent" BorderThickness="0"
+             FontSize="13" Foreground="#0A2540" TextWrapping="Wrap"
+             AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                            </Border>
+
+                            <!-- Current Image Preview (read-only, shown when post already has an image) -->
+                            <Border CornerRadius="10" ClipToBounds="True" Height="120" Margin="0,0,0,8">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasCurrentImage}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Image Source="{Binding CurrentImagePath}" Stretch="UniformToFill"/>
+                                    <Border Background="#66000000" VerticalAlignment="Bottom" Padding="8,4">
+                                        <TextBlock Text="Current photo — click Browse to replace" FontSize="10"
+                       Foreground="White" HorizontalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
                             <TextBlock Text="Photo" FontSize="13" FontWeight="SemiBold"
                                        Foreground="#0A2540" Margin="4,0,0,8"/>
                             <Grid Margin="0,0,0,16">

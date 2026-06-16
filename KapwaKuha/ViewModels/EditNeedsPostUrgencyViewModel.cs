@@ -32,12 +32,14 @@ namespace KapwaKuha.ViewModels
                     EditTitle = value.Title;
                     EditDescription = value.Description ?? string.Empty;
                     EditImagePath = value.ImagePath ?? string.Empty;
+                    CurrentImagePath = value.ImagePath ?? string.Empty;  // ← ADD THIS LINE
                 }
                 else
                 {
                     EditTitle = string.Empty;
                     EditDescription = string.Empty;
                     EditImagePath = string.Empty;
+                    CurrentImagePath = string.Empty;  // ← ADD THIS LINE
                 }
             }
         }
@@ -76,6 +78,16 @@ namespace KapwaKuha.ViewModels
 
         public bool HasEditImage =>
             !string.IsNullOrEmpty(_editImagePath) && System.IO.File.Exists(_editImagePath);
+
+        // Current image path from the saved post (read-only preview)
+        private string _currentImagePath = string.Empty;
+        public string CurrentImagePath
+        {
+            get => _currentImagePath;
+            set { _currentImagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasCurrentImage)); }
+        }
+        public bool HasCurrentImage =>
+            !string.IsNullOrEmpty(_currentImagePath) && System.IO.File.Exists(_currentImagePath);
 
         public ICommand BrowseImageCommand { get; }
         public ICommand BackCommand { get; }

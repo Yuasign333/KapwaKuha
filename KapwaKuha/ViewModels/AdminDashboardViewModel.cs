@@ -50,12 +50,38 @@ namespace KapwaKuha.ViewModels
         public bool HasPendingBeneficiaries => PendingBeneficiaries > 0;
         public bool HasOpenReports => OpenReports > 0;
 
+        private string _itemSearchQuery = string.Empty;
+        public string ItemSearchQuery
+        {
+            get => _itemSearchQuery;
+            set { _itemSearchQuery = value; OnPropertyChanged(); RefreshFilteredItems(); }
+        }
+
+        private string _itemCategoryFilter = "All Categories";
+        public string ItemCategoryFilter
+        {
+            get => _itemCategoryFilter;
+            set { _itemCategoryFilter = value; OnPropertyChanged(); RefreshFilteredItems(); }
+        }
+
+        private string _itemConditionFilter = "All Conditions";
+        public string ItemConditionFilter
+        {
+            get => _itemConditionFilter;
+            set { _itemConditionFilter = value; OnPropertyChanged(); RefreshFilteredItems(); }
+        }
+
+
+
+
         // ── Gatekeeper queues ────────────────────────────────────────────────
         public ObservableCollection<ItemModel> PendingItemsList { get; } = new();
         public ObservableCollection<BeneficiaryModel> PendingBenesList { get; } = new();
         public ObservableCollection<DonorModel> PendingDonorsList { get; } = new();
         public ObservableCollection<NeedsPostModel> PendingNeedsPostsList { get; } = new();
         public ObservableCollection<UserReportModel> OpenReportsList { get; } = new();
+
+        public ObservableCollection<ItemModel> FilteredItemsList { get; } = new();
 
         private int _pendingDonors;
         public int PendingDonors
@@ -110,6 +136,100 @@ namespace KapwaKuha.ViewModels
             }
         }
 
+        private void RefreshFilteredItems()
+        {
+            FilteredItemsList.Clear();
+            string q = _itemSearchQuery.ToLowerInvariant().Trim();
+            foreach (var item in PendingItemsList)
+            {
+                bool matchSearch = string.IsNullOrEmpty(q)
+                    || item.Item_Name.ToLowerInvariant().Contains(q)
+                    || item.Donor_ID.ToLowerInvariant().Contains(q);
+                bool matchCat = _itemCategoryFilter == "All Categories"
+                    || item.Category_Name == _itemCategoryFilter;
+                bool matchCond = _itemConditionFilter == "All Conditions"
+                    || item.Item_Condition == _itemConditionFilter;
+                if (matchSearch && matchCat && matchCond)
+                    FilteredItemsList.Add(item);
+            }
+        }
+
+
+        // ── Needs Post filters ────────────────────────────────────────────────────
+        private string _needsSearchQuery = string.Empty;
+        public string NeedsSearchQuery
+        {
+            get => _needsSearchQuery;
+            set { _needsSearchQuery = value; OnPropertyChanged(); RefreshFilteredNeedsPosts(); }
+        }
+
+        private string _needsUrgencyFilter = "All Urgency";
+        public string NeedsUrgencyFilter
+        {
+            get => _needsUrgencyFilter;
+            set { _needsUrgencyFilter = value; OnPropertyChanged(); RefreshFilteredNeedsPosts(); }
+        }
+        private void RefreshFilteredNeedsPosts()
+        {
+            FilteredNeedsPostsList.Clear();
+            string q = _needsSearchQuery.ToLowerInvariant().Trim();
+            foreach (var p in PendingNeedsPostsList)
+            {
+                bool matchSearch = string.IsNullOrEmpty(q)
+                    || p.Title.ToLowerInvariant().Contains(q)
+                    || p.Org_Name.ToLowerInvariant().Contains(q);
+                bool matchUrgency = _needsUrgencyFilter == "All Urgency"
+                    || p.Urgency == _needsUrgencyFilter;
+                if (matchSearch && matchUrgency)
+                    FilteredNeedsPostsList.Add(p);
+            }
+        }
+
+        // ── Report filters ────────────────────────────────────────────────────────
+        private string _reportSearchQuery = string.Empty;
+        public string ReportSearchQuery
+        {
+            get => _reportSearchQuery;
+            set { _reportSearchQuery = value; OnPropertyChanged(); RefreshFilteredReports(); }
+        }
+
+        private string _reportTypeFilter = "All Types";
+        public string ReportTypeFilter
+        {
+            get => _reportTypeFilter;
+            set { _reportTypeFilter = value; OnPropertyChanged(); RefreshFilteredReports(); }
+        }
+
+        public ObservableCollection<UserReportModel> FilteredReportsList { get; } = new();
+
+        private void RefreshFilteredReports()
+        {
+            FilteredReportsList.Clear();
+            string q = _reportSearchQuery.ToLowerInvariant().Trim();
+            foreach (var r in OpenReportsList)
+            {
+                bool matchSearch = string.IsNullOrEmpty(q)
+                    || r.Reported_Name.ToLowerInvariant().Contains(q)
+                    || r.Reporter_Name.ToLowerInvariant().Contains(q)
+                    || r.Description.ToLowerInvariant().Contains(q);
+                bool matchType = _reportTypeFilter == "All Types"
+                    || r.Report_Type == _reportTypeFilter;
+                if (matchSearch && matchType)
+                    FilteredReportsList.Add(r);
+            }
+        }
+
+        // ── Support Inbox status filter ───────────────────────────────────────────
+        private string _supportStatusFilter = "All Users";
+        public string SupportStatusFilter
+        {
+            get => _supportStatusFilter;
+            set { _supportStatusFilter = value; OnPropertyChanged(); RefreshFilteredThreads(); }
+        }
+
+        public ObservableCollection<NeedsPostModel> FilteredNeedsPostsList { get; } = new();
+
+
         public ObservableCollection<KapwaDataService.AdminSupportThread> DonorThreadsFiltered { get; } = new();
         public ObservableCollection<KapwaDataService.AdminSupportThread> InstBeneThreadsFiltered { get; } = new();
         public ObservableCollection<KapwaDataService.AdminSupportThread> IndepBeneThreadsFiltered { get; } = new();
@@ -117,6 +237,23 @@ namespace KapwaKuha.ViewModels
         private void RefreshFilteredThreads()
         {
             string q = _supportSearchQuery.ToLowerInvariant().Trim();
+            string status = _supportStatusFilter;
+
+            bool ThreadMatches(KapwaDataService.AdminSupportThread t)
+            {
+                bool matchText = string.IsNullOrEmpty(q)
+                    || t.DisplayName.ToLowerInvariant().Contains(q)
+                    || t.LastMessage.ToLowerInvariant().Contains(q)
+                    || t.UserId.ToLowerInvariant().Contains(q);
+                bool matchStatus = status switch
+                {
+                    "Has Strikes" => t.StrikeCount > 0 && !t.IsBanned,
+                    "No Strikes" => t.StrikeCount == 0 && !t.IsBanned,
+                    "Banned" => t.IsBanned,
+                    _ => true
+                };
+                return matchText && matchStatus;
+            }
 
             void Filter(
                 ObservableCollection<KapwaDataService.AdminSupportThread> source,
@@ -124,11 +261,7 @@ namespace KapwaKuha.ViewModels
             {
                 dest.Clear();
                 foreach (var t in source)
-                    if (string.IsNullOrEmpty(q)
-                        || t.DisplayName.ToLowerInvariant().Contains(q)
-                        || t.LastMessage.ToLowerInvariant().Contains(q)
-                        || t.UserId.ToLowerInvariant().Contains(q))
-                        dest.Add(t);
+                    if (ThreadMatches(t)) dest.Add(t);
             }
 
             Filter(DonorThreads, DonorThreadsFiltered);
@@ -489,7 +622,7 @@ namespace KapwaKuha.ViewModels
 
                 try
                 {
-                    await KapwaDataService.AdminBanUser(report.Reported_ID);
+                    await KapwaDataService.AdminBanUser(report.Reported_ID, reason);
                     await KapwaDataService.CreateNotification(
                         report.Reported_ID, "AccountAlert",
                         $"⚠️ Your account has been permanently banned.\n\nReason: {reason}",
@@ -616,6 +749,9 @@ namespace KapwaKuha.ViewModels
 
                 _ = LoadSupportInboxAsync();
             });
+            RefreshFilteredItems();
+            RefreshFilteredNeedsPosts();
+            RefreshFilteredReports();
         }
 
         private static void SafeDispatch(Action action)
@@ -657,5 +793,7 @@ namespace KapwaKuha.ViewModels
                 RefreshFilteredThreads();
             });
         }
+
+
     }
 }
