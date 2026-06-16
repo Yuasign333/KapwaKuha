@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="KapwaKuha — Account Suspended" Height="380" Width="480"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize" FontFamily="Segoe UI"
+        ResizeMode="NoResize" FontFamily="Segoe UI" 
         Background="#F4F8FA">
 
     <Grid>

@@ -29,6 +29,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <!-- TOPBAR -->
             <Border Grid.Row="0" Background="#0077B6">
                 <Grid Margin="20,0">
                     <Grid.ColumnDefinitions>
@@ -54,6 +55,7 @@
                 </Grid>
             </Border>
 
+            <!-- BODY -->
             <Grid Grid.Row="1" Margin="20,14,20,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -61,6 +63,7 @@
                     <ColumnDefinition Width="360"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- LEFT: Post list -->
                 <Border Grid.Column="0" CornerRadius="16" BorderThickness="1.5" Padding="0">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -112,8 +115,7 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Padding="16,12" BorderBrush="#EBF7FB"
-                                            BorderThickness="0,0,0,1">
+                                    <Border Padding="16,12" BorderBrush="#EBF7FB" BorderThickness="0,0,0,1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -127,11 +129,19 @@
                                                 <TextBlock Text="{Binding Description}"
                                                            FontSize="11" Foreground="#5E7A8A"
                                                            TextTrimming="CharacterEllipsis"
-                                                           Margin="0,2,0,0"/>
+                                                           Margin="0,2,0,6"/>
+                                                <!-- Approval status badge -->
+                                                <Border CornerRadius="6" Padding="7,3"
+                                                        HorizontalAlignment="Left"
+                                                        Background="{Binding ApprovalBadgeBackground}">
+                                                    <TextBlock Text="{Binding ApprovalBadgeText}"
+                                                               FontSize="10" FontWeight="SemiBold"
+                                                               Foreground="{Binding ApprovalBadgeTextColor}"/>
+                                                </Border>
                                             </StackPanel>
+                                            <!-- Urgency pill -->
                                             <Border Grid.Column="1" CornerRadius="8"
-                                                    Padding="8,3" VerticalAlignment="Center"
-                                                    Margin="8,0,0,0">
+                                                    Padding="8,3" VerticalAlignment="Top" Margin="8,0,0,0">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Setter Property="Background" Value="#F0FFF4"/>
@@ -145,8 +155,7 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
-                                                <TextBlock Text="{Binding Urgency}" FontSize="11"
-                                                           FontWeight="SemiBold">
+                                                <TextBlock Text="{Binding Urgency}" FontSize="11" FontWeight="SemiBold">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Foreground" Value="#2E7D52"/>
@@ -170,7 +179,8 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Column="2" CornerRadius="16" BorderThickness="1.5" Padding="24">
+                <!-- RIGHT: Edit panel -->
+                <Border Grid.Column="2" CornerRadius="16" BorderThickness="1.5">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                             <GradientStop Color="#CCFFFFFF" Offset="0"/>
@@ -187,90 +197,206 @@
                         <DropShadowEffect Color="#00B4D8" BlurRadius="18" ShadowDepth="0" Opacity="0.12"/>
                     </Border.Effect>
 
-                    <StackPanel>
-                        <TextBlock Text="✏️ Edit Selected Post" FontSize="15"
-                                   FontWeight="Bold" Foreground="#03045E" Margin="0,0,0,6"/>
-                        <TextBlock Text="Select a post on the left to edit it."
-                                   FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,24"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+                        <StackPanel>
+                            <TextBlock Text="✏️ Edit Selected Post" FontSize="15"
+                                       FontWeight="Bold" Foreground="#03045E" Margin="0,0,0,4"/>
+                            <TextBlock Text="Select a post on the left to edit it."
+                                       FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,20"/>
 
-                        <TextBlock Text="← Select a post to begin editing"
-                                   FontSize="13" Foreground="#90A4AE"
-                                   HorizontalAlignment="Center" Margin="0,40,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasSelection}" Value="True">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                        <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
-
-                            <TextBlock Text="Title" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="#0A2540" Margin="4,0,0,8"/>
-                            <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
-                                    Padding="12,0" Background="White" Margin="0,0,0,16">
-                                <TextBox Text="{Binding EditTitle, UpdateSourceTrigger=PropertyChanged}"
-                                         Height="40" Background="Transparent" BorderThickness="0"
-                                         FontSize="14" Foreground="#0A2540" VerticalContentAlignment="Center"/>
-                            </Border>
-
-                            <!-- Description -->
-                            <TextBlock Text="Description" FontSize="13" FontWeight="SemiBold"
-           Foreground="#0A2540" Margin="4,0,0,8"/>
-                            <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
-        Padding="12,8" Background="White" Margin="0,0,0,16">
-                                <TextBox Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}"
-             MinHeight="80" MaxHeight="140" Background="Transparent" BorderThickness="0"
-             FontSize="13" Foreground="#0A2540" TextWrapping="Wrap"
-             AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-                            </Border>
-
-                            <!-- Current Image Preview (read-only, shown when post already has an image) -->
-                            <Border CornerRadius="10" ClipToBounds="True" Height="120" Margin="0,0,0,8">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
+                            <!-- Empty state -->
+                            <TextBlock Text="← Select a post to begin editing"
+                                       FontSize="13" Foreground="#90A4AE"
+                                       HorizontalAlignment="Center" Margin="0,40,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Visible"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasCurrentImage}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible"/>
+                                            <DataTrigger Binding="{Binding HasSelection}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Border.Style>
-                                <Grid>
-                                    <Image Source="{Binding CurrentImagePath}" Stretch="UniformToFill"/>
-                                    <Border Background="#66000000" VerticalAlignment="Bottom" Padding="8,4">
-                                        <TextBlock Text="Current photo — click Browse to replace" FontSize="10"
-                       Foreground="White" HorizontalAlignment="Center"/>
-                                    </Border>
-                                </Grid>
-                            </Border>
+                                </TextBlock.Style>
+                            </TextBlock>
 
-                            <TextBlock Text="Photo" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="#0A2540" Margin="4,0,0,8"/>
-                            <Grid Margin="0,0,0,16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" CornerRadius="10" BorderBrush="#6600B4D8"
-                                        BorderThickness="1" Padding="12,0" Background="White">
-                                    <TextBox Text="{Binding EditImagePath}" Height="40"
-                                             Background="Transparent" BorderThickness="0"
-                                             FontSize="12" Foreground="#5E7A8A" IsReadOnly="True"
-                                             VerticalContentAlignment="Center"/>
+                            <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+
+                                <!-- Title -->
+                                <TextBlock Text="Title" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#0A2540" Margin="4,0,0,6"/>
+                                <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+                                        Padding="12,0" Background="White" Margin="0,0,0,14">
+                                    <TextBox Text="{Binding EditTitle, UpdateSourceTrigger=PropertyChanged}"
+                                             Height="40" Background="Transparent" BorderThickness="0"
+                                             FontSize="14" Foreground="#0A2540" VerticalContentAlignment="Center"/>
                                 </Border>
-                                <Button Grid.Column="2" Command="{Binding BrowseImageCommand}"
-                                        Height="40" Padding="14,0" BorderThickness="0" Cursor="Hand" Width="69.6">
+
+                                <!-- Description -->
+                                <TextBlock Text="Description" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#0A2540" Margin="4,0,0,6"/>
+                                <Border CornerRadius="10" BorderBrush="#6600B4D8" BorderThickness="1"
+                                        Padding="12,8" Background="White" Margin="0,0,0,14">
+                                    <TextBox Text="{Binding EditDescription, UpdateSourceTrigger=PropertyChanged}"
+                                             MinHeight="72" MaxHeight="130"
+                                             Background="Transparent" BorderThickness="0"
+                                             FontSize="13" Foreground="#0A2540"
+                                             TextWrapping="Wrap" AcceptsReturn="True"
+                                             VerticalScrollBarVisibility="Auto"/>
+                                </Border>
+
+                                <!-- Photo -->
+                                <TextBlock Text="Photo" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#0A2540" Margin="4,0,0,6"/>
+
+                                <!-- Current saved image — hidden once user browses new one -->
+                                <Border CornerRadius="10" ClipToBounds="True" Height="160" Margin="0,0,0,8">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowCurrentImage}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Image Source="{Binding CurrentImagePath}" Stretch="UniformToFill"/>
+                                        <Border Background="#88000000" VerticalAlignment="Bottom" Padding="8,4">
+                                            <TextBlock Text="Current photo — click Browse to replace"
+                                                       FontSize="10" Foreground="White" HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- New browsed image preview -->
+                                <Border CornerRadius="10" ClipToBounds="True" Height="160" Margin="0,0,0,8">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasEditImage}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid>
+                                        <Image Source="{Binding EditImagePath}" Stretch="UniformToFill"/>
+                                        <Border Background="#88059669" VerticalAlignment="Bottom" Padding="8,4">
+                                            <TextBlock Text="✅ New photo selected — will replace current on save"
+                                                       FontSize="10" Foreground="White" HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Browse row -->
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" CornerRadius="10" BorderBrush="#6600B4D8"
+                                            BorderThickness="1" Padding="12,0" Background="White">
+                                        <TextBox Text="{Binding EditImagePath}" Height="38"
+                                                 Background="Transparent" BorderThickness="0"
+                                                 FontSize="11" Foreground="#5E7A8A" IsReadOnly="True"
+                                                 VerticalContentAlignment="Center"/>
+                                    </Border>
+                                    <Button Grid.Column="2" Command="{Binding BrowseImageCommand}"
+                                            Height="38" Padding="14,0" BorderThickness="0" Cursor="Hand">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border CornerRadius="10" Background="#0077B6">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Opacity" Value="0.85"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <TextBlock Text="📷 Browse" Foreground="White" FontSize="12" FontWeight="SemiBold"/>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Urgency -->
+                                <TextBlock Text="Urgency Level" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="#0A2540" Margin="4,0,0,6"/>
+                                <Border CornerRadius="10" BorderBrush="#6600B4D8"
+                                        BorderThickness="1" Background="White" Margin="0,0,0,6">
+                                    <ComboBox SelectedValue="{Binding SelectedUrgency}"
+                                              SelectedValuePath="Content"
+                                              Height="42" Background="Transparent"
+                                              BorderThickness="0" Padding="12,0"
+                                              FontSize="13" FontWeight="SemiBold">
+                                        <ComboBoxItem Content="Low"/>
+                                        <ComboBoxItem Content="Medium"/>
+                                        <ComboBoxItem Content="High"/>
+                                    </ComboBox>
+                                </Border>
+                                <TextBlock FontSize="11" Foreground="#5E7A8A" Margin="4,0,0,20" TextWrapping="Wrap">
+                                    <Run Text="🟢 Low"/> <Run Text=" — not urgent   "/>
+                                    <Run Text="🟡 Medium"/> <Run Text=" — soon   "/>
+                                    <Run Text="🔴 High"/> <Run Text=" — urgent"/>
+                                </TextBlock>
+
+                                <!-- Live post warning -->
+                                <Border CornerRadius="8" Background="#FEF9C3" BorderBrush="#FDE68A"
+                                        BorderThickness="1" Padding="12,8" Margin="0,0,0,14">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedPost.IsApproved}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock FontSize="11" Foreground="#854D0E" TextWrapping="Wrap">
+                                        <Run Text="⚠️" FontSize="13"/>
+                                        <Run Text=" This post is currently Live. Saving changes will send it back to admin for re-review. It will be hidden from donors until re-approved."/>
+                                    </TextBlock>
+                                </Border>
+
+                                <!-- Save -->
+                                <Button Command="{Binding SaveUrgencyCommand}"
+                                        Height="44" FontSize="13" FontWeight="Bold"
+                                        Foreground="White" BorderThickness="0"
+                                        Cursor="Hand" Margin="0,0,0,10">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border CornerRadius="10" Background="#0077B6" Padding="0,0,0,0">
+                                            <Border CornerRadius="10" Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Opacity" Value="0.9"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <Button.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#00B4D8" Offset="0"/>
+                                            <GradientStop Color="#0077B6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Button.Background>
+                                    <TextBlock Text="💾  Save Changes"/>
+                                </Button>
+
+                                <!-- Delete -->
+                                <Button Command="{Binding DeletePostCommand}"
+                                        Height="44" FontSize="13" FontWeight="Bold"
+                                        Foreground="White" Background="#C0304A"
+                                        BorderThickness="0" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="10" Background="{TemplateBinding Background}">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
@@ -280,100 +406,12 @@
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Button.Template>
-                                    <TextBlock Text="📷 Browse" Foreground="White" FontSize="12" FontWeight="SemiBold"/>
+                                    <TextBlock Text="🗑️  Delete This Post"/>
                                 </Button>
-                            </Grid>
 
-                            <Border CornerRadius="10" ClipToBounds="True" Height="140" Margin="0,0,0,16">
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding HasEditImage}" Value="True">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <Image Source="{Binding EditImagePath}" Stretch="UniformToFill"/>
-                            </Border>
-
-                            <TextBlock Text="Urgency Level" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="#0A2540" Margin="4,0,0,8"/>
-                            <Border CornerRadius="10" BorderBrush="#6600B4D8"
-                                    BorderThickness="1" Background="White"
-                                    Margin="0,0,0,10">
-                                <ComboBox SelectedValue="{Binding SelectedUrgency}"
-                                          SelectedValuePath="Content" Margin=" 0,0,0,0"
-                                          Height="42" Background="Transparent"
-                                          BorderThickness="0" Padding="12,0"
-                                          FontSize="13" FontWeight="SemiBold">
-                                    <ComboBoxItem Content="Low"/>
-                                    <ComboBoxItem Content="Medium"/>
-                                    <ComboBoxItem Content="High"/>
-                                </ComboBox>
-                            </Border>
-
-                            <TextBlock FontSize="11" Foreground="#5E7A8A"
-                                       Margin="0,0,0,24" TextWrapping="Wrap">
-                                <Run Text="🟢 Low"/>
-                                <Run Text=" — not urgent  "/>
-                                <Run Text="🟡 Medium"/>
-                                <Run Text=" — soon  "/>
-                                <Run Text="🔴 High"/>
-                                <Run Text=" — urgent"/>
-                            </TextBlock>
-
-                            <Button Command="{Binding SaveUrgencyCommand}"
-                                    Height="44" FontSize="13" FontWeight="Bold"
-                                    Foreground="White" BorderThickness="0"
-                                    Cursor="Hand" Margin="0,0,0,12">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border CornerRadius="10"
-                                                Background="{TemplateBinding Background}">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="0.9"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                                <Button.Background>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#00B4D8" Offset="0"/>
-                                        <GradientStop Color="#0077B6" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Button.Background>
-                                <TextBlock Text="💾  Save Changes"/>
-                            </Button>
-
-                            <Button Command="{Binding DeletePostCommand}"
-                                    Height="44" FontSize="13" FontWeight="Bold"
-                                    Foreground="White" Background="#C0304A"
-                                    BorderThickness="0" Cursor="Hand">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border CornerRadius="10"
-                                                Background="{TemplateBinding Background}">
-                                            <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="0.85"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                                <TextBlock Text="🗑️  Delete This Post"/>
-                            </Button>
-
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
+                    </ScrollViewer>
                 </Border>
 
             </Grid>

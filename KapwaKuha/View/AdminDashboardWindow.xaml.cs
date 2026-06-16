@@ -74,7 +74,7 @@ namespace KapwaKuha.View
             {
                 Title = title,
                 Width = 800,
-                Height = 700,
+                Height = 300,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.CanResize,
@@ -116,7 +116,7 @@ namespace KapwaKuha.View
             {
                 Title = $"Ban User — {reportedName}",
                 Width = 480,
-                Height = 260,
+                Height = 600,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = owner,
                 ResizeMode = ResizeMode.NoResize,
@@ -124,7 +124,7 @@ namespace KapwaKuha.View
                 Background = new SolidColorBrush(Color.FromRgb(248, 250, 252))
             };
 
-            var root = new StackPanel { Margin = new Thickness(24) };
+            var root = new StackPanel { Margin = new Thickness(24, 24, 24, 16) }; // Reduced bottom margin
 
             root.Children.Add(new TextBlock
             {

@@ -14,6 +14,8 @@ namespace KapwaKuha.ViewModels
         private readonly string _orgId;
         private string? _pendingSelectId;
 
+        public bool ShowCurrentImage =>
+            HasCurrentImage && !HasEditImage;
         public ObservableCollection<NeedsPostModel> MyPosts { get; } = new();
 
         private NeedsPostModel? _selectedPost;
@@ -73,7 +75,7 @@ namespace KapwaKuha.ViewModels
         public string EditImagePath
         {
             get => _editImagePath;
-            set { _editImagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasEditImage)); }
+            set { _editImagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasEditImage)); OnPropertyChanged(nameof(ShowCurrentImage)); }
         }
 
         public bool HasEditImage =>

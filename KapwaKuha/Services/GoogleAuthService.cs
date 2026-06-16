@@ -1,15 +1,4 @@
 ﻿// FILE: Services/GoogleAuthService.cs
-// Google OAuth 2.0 via PKCE + loopback redirect (no NuGet package needed).
-// Replace CLIENT_ID with your actual Google OAuth 2.0 Client ID from
-// https://console.cloud.google.com  (Application type: Desktop app)
-//
-// HOW IT WORKS
-//  1. GoogleLoginAsync() opens the system browser with a Google sign-in URL.
-//  2. A tiny local HTTP listener catches the redirect and extracts the auth code.
-//  3. The auth code is exchanged for tokens.
-//  4. SignOut() revokes the token so the next call to GoogleLoginAsync() shows
-//     the account-picker again instead of silently reusing the last session.
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,12 +17,10 @@ namespace KapwaKuha.Services
         // ── CONFIGURE THESE ──────────────────────────────────────────────────
         private const string ClientId = "1004459749091-44lp7vkh1o7bt5k58eqk82k97g5vk4qo.apps.googleusercontent.com";
 
-        // FIX: Removed "/callback" because Google Desktop clients only accept the root IP address
-        private const string RedirectUri = "http://127.0.0.1:8080";
+        // FIX: Trailing slash added directly here so it matches across all network calls
+        private const string RedirectUri = "http://127.0.0.1:8080/";
 
         private const string Scope = "openid email profile";
-        // ─────────────────────────────────────────────────────────────────────
-        // ─────────────────────────────────────────────────────────────────────
         // ─────────────────────────────────────────────────────────────────────
 
         private static string? _accessToken;
@@ -42,24 +29,38 @@ namespace KapwaKuha.Services
 
         public static bool IsSignedIn => !string.IsNullOrEmpty(_accessToken);
 
-        // ── PUBLIC API ────────────────────────────────────────────────────────
-
         /// <summary>
-        /// Opens Google sign-in in the system browser and waits for the callback.
-        /// Returns (email, name) on success, throws on failure/cancellation.
+        /// Opens Google sign-in in a standalone Chrome app window and waits for the callback.
         /// </summary>
-        public static async Task<(string Email, string Name)> GoogleLoginAsync(
-            CancellationToken ct = default)
+        public static async Task<(string Email, string Name)> GoogleLoginAsync(CancellationToken ct = default)
         {
             var (verifier, challenge) = GeneratePkce();
             var state = RandomBase64Url(16);
             var authUrl = BuildAuthUrl(challenge, state);
 
             using var listener = new HttpListener();
-            listener.Prefixes.Add(RedirectUri + "/");
+
+            // FIX: Removed the manual + "/" to prevent double slashes or string mismatches
+            listener.Prefixes.Add(RedirectUri);
             listener.Start();
 
-            Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+            // ── IMPLEMENTATION: CHROME POPUP WINDOW MODE ──────────────────────
+            try
+            {
+                // Launches an app-style window framework with no tab bar, address bar, or navigation buttons
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "chrome.exe",
+                    Arguments = $"--app=\"{authUrl}\"",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception)
+            {
+                // Fallback safety valve: opens the default system browser if Chrome is missing
+                Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+            }
+            // ─────────────────────────────────────────────────────────────────
 
             var contextTask = listener.GetContextAsync();
             var tcs = new TaskCompletionSource<HttpListenerContext>();
@@ -73,7 +74,7 @@ namespace KapwaKuha.Services
             var response = context.Response;
             var html = "<html><body style='font-family:Segoe UI;text-align:center;margin-top:80px'>" +
                        "<h2 style='color:#4CAF50'>&#10003; Login successful!</h2>" +
-                       "<p>You can close this tab and return to KapwaKuha.</p></body></html>";
+                       "<p>You can close this window and return to KapwaKuha.</p></body></html>";
             var bytes = Encoding.UTF8.GetBytes(html);
             response.ContentType = "text/html; charset=utf-8";
             response.ContentLength64 = bytes.Length;
@@ -89,6 +90,7 @@ namespace KapwaKuha.Services
 
             var code = query["code"] ?? throw new InvalidOperationException("No auth code returned.");
 
+            // The exchange call now receives the perfectly synchronized trailing-slash string
             var tokens = await ExchangeCodeAsync(code, verifier);
             _accessToken = tokens.AccessToken;
             _refreshToken = tokens.RefreshToken;
@@ -135,7 +137,6 @@ namespace KapwaKuha.Services
             sb.Append("&code_challenge=").Append(challenge);
             sb.Append("&code_challenge_method=S256");
             sb.Append("&state=").Append(state);
-            // prompt=select_account forces the picker even if already signed in
             sb.Append("&prompt=select_account");
             sb.Append("&access_type=offline");
             return sb.ToString();
