@@ -15,7 +15,7 @@ namespace KapwaKuha.Services
     public static class GoogleAuthService
     {
         // ── CONFIGURE THESE ──────────────────────────────────────────────────
-        private const string ClientId = "1004459749091 - hd6spbqine17aijknr6jccdc3tlj9aik.apps.googleusercontent.com";
+        private const string ClientId = "1004459749091-hd6spbqine17aijknr6jccdc3tlj9aik.apps.googleusercontent.com";
 
         // FIX: Trailing slash added directly here so it matches across all network calls
         private const string RedirectUri = "http://127.0.0.1:8080/";
