@@ -1,5 +1,4 @@
-﻿// FILE: Models/NotificationModel.cs  (NEW — in-app bell UI)
-using System;
+﻿using System;
 using KapwaKuha.ViewModels;
 
 namespace KapwaKuha.Models
@@ -8,8 +7,8 @@ namespace KapwaKuha.Models
     {
         public string Notif_ID { get; set; } = string.Empty;
         public string Recipient_ID { get; set; } = string.Empty;
-
-        // ClaimUpdate | Approval | Message | AccountAlert
+        public string TargetRole { get; set; } = string.Empty;   // ADD THIS
+        public string Title { get; set; } = string.Empty;         // ADD THIS
         public string Notif_Type { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
 
@@ -23,9 +22,7 @@ namespace KapwaKuha.Models
         public bool IsUnread => !_isRead;
         public DateTime SentAt { get; set; } = DateTime.Now;
         public string Reference_ID { get; set; } = string.Empty;
-
         public string SentAtDisplay => SentAt.ToString("MMM dd  HH:mm");
-
         public string NotifIcon => Notif_Type switch
         {
             "ClaimUpdate" => "📦",

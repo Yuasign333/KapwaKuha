@@ -230,6 +230,134 @@
                                 </Button.Template>
                             </Button>
 
+                            <ToggleButton x:Name="BellToggle"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          Cursor="Hand"
+                          IsChecked="{Binding NotifVM.IsPopupOpen, Mode=TwoWay}"
+                          Command="{Binding NotifVM.TogglePopupCommand}"
+                          Width="40" Height="40"
+                          Margin="0,0,12,0"
+                          VerticalAlignment="Center">
+                                <Grid>
+                                    <TextBlock Text="🔔" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                    <Border Background="#E53935"
+                            CornerRadius="8"
+                            MinWidth="16" Height="16"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Margin="0,2,2,0"
+                            Visibility="{Binding NotifVM.HasUnread, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock Text="{Binding NotifVM.UnreadCount}"
+                                   Foreground="White"
+                                   FontSize="9"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="3,1"/>
+                                    </Border>
+                                </Grid>
+                            </ToggleButton>
+
+                            <Popup IsOpen="{Binding NotifVM.IsPopupOpen, Mode=TwoWay}"
+                   PlacementTarget="{Binding ElementName=BellToggle}"
+                   Placement="Bottom"
+                   StaysOpen="False"
+                   AllowsTransparency="True"
+                   PopupAnimation="Fade">
+
+                                <Border Background="White"
+                        BorderBrush="#E0E0E0"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Width="340"
+                        MaxHeight="420"
+                        Effect="{StaticResource DropShadow}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Border Grid.Row="0" Background="#F5F5F5" CornerRadius="8,8,0,0" Padding="16,10">
+                                            <TextBlock Text="Notifications"
+                                       FontWeight="SemiBold"
+                                       FontSize="14"
+                                       Foreground="#212121"/>
+                                        </Border>
+
+                                        <ListBox Grid.Row="1"
+                                 ItemsSource="{Binding NotifVM.NotificationsCollection}"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                            <ListBox.ItemContainerStyle>
+                                                <Style TargetType="ListBoxItem">
+                                                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                </Style>
+                                            </ListBox.ItemContainerStyle>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="14,10"
+                                            BorderBrush="#F0F0F0"
+                                            BorderThickness="0,0,0,1">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="White"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                                                        <Setter Property="Background" Value="#FFF8E1"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                                                <TextBlock Text="{Binding Title}"
+                                                           FontWeight="Bold"
+                                                           FontSize="12"
+                                                           Foreground="#212121"
+                                                           TextWrapping="Wrap"/>
+                                                                <TextBlock Text="{Binding Message}"
+                                                           FontSize="11"
+                                                           Foreground="#616161"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,2,0,0"/>
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding TimeAgo}"
+                                                       FontSize="10"
+                                                       Foreground="#9E9E9E"
+                                                       VerticalAlignment="Top"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+
+                                        <Border Grid.Row="2" Padding="12,8" Background="#FAFAFA" CornerRadius="0,0,8,8"
+                                BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+                                            <Button Content="Mark all as read"
+                                    Command="{Binding NotifVM.MarkAllAsReadCommand}"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="#1E88E5"
+                                    FontSize="12"
+                                    Cursor="Hand"
+                                    HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Popup>
+
                             <Border CornerRadius="20" Padding="4,4,12,4"
                     VerticalAlignment="Center"
                     Background="#E6FFFFFF" BorderBrush="#B390E0EF" BorderThickness="1" Cursor="Hand">
@@ -250,13 +378,8 @@
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Item_Status}" Value="Claimed">
-                                                                <Setter Property="IsEnabled" Value="False"/>
-                                                                <Setter Property="Foreground" Value="#999999"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Item_Status}" Value="Reserved">
-                                                                <Setter Property="IsEnabled" Value="False"/>
-                                                                <Setter Property="Foreground" Value="#999999"/>
+                                                            <DataTrigger Binding="{Binding HasPicture}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -292,7 +415,6 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-
 
                 <!-- Scrollable body -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,0,0">

@@ -95,6 +95,8 @@ namespace KapwaKuha.ViewModels
             set { _fulfilledNeeds = value; OnPropertyChanged(); }
         }
 
+        public NotificationViewModel NotifVM { get; }
+
         // ── My Posts ──────────────────────────────────────────────────────────
         public ObservableCollection<ItemModel> MyPosts { get; } = new();
 
@@ -220,6 +222,9 @@ namespace KapwaKuha.ViewModels
             {
                 if (param is string f) MyPostsFilter = f;
             });
+
+            NotifVM = new NotificationViewModel(UserSession.CurrentUserId);
+            _ = NotifVM.LoadNotificationsAsync();
 
             PostItemCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.PostItemWindow(_donorId)));

@@ -99,6 +99,8 @@ namespace KapwaKuha.ViewModels
 
         public ObservableCollection<NeedsPostModel> FilteredNeedsPosts { get; } = new();
 
+        public NotificationViewModel NotifVM { get; }
+
 
         // ── Collections ───────────────────────────────────────────────────────
         public ObservableCollection<TransactionRow> Transactions { get; } = new();
@@ -148,6 +150,9 @@ namespace KapwaKuha.ViewModels
                 string category = param is string s && !string.IsNullOrWhiteSpace(s) ? s : "All";
                 NavigationService.Navigate(new View.BrowseItemsWindow(_beneficiaryId, category));
             });
+
+            NotifVM = new NotificationViewModel(UserSession.CurrentUserId);
+            _ = NotifVM.LoadNotificationsAsync();
 
             SetNeedsPostFilterCommand = new RelayCommand(param =>
             {

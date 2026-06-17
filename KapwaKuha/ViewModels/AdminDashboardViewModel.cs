@@ -136,6 +136,8 @@ namespace KapwaKuha.ViewModels
             }
         }
 
+        public NotificationViewModel NotifVM { get; }
+
         private void RefreshFilteredItems()
         {
             FilteredItemsList.Clear();
@@ -314,6 +316,9 @@ namespace KapwaKuha.ViewModels
                 win.ShowDialog();
                 _ = LoadSupportInboxAsync();
             });
+
+            NotifVM = new NotificationViewModel(UserSession.CurrentUserId);
+            _ = NotifVM.LoadNotificationsAsync();
 
             // ── Items ─────────────────────────────────────────────────────────
             ApproveItemCommand = new AsyncRelayCommand(async param =>

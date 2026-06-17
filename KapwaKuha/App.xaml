@@ -1,7 +1,8 @@
 ﻿<Application x:Class="KapwaKuha.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="View/ChooseRoleWindow.xaml">
+             StartupUri="View/ChooseRoleWindow.xaml" ToastNotificationManagerCompat.OnActivated += _ =>{ };>
+    
     <Application.Resources>
 
         <!-- ══ CONVERTERS ══ -->
