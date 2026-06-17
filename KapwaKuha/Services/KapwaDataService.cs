@@ -3413,11 +3413,12 @@ WHERE NeedsPost_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-    SELECT d.Donor_ID, d.Donor_FullName, d.Donor_Username,
+    SELECT TOP 1 d.Donor_ID, d.Donor_FullName, d.Donor_Username,
            u.IsActive, u.IsBlacklisted
     FROM Donors d
     INNER JOIN Users u ON u.UserID = d.Donor_ID
-    WHERE d.Email = @email AND u.Admin_Approval_Status = 'Approved'", conn);
+    WHERE d.Email = @email AND u.Admin_Approval_Status = 'Approved'
+    ORDER BY d.Donor_ID", conn);
                 cmd.Parameters.AddWithValue("@email", email);
                 using var r = await cmd.ExecuteReaderAsync();
                 if (await r.ReadAsync())
@@ -3473,11 +3474,12 @@ WHERE NeedsPost_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-    SELECT b.Beneficiary_ID, b.Beneficiary_FullName, b.Beneficiary_Username,
+    SELECT TOP 1 b.Beneficiary_ID, b.Beneficiary_FullName, b.Beneficiary_Username,
            u.IsActive, u.IsBlacklisted
     FROM InstitutionalBeneficiaries b
     INNER JOIN Users u ON u.UserID = b.Beneficiary_ID
-    WHERE b.Email = @email AND b.Admin_Approval_Status = 'Approved'", conn);
+    WHERE b.Email = @email AND b.Admin_Approval_Status = 'Approved'
+    ORDER BY b.Beneficiary_ID", conn);
                 cmd.Parameters.AddWithValue("@email", email);
                 using var r = await cmd.ExecuteReaderAsync();
                 if (await r.ReadAsync())
@@ -3514,11 +3516,12 @@ WHERE NeedsPost_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-    SELECT i.IndepBene_ID, i.FullName, i.Username,
+    SELECT TOP 1 i.IndepBene_ID, i.FullName, i.Username,
            u.IsActive, u.IsBlacklisted
     FROM IndependentBeneficiaries i
     INNER JOIN Users u ON u.UserID = i.IndepBene_ID
-    WHERE i.Email = @email AND i.Admin_Approval_Status = 'Approved'", conn);
+    WHERE i.Email = @email AND i.Admin_Approval_Status = 'Approved'
+    ORDER BY i.IndepBene_ID", conn);
                 cmd.Parameters.AddWithValue("@email", email);
                 using var r = await cmd.ExecuteReaderAsync();
                 if (await r.ReadAsync())

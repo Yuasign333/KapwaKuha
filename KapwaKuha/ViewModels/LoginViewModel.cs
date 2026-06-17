@@ -89,9 +89,14 @@ namespace KapwaKuha.ViewModels
 
         // ── GOOGLE LOGIN ──────────────────────────────────────────────────────
 
+        private bool _googleBusy = false;
+
         private async Task ExecuteGoogleLogin()
         {
+            if (_googleBusy) return;          // block double-tap
+            _googleBusy = true;
             ErrorVisible = false;
+
             try
             {
                 var (email, _) = await GoogleAuthService.GoogleLoginAsync();
@@ -162,12 +167,16 @@ namespace KapwaKuha.ViewModels
             }
             catch (OperationCanceledException)
             {
-                // User closed the browser — silently ignore
+                // user closed the browser — silent
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Google sign-in error: {ex.Message}";
                 ErrorVisible = true;
+            }
+            finally
+            {
+                _googleBusy = false;
             }
         }
 

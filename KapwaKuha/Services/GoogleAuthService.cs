@@ -32,76 +32,109 @@ namespace KapwaKuha.Services
         /// <summary>
         /// Opens Google sign-in in a standalone Chrome app window and waits for the callback.
         /// </summary>
+        // Add this at the top of the class alongside the other static fields:
+        private static bool _isRunning = false;
+
         public static async Task<(string Email, string Name)> GoogleLoginAsync(CancellationToken ct = default)
         {
+            // ── GUARD: prevent double-invocation ─────────────────────────────────
+            if (_isRunning)
+                throw new InvalidOperationException("Google sign-in is already in progress.");
+            _isRunning = true;
+
             var (verifier, challenge) = GeneratePkce();
             var state = RandomBase64Url(16);
             var authUrl = BuildAuthUrl(challenge, state);
 
-            using var listener = new HttpListener();
-
-            // FIX: Removed the manual + "/" to prevent double slashes or string mismatches
+            var listener = new HttpListener();          // NO "using" — we manage lifetime
             listener.Prefixes.Add(RedirectUri);
-            listener.Start();
 
-            // ── IMPLEMENTATION: CHROME POPUP WINDOW MODE ──────────────────────
             try
             {
-                // Launches an app-style window framework with no tab bar, address bar, or navigation buttons
-                Process.Start(new ProcessStartInfo
+                listener.Start();
+            }
+            catch (Exception ex)
+            {
+                _isRunning = false;
+                throw new InvalidOperationException(
+                    "Could not start local login server. Is another login attempt already open?\n\n" + ex.Message, ex);
+            }
+
+            try
+            {
+                try
                 {
-                    FileName = "chrome.exe",
-                    Arguments = $"--app=\"{authUrl}\"",
-                    UseShellExecute = true
-                });
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "chrome.exe",
+                        Arguments = $"--app=\"{authUrl}\"",
+                        UseShellExecute = true
+                    });
+                }
+                catch
+                {
+                    Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+                }
+
+                // Race the listener against a 2-minute timeout + caller cancellation
+                using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);
+
+                var contextTask = listener.GetContextAsync();
+                var cancelTask = Task.Delay(Timeout.Infinite, linked.Token)
+                                      .ContinueWith(_ => (HttpListenerContext)null!,
+                                                    TaskContinuationOptions.OnlyOnCanceled);
+
+                var winner = await Task.WhenAny(contextTask, cancelTask);
+                if (winner != contextTask)
+                    throw new OperationCanceledException("Google login timed out or was cancelled.");
+
+                var context = await contextTask;        // safe — already completed
+
+                // ── Send success page BEFORE stopping the listener ────────────────
+                var html = "<html><body style='font-family:Segoe UI;text-align:center;margin-top:80px'>" +
+                            "<h2 style='color:#4CAF50'>&#10003; Login successful!</h2>" +
+                            "<p>You can close this window and return to KapwaKuha.</p></body></html>";
+                var bytes = Encoding.UTF8.GetBytes(html);
+                var resp = context.Response;
+                resp.ContentType = "text/html; charset=utf-8";
+                resp.ContentLength64 = bytes.Length;
+                resp.OutputStream.Write(bytes, 0, bytes.Length);
+                resp.OutputStream.Flush();
+                resp.Close();
+
+                // ── NOW safe to stop ──────────────────────────────────────────────
+                listener.Stop();
+                listener.Close();
+
+                var query = context.Request.QueryString;
+                if (query["error"] != null)
+                    throw new InvalidOperationException($"Google error: {query["error"]}");
+                if (query["state"] != state)
+                    throw new InvalidOperationException("State mismatch — possible CSRF.");
+
+                var code = query["code"] ?? throw new InvalidOperationException("No auth code returned.");
+                var tokens = await ExchangeCodeAsync(code, verifier);
+
+                _accessToken = tokens.AccessToken;
+                _refreshToken = tokens.RefreshToken;
+                _idToken = tokens.IdToken;
+
+                var payload = DecodeJwtPayload(tokens.IdToken);
+                var email = payload.GetValueOrDefault("email") as string ?? "";
+                var name = payload.GetValueOrDefault("name") as string ?? "";
+
+                return (email, name);
             }
-            catch (Exception)
+            finally
             {
-                // Fallback safety valve: opens the default system browser if Chrome is missing
-                Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+                // Always release the port and the guard, no matter what happened
+                try { listener.Stop(); } catch { }
+                try { listener.Close(); } catch { }
+                _isRunning = false;
             }
-            // ─────────────────────────────────────────────────────────────────
-
-            var contextTask = listener.GetContextAsync();
-            var tcs = new TaskCompletionSource<HttpListenerContext>();
-            using (ct.Register(() => tcs.TrySetCanceled()))
-            {
-                var completed = await Task.WhenAny(contextTask, tcs.Task);
-                if (completed == tcs.Task) throw new OperationCanceledException();
-            }
-            var context = await contextTask;
-
-            var response = context.Response;
-            var html = "<html><body style='font-family:Segoe UI;text-align:center;margin-top:80px'>" +
-                       "<h2 style='color:#4CAF50'>&#10003; Login successful!</h2>" +
-                       "<p>You can close this window and return to KapwaKuha.</p></body></html>";
-            var bytes = Encoding.UTF8.GetBytes(html);
-            response.ContentType = "text/html; charset=utf-8";
-            response.ContentLength64 = bytes.Length;
-            response.OutputStream.Write(bytes, 0, bytes.Length);
-            response.Close();
-            listener.Stop();
-
-            var query = context.Request.QueryString;
-            if (query["error"] != null)
-                throw new InvalidOperationException($"Google error: {query["error"]}");
-            if (query["state"] != state)
-                throw new InvalidOperationException("State mismatch — possible CSRF.");
-
-            var code = query["code"] ?? throw new InvalidOperationException("No auth code returned.");
-
-            // The exchange call now receives the perfectly synchronized trailing-slash string
-            var tokens = await ExchangeCodeAsync(code, verifier);
-            _accessToken = tokens.AccessToken;
-            _refreshToken = tokens.RefreshToken;
-            _idToken = tokens.IdToken;
-
-            var payload = DecodeJwtPayload(tokens.IdToken);
-            var email = payload.GetValueOrDefault("email") as string ?? "";
-            var name = payload.GetValueOrDefault("name") as string ?? "";
-
-            return (email, name);
         }
+
 
         /// <summary>
         /// Revokes the current access token so the next login shows the account picker.
