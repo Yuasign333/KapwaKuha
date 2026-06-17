@@ -73,8 +73,8 @@ namespace KapwaKuha.View
             var popup = new Window
             {
                 Title = title,
-                Width = 800,
-                Height = 300,
+                Width = 900,
+                Height = 700,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = this,
                 ResizeMode = ResizeMode.CanResize,
@@ -214,5 +214,9 @@ namespace KapwaKuha.View
         }
 
         private void AdminInboxListView_MouseDoubleClick(object sender, MouseButtonEventArgs e) { }
+
+       
+
+       
     }
 }

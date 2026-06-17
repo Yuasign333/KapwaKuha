@@ -121,6 +121,17 @@ namespace KapwaKuha.ViewModels
         public ICommand BanUserCommand { get; }
         public System.Action? OnCloseRequested { get; set; }
 
+        private string _proofImagePath = string.Empty;
+        public string ProofImagePath
+        {
+            get => _proofImagePath;
+            set { _proofImagePath = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasProofImage)); }
+        }
+        public bool HasProofImage =>
+            !string.IsNullOrEmpty(_proofImagePath) && System.IO.File.Exists(_proofImagePath);
+
+        public ICommand BrowseProofImageCommand { get; }
+
         public UserProfileViewModel(string targetId, string viewerId, string viewerRole)
         {
             TargetId = targetId;
@@ -129,6 +140,18 @@ namespace KapwaKuha.ViewModels
 
             CloseCommand = new RelayCommand(_ => OnCloseRequested?.Invoke());
             ToggleReportCommand = new RelayCommand(_ => ReportPanelVisible = !ReportPanelVisible);
+
+            BrowseProofImageCommand = new RelayCommand(_ =>
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "Select Proof Image",
+                    Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif",
+                    Multiselect = false
+                };
+                if (dlg.ShowDialog() == true)
+                    ProofImagePath = dlg.FileName;
+            });
 
             SubmitReportCommand = new AsyncRelayCommand(async _ =>
             {
@@ -146,16 +169,20 @@ namespace KapwaKuha.ViewModels
                 {
                     string reportId = await KapwaDataService.GetNextReportId();
                     await KapwaDataService.FileUserReport(
-                        reportId, _viewerId, TargetId,
-                        ReportType, ReportDescription, string.Empty);
+    reportId, _viewerId, TargetId,
+    ReportType, ReportDescription, ProofImagePath);
+
 
                     MessageBox.Show("✅ Report submitted. Our team will review it shortly.",
                         "Reported", MessageBoxButton.OK, MessageBoxImage.Information);
+
+
 
                     // Reset and close the panel
                     ReportDescription = string.Empty;
                     ReportType = "FakeItem";
                     ReportPanelVisible = false;
+                    ProofImagePath = string.Empty;
                 }
                 catch (System.Exception ex)
                 {
@@ -187,6 +214,8 @@ namespace KapwaKuha.ViewModels
 
             _ = LoadProfileAsync();
         }
+
+
 
         private async System.Threading.Tasks.Task LoadProfileAsync()
         {
