@@ -31,8 +31,12 @@ namespace KapwaKuha.Services
             ShowToast(title, message);
 
             // 3. Email / SMS based on preference
-            bool sendEmail = preference == "Email" || preference == "Both";
-            bool sendSms = preference == "SMS" || preference == "Both";
+            //  New Safe Check
+            bool sendEmail = string.Equals(preference, "Email", StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(preference, "Both", StringComparison.OrdinalIgnoreCase);
+
+            bool sendSms = string.Equals(preference, "SMS", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(preference, "Both", StringComparison.OrdinalIgnoreCase);
 
             if (sendEmail && !string.IsNullOrWhiteSpace(email))
             {
@@ -44,8 +48,7 @@ namespace KapwaKuha.Services
 
             if (sendSms && !string.IsNullOrWhiteSpace(phone))
             {
-                // Plug in your SMS provider here (e.g. Vonage / Semaphore PH)
-                // await SmsService.SendAsync(phone, message);
+                await SmsService.SendAsync(phone, message);
             }
         }
 

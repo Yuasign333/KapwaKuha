@@ -9,7 +9,8 @@
         Title="KapwaKuha — Donor Dashboard"
         Height="700" Width="1200"
         WindowStartupLocation="CenterScreen"
-        FontFamily="Segoe UI" ResizeMode="CanResize">
+        FontFamily="Segoe UI" ResizeMode="CanResize"
+        Closed="Window_Closed">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -256,6 +257,7 @@
                                    Margin="3,1"/>
                                     </Border>
                                 </Grid>
+                                
                             </ToggleButton>
 
                             <Popup IsOpen="{Binding NotifVM.IsPopupOpen, Mode=TwoWay}"

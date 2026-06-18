@@ -23,6 +23,19 @@ namespace KapwaKuha.Models
         public DateTime SentAt { get; set; } = DateTime.Now;
         public string Reference_ID { get; set; } = string.Empty;
         public string SentAtDisplay => SentAt.ToString("MMM dd  HH:mm");
+
+        public string TimeAgo
+        {
+            get
+            {
+                var diff = DateTime.Now - SentAt;
+                if (diff.TotalMinutes < 1) return "Just now";
+                if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+                if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+                if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+                return SentAt.ToString("MMM dd");
+            }
+        }
         public string NotifIcon => Notif_Type switch
         {
             "ClaimUpdate" => "📦",

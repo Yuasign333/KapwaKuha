@@ -42,6 +42,10 @@ namespace KapwaKuha.View
                 UserSession.Role);
             win.ShowDialog();
         }
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            (DataContext as DonorDashboardViewModel)?.NotifVM.StopPolling();
+        }
     }
     
 }

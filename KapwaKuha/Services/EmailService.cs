@@ -15,11 +15,11 @@ namespace KapwaKuha.Services
         // ── Configure these ───────────────────────────────────────────────────
         private const string SmtpHost = "smtp.gmail.com";
         private const int SmtpPort = 587;
-        private const string SenderEmail = "kapwakuha.notify@gmail.com";   // your Gmail
+        private const string SenderEmail = "yuanmiguelvmendoza@gmail.com";   // your Gmail
         private const string SenderName = "KapwaKuha";
         // Store the App Password in an environment variable or config, NOT hardcoded:
-        private static readonly string AppPassword =
-            Environment.GetEnvironmentVariable("KAPWA_SMTP_PASS") ?? "";
+
+        private static readonly string AppPassword = "fjpbkdvfatxrmnme"; // your 16-char app password
 
         public static async Task SendAsync(string toEmail, string subject, string body)
         {

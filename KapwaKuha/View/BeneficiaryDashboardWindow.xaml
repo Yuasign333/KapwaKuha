@@ -9,7 +9,8 @@
         Title="KapwaKuha — Beneficiary Dashboard"
         Height="920" Width="1280"
         WindowStartupLocation="CenterScreen"
-        FontFamily="Segoe UI" ResizeMode="CanResize">
+        FontFamily="Segoe UI" ResizeMode="CanResize"
+        Closed="Window_Closed">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
