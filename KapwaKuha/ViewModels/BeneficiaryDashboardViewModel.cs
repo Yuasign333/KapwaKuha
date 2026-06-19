@@ -198,31 +198,48 @@ namespace KapwaKuha.ViewModels
             AddNeedCommand = new RelayCommand(_ =>
                 NavigationService.Navigate(new View.NeedsWishlistWindow(_beneficiaryId)));
 
-            // Sidebar "Edit My Needs" — opens edit list, no specific post pre-selected
+            // Sidebar "Edit My Needs" — works for BOTH institutional and independent
             EditNeedsPostsCommand = new RelayCommand(_ =>
             {
                 _ = System.Threading.Tasks.Task.Run(async () =>
                 {
-                    var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
-                    if (bene == null) return;
+                    string orgId;
+                    if (IsIndependentBeneficiary)
+                    {
+                        orgId = await KapwaDataService.GetOrCreateIndepBeneOrg(_beneficiaryId);
+                    }
+                    else
+                    {
+                        var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
+                        if (bene == null) return;
+                        orgId = bene.Organization_ID;
+                    }
                     Application.Current.Dispatcher.Invoke(() =>
                         NavigationService.Navigate(
-                            new View.EditNeedsPostUrgencyWindow(_beneficiaryId, bene.Organization_ID)));
+                            new View.EditNeedsPostUrgencyWindow(_beneficiaryId, orgId)));
                 });
             });
 
-            // Per-card "Edit Needs" button — passes the specific NeedsPostModel as param
+            // Per-card "Edit Needs" button — works for BOTH institutional and independent
             EditNeedsPostCommand = new RelayCommand(param =>
             {
                 var post = param as NeedsPostModel;
                 _ = System.Threading.Tasks.Task.Run(async () =>
                 {
-                    var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
-                    if (bene == null) return;
+                    string orgId;
+                    if (IsIndependentBeneficiary)
+                    {
+                        orgId = await KapwaDataService.GetOrCreateIndepBeneOrg(_beneficiaryId);
+                    }
+                    else
+                    {
+                        var bene = await KapwaDataService.GetBeneficiaryById(_beneficiaryId);
+                        if (bene == null) return;
+                        orgId = bene.Organization_ID;
+                    }
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        var win = new View.EditNeedsPostUrgencyWindow(_beneficiaryId, bene.Organization_ID);
-                        // Pre-select the specific post if available
+                        var win = new View.EditNeedsPostUrgencyWindow(_beneficiaryId, orgId);
                         if (post != null && win.DataContext is EditNeedsPostUrgencyViewModel vm)
                             vm.PreSelectPost(post);
                         NavigationService.Navigate(win);

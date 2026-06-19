@@ -2562,11 +2562,13 @@ WHERE b.Beneficiary_ID = @id", conn);
                 using var conn = new SqlConnection(_conn);
                 await conn.OpenAsync();
                 using var cmd = new SqlCommand(@"
-            SELECT Notif_ID, Recipient_ID, Notif_Type, Message,
-                   IsRead, SentAt, Reference_ID
-            FROM Notifications
-            WHERE Recipient_ID = @uid
-            ORDER BY SentAt DESC", conn);
+    SELECT TOP 20 Notif_ID, Recipient_ID, Notif_Type, Message,
+           IsRead, SentAt, Reference_ID,
+           ISNULL(Title, '') AS Title,
+           ISNULL(TargetRole, '') AS TargetRole
+    FROM Notifications
+    WHERE Recipient_ID = @uid
+    ORDER BY SentAt DESC", conn);
                 cmd.Parameters.AddWithValue("@uid", userId);
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -2575,6 +2577,8 @@ WHERE b.Beneficiary_ID = @id", conn);
                         Notif_ID = reader["Notif_ID"].ToString() ?? "",
                         Recipient_ID = reader["Recipient_ID"].ToString() ?? "",
                         Notif_Type = reader["Notif_Type"].ToString() ?? "",
+                        Title = reader["Title"].ToString() ?? "",
+                        TargetRole = reader["TargetRole"].ToString() ?? "",
                         Message = reader["Message"].ToString() ?? "",
                         IsRead = Convert.ToBoolean(reader["IsRead"]),
                         SentAt = Convert.ToDateTime(reader["SentAt"]),
@@ -3278,6 +3282,40 @@ WHERE NeedsPost_ID = @Id", conn);
                 cmd.Parameters.AddWithValue("@OrgId", orgId);
                 var result = await cmd.ExecuteScalarAsync();
                 return result?.ToString() ?? string.Empty;
+            }
+            catch { return string.Empty; }
+        }
+
+        /// <summary>
+        /// Resolves the user ID for a NeedsPost's org — works for both institutional
+        /// (looks in InstitutionalBeneficiaries) and independent (org name = "Personal — {id}").
+        /// </summary>
+        public static async Task<string> GetBeneficiaryUserIdByOrg(string orgId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(_conn);
+                await conn.OpenAsync();
+
+                // Try institutional first
+                using var instCmd = new SqlCommand(@"
+    SELECT TOP 1 Beneficiary_ID
+    FROM InstitutionalBeneficiaries
+    WHERE Organization_ID = @orgId AND Beneficiaries_Status = 'Active'
+    ORDER BY Beneficiary_ID", conn);
+                instCmd.Parameters.AddWithValue("@orgId", orgId);
+                var instResult = await instCmd.ExecuteScalarAsync();
+                if (instResult != null) return instResult.ToString()!;
+
+                // Try independent — their org name is "Personal — {IndepBene_ID}"
+                using var indepCmd = new SqlCommand(@"
+    SELECT TOP 1 ib.IndepBene_ID
+    FROM IndependentBeneficiaries ib
+    JOIN Organization o ON o.Organization_Name = 'Personal — ' + ib.IndepBene_ID
+    WHERE o.Organization_ID = @orgId AND ib.AccountStatus = 'Active'", conn);
+                indepCmd.Parameters.AddWithValue("@orgId", orgId);
+                var indepResult = await indepCmd.ExecuteScalarAsync();
+                return indepResult?.ToString() ?? string.Empty;
             }
             catch { return string.Empty; }
         }

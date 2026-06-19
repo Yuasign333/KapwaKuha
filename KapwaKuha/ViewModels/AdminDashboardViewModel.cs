@@ -443,6 +443,11 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.RejectBeneficiary(bene.Beneficiary_ID);
+                    await KapwaDataService.CreateNotification(
+                        bene.Beneficiary_ID, "Approval",
+                        $"❌ Your account application was not approved by the admin.\n\nPlease contact support if you believe this is an error.",
+                        bene.Beneficiary_ID,
+                        title: "Account Rejected");
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch (Exception ex)
@@ -486,6 +491,11 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.RejectDonor(donor.Donor_ID);
+                    await KapwaDataService.CreateNotification(
+                        donor.Donor_ID, "Approval",
+                        $"❌ Your donor account application was not approved by the admin.\n\nPlease contact support if you believe this is an error.",
+                        donor.Donor_ID,
+                        title: "Account Rejected");
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch (Exception ex)
@@ -533,12 +543,14 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.ApproveNeedsPost(post.NeedsPost_ID, chosenUrgency);
-                    string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
+                    // Works for BOTH institutional and independent beneficiaries
+                    string beneId = await KapwaDataService.GetBeneficiaryUserIdByOrg(post.Org_ID);
                     if (!string.IsNullOrEmpty(beneId))
                         await KapwaDataService.CreateNotification(
                             beneId, "Approval",
                             $"✅ Your needs post \"{post.Title}\" has been approved as {chosenUrgency} urgency and is now visible to donors.",
-                            post.NeedsPost_ID);
+                            post.NeedsPost_ID,
+                            title: "Needs Post Approved");
                     MessageBox.Show(
                         $"✅ Needs post \"{post.Title}\" has been approved successfully!",
                         "Approval Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -566,12 +578,14 @@ namespace KapwaKuha.ViewModels
                 try
                 {
                     await KapwaDataService.RejectNeedsPost(post.NeedsPost_ID, reason);
-                    string beneId = await KapwaDataService.GetActiveBeneficiaryIdByOrg(post.Org_ID);
+                    // Works for BOTH institutional and independent beneficiaries
+                    string beneId = await KapwaDataService.GetBeneficiaryUserIdByOrg(post.Org_ID);
                     if (!string.IsNullOrEmpty(beneId))
                         await KapwaDataService.CreateNotification(
                             beneId, "Approval",
                             $"❌ Your needs post \"{post.Title}\" was not approved.\n\nReason: {reason}\n\nPlease edit your post and resubmit for re-review.",
-                            post.NeedsPost_ID);
+                            post.NeedsPost_ID,
+                            title: "Needs Post Rejected");
                     MessageBox.Show(
                         $"❌ Needs post \"{post.Title}\" has been rejected.",
                         "Rejection Complete", MessageBoxButton.OK, MessageBoxImage.Information);

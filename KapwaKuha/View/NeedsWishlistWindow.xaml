@@ -321,18 +321,19 @@
                 </ScrollViewer>
 
                 <!-- RIGHT — IMAGE UPLOAD + MY POSTS LIST -->
+                <!-- RIGHT — IMAGE UPLOAD + MY POSTS LIST -->
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="16,24,32,24">
                     <StackPanel>
 
                         <!-- Image upload card -->
                         <Border Background="#EEFFFFFF" BorderBrush="#88FFFFFF" BorderThickness="1.5"
-                                CornerRadius="20" Padding="28" Margin="0,0,0,20">
+                CornerRadius="20" Padding="28" Margin="0,0,0,20">
                             <Border.Effect>
                                 <DropShadowEffect Color="#0077B6" BlurRadius="20" ShadowDepth="4" Opacity="0.08"/>
                             </Border.Effect>
                             <StackPanel>
                                 <TextBlock Text="Attach a Photo (Optional)" FontSize="15" FontWeight="Bold"
-                                           Foreground="#0A2540" Margin="0,0,0,16"/>
+                           Foreground="#0A2540" Margin="0,0,0,16"/>
                                 <Grid Margin="0,0,0,16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -340,14 +341,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Border Grid.Column="0" CornerRadius="10" BorderBrush="#6600B4D8"
-                                            BorderThickness="1" Padding="12,0" Background="White">
+                            BorderThickness="1" Padding="12,0" Background="White">
                                         <TextBox Text="{Binding ImagePath}" Height="40" Background="Transparent"
-                                                 BorderThickness="0" Foreground="#5E7A8A" FontSize="12"
-                                                 IsReadOnly="True" VerticalContentAlignment="Center"/>
+                                 BorderThickness="0" Foreground="#5E7A8A" FontSize="12"
+                                 IsReadOnly="True" VerticalContentAlignment="Center"/>
                                     </Border>
                                     <Button Grid.Column="2" Command="{Binding BrowseImageCommand}"
-                                            Height="40" Padding="16,0" BorderThickness="0" Cursor="Hand"
-                                            IsEnabled="{Binding CanEditSelected}">
+                            Height="40" Padding="16,0" BorderThickness="0" Cursor="Hand"
+                            IsEnabled="{Binding CanEditSelected}">
                                         <Button.Template>
                                             <ControlTemplate TargetType="Button">
                                                 <Border CornerRadius="10" Background="#0077B6" Opacity="{TemplateBinding Opacity}">
@@ -367,8 +368,8 @@
                                     </Button>
                                 </Grid>
                                 <Border CornerRadius="12" Background="#FAFDFF" BorderBrush="#CAF0F8" BorderThickness="2"
-                                        Padding="6" MinHeight="150" HorizontalAlignment="Stretch"
-                                        Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}">
+                        Padding="6" MinHeight="150" HorizontalAlignment="Stretch"
+                        Visibility="{Binding HasImage, Converter={StaticResource BoolToVis}}">
                                     <Border CornerRadius="8" ClipToBounds="True">
                                         <Image Source="{Binding ImagePath}" Stretch="Uniform" MaxHeight="220"/>
                                     </Border>
@@ -378,31 +379,191 @@
 
                         <!-- My Posts list -->
                         <Border Background="#EEFFFFFF" BorderBrush="#88FFFFFF" BorderThickness="1.5"
-        CornerRadius="20" Padding="24">
+                CornerRadius="20" Padding="24">
                             <Border.Effect>
                                 <DropShadowEffect Color="#0077B6" BlurRadius="20" ShadowDepth="4" Opacity="0.08"/>
                             </Border.Effect>
                             <StackPanel>
-                                <TextBlock Text="✨ Daily Inspiration" FontSize="15" FontWeight="Bold"
-                   Foreground="#0A2540" Margin="0,0,0,16"/>
+                                <TextBlock Text="📋 My Needs Posts" FontSize="15" FontWeight="Bold"
+                           Foreground="#0A2540" Margin="0,0,0,4"/>
+                                <TextBlock Text="Click a post to load it into the editor."
+                           FontSize="11" Foreground="#5E7A8A" Margin="0,0,0,16"/>
 
-                                <Border CornerRadius="14" BorderThickness="1" BorderBrush="#E5E7EB" Padding="20,24" Background="White">
-                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-
-                                        <TextBlock Text="“" FontSize="54" FontFamily="Georgia" FontWeight="Bold" 
-                           Foreground="#0077B6" HorizontalAlignment="Center" Margin="0,-20,0,-25" Opacity="0.3"/>
-
-                                        <TextBlock Text="We make a living by what we get, but we make a life by what we give." 
-                           FontSize="15" FontWeight="SemiBold" FontStyle="Italic" Foreground="#0A2540" 
-                           TextAlignment="Center" TextWrapping="Wrap" LineHeight="22" MaxWidth="320"/>
-
-                                        <Border Height="1" Width="40" Background="#0077B6" Opacity="0.4" Margin="0,16,0,12" HorizontalAlignment="Center"/>
-
-                                        <TextBlock Text="— Winston Churchill" FontSize="12" FontWeight="Bold" 
-                           Foreground="#6B7280" HorizontalAlignment="Center"/>
-
-                                    </StackPanel>
+                                <!-- Empty state -->
+                                <Border CornerRadius="12" Background="#F9FDFF" BorderBrush="#CAF0F8"
+                        BorderThickness="1" Padding="20,24" Margin="0,0,0,8">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding MyPosts.Count}" Value="0">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="No posts yet. Fill out the form and submit your first need!"
+                               FontSize="12" Foreground="#5E7A8A" TextWrapping="Wrap"
+                               TextAlignment="Center"/>
                                 </Border>
+
+                                <!-- Posts list -->
+                                <ItemsControl ItemsSource="{Binding MyPosts}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,10" CornerRadius="12" BorderThickness="1.5" Cursor="Hand">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="White"/>
+                                                        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
+                                                                <Setter Property="BorderBrush" Value="#22C55E"/>
+                                                                <Setter Property="Background" Value="#F0FDF4"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Pending">
+                                                                <Setter Property="BorderBrush" Value="#F59E0B"/>
+                                                                <Setter Property="Background" Value="#FFFBEB"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
+                                                                <Setter Property="BorderBrush" Value="#EF4444"/>
+                                                                <Setter Property="Background" Value="#FEF2F2"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Border.InputBindings>
+                                                    <MouseBinding MouseAction="LeftClick"
+                                                  Command="{Binding DataContext.SelectPostCommand,
+                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                  CommandParameter="{Binding}"/>
+                                                </Border.InputBindings>
+                                                <Grid Margin="14,12">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <!-- Title + Status badge row -->
+                                                    <Grid Grid.Row="0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding Title}"
+                                                   FontSize="13" FontWeight="SemiBold" Foreground="#0A2540"
+                                                   TextWrapping="Wrap" Margin="0,0,8,0"/>
+                                                        <!-- Status badge -->
+                                                        <Border Grid.Column="1" CornerRadius="8" Padding="8,3"
+                                                VerticalAlignment="Top">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="#E5E7EB"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
+                                                                            <Setter Property="Background" Value="#DCFCE7"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Pending">
+                                                                            <Setter Property="Background" Value="#FEF9C3"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
+                                                                            <Setter Property="Background" Value="#FEE2E2"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock FontSize="10" FontWeight="Bold">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Text" Value="UNKNOWN"/>
+                                                                        <Setter Property="Foreground" Value="#6B7280"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Approved">
+                                                                                <Setter Property="Text" Value="✅ LIVE"/>
+                                                                                <Setter Property="Foreground" Value="#15803D"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Pending">
+                                                                                <Setter Property="Text" Value="⏳ PENDING"/>
+                                                                                <Setter Property="Foreground" Value="#B45309"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
+                                                                                <Setter Property="Text" Value="❌ REJECTED"/>
+                                                                                <Setter Property="Foreground" Value="#DC2626"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Urgency + Date -->
+                                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0">
+                                                        <Border CornerRadius="6" Padding="7,2" Margin="0,0,8,0">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="#F3F4F6"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Urgency}" Value="High">
+                                                                            <Setter Property="Background" Value="#FEE2E2"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Urgency}" Value="Medium">
+                                                                            <Setter Property="Background" Value="#FEF9C3"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Urgency}" Value="Low">
+                                                                            <Setter Property="Background" Value="#DCFCE7"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock FontSize="10" FontWeight="Bold">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Text" Value="🔵 LOW"/>
+                                                                        <Setter Property="Foreground" Value="#374151"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Urgency}" Value="High">
+                                                                                <Setter Property="Text" Value="🔴 HIGH"/>
+                                                                                <Setter Property="Foreground" Value="#B91C1C"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Urgency}" Value="Medium">
+                                                                                <Setter Property="Text" Value="🟡 MEDIUM"/>
+                                                                                <Setter Property="Foreground" Value="#92400E"/>
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Urgency}" Value="Low">
+                                                                                <Setter Property="Text" Value="🟢 LOW"/>
+                                                                                <Setter Property="Foreground" Value="#166534"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding Post_Date, StringFormat='MMM dd, yyyy'}"
+                                                   FontSize="10" Foreground="#9CA3AF" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <!-- Rejection note -->
+                                                    <TextBlock Grid.Row="2" TextWrapping="Wrap" FontSize="11"
+                                               Foreground="#DC2626" Margin="0,5,0,0"
+                                               Text="{Binding RejectionNote, StringFormat='Reason: {0}'}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Admin_Approval_Status}" Value="Rejected">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
 
                             </StackPanel>
                         </Border>
