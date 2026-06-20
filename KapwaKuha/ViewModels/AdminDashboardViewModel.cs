@@ -445,9 +445,8 @@ namespace KapwaKuha.ViewModels
                     await KapwaDataService.RejectBeneficiary(bene.Beneficiary_ID);
                     await KapwaDataService.CreateNotification(
                         bene.Beneficiary_ID, "Approval",
-                        $"❌ Your account application was not approved by the admin.\n\nPlease contact support if you believe this is an error.",
-                        bene.Beneficiary_ID,
-                        title: "Account Rejected");
+                        "❌ Your account registration was not approved. Please contact support for more details.",
+                        bene.Beneficiary_ID);
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch (Exception ex)
@@ -493,9 +492,8 @@ namespace KapwaKuha.ViewModels
                     await KapwaDataService.RejectDonor(donor.Donor_ID);
                     await KapwaDataService.CreateNotification(
                         donor.Donor_ID, "Approval",
-                        $"❌ Your donor account application was not approved by the admin.\n\nPlease contact support if you believe this is an error.",
-                        donor.Donor_ID,
-                        title: "Account Rejected");
+                        "❌ Your donor account registration was not approved. Please contact support for more details.",
+                        donor.Donor_ID);
                     await LoadGatekeeperQueuesAsync();
                 }
                 catch (Exception ex)

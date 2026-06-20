@@ -1118,18 +1118,6 @@
                                                                         <Border CornerRadius="8" Padding="8,3" HorizontalAlignment="Left"
                                                 Margin="0,4,0,8"
                                                 Background="{Binding ApprovalBadgeBackground}">
-                                                                            <Border.Style>
-                                                                                <Style TargetType="Border">
-                                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding DataContext.IsIndependentBeneficiary,
-                                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                            Value="True">
-                                                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </Border.Style>
                                                                             <TextBlock Text="{Binding ApprovalBadgeText}"
                                                        FontSize="10" FontWeight="SemiBold"
                                                        Foreground="{Binding ApprovalBadgeTextColor}"/>

@@ -162,7 +162,7 @@ namespace KapwaKuha.ViewModels
                         bene, Password, SecurityQuestion, SecurityAnswer, Email);
 
                     MessageBox.Show(
-                        $"✅ Registered! Your ID: {id}\nYour account is pending Admin approval.\nYou will be able to log in once approved.",
+                        $"✅ Registered! Your ID: {id}\nYou can now log in to KapwaKuha.",
                         "Registration Submitted", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     NavigationService.Navigate(new View.ChooseRoleWindow());

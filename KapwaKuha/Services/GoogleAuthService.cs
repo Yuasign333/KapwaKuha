@@ -1,5 +1,4 @@
-﻿// FILE: Services/GoogleAuthService.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -14,30 +13,29 @@ namespace KapwaKuha.Services
 {
     public static class GoogleAuthService
     {
-        // ── CONFIGURE THESE ──────────────────────────────────────────────────
-        private const string ClientId = "1004459749091-hd6spbqine17aijknr6jccdc3tlj9aik.apps.googleusercontent.com";
+        // 1. PASTE YOUR NEW WEB APPLICATION CLIENT ID HERE
+        private const string ClientId = "1004459749091-j9b1fnk3ha6tbicc1q8j0qhfad1p1rkt.apps.googleusercontent.com";
 
-        // FIX: Trailing slash added directly here so it matches across all network calls
         private const string RedirectUri = "http://127.0.0.1:8080/";
-
         private const string Scope = "openid email profile";
-        // ─────────────────────────────────────────────────────────────────────
 
         private static string? _accessToken;
         private static string? _refreshToken;
         private static string? _idToken;
+        private static bool _isRunning = false;
+
+        public static Task SignOut()
+        {
+            _accessToken = null;
+            _refreshToken = null;
+            _idToken = null;
+            return Task.CompletedTask;
+        }
 
         public static bool IsSignedIn => !string.IsNullOrEmpty(_accessToken);
 
-        /// <summary>
-        /// Opens Google sign-in in a standalone Chrome app window and waits for the callback.
-        /// </summary>
-        // Add this at the top of the class alongside the other static fields:
-        private static bool _isRunning = false;
-
         public static async Task<(string Email, string Name)> GoogleLoginAsync(CancellationToken ct = default)
         {
-            // ── GUARD: prevent double-invocation ─────────────────────────────────
             if (_isRunning)
                 throw new InvalidOperationException("Google sign-in is already in progress.");
             _isRunning = true;
@@ -46,7 +44,7 @@ namespace KapwaKuha.Services
             var state = RandomBase64Url(16);
             var authUrl = BuildAuthUrl(challenge, state);
 
-            var listener = new HttpListener();          // NO "using" — we manage lifetime
+            var listener = new HttpListener();
             listener.Prefixes.Add(RedirectUri);
 
             try
@@ -56,42 +54,31 @@ namespace KapwaKuha.Services
             catch (Exception ex)
             {
                 _isRunning = false;
-                throw new InvalidOperationException(
-                    "Could not start local login server. Is another login attempt already open?\n\n" + ex.Message, ex);
+                throw new InvalidOperationException("Could not start local server: " + ex.Message, ex);
             }
 
             try
             {
-                try
+                // Open cleanly using the default system browser tab
+                Process.Start(new ProcessStartInfo
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "chrome.exe",
-                        Arguments = $"--app=\"{authUrl}\"",
-                        UseShellExecute = true
-                    });
-                }
-                catch
-                {
-                    Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
-                }
+                    FileName = authUrl,
+                    UseShellExecute = true
+                });
 
-                // Race the listener against a 2-minute timeout + caller cancellation
                 using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);
 
                 var contextTask = listener.GetContextAsync();
                 var cancelTask = Task.Delay(Timeout.Infinite, linked.Token)
-                                      .ContinueWith(_ => (HttpListenerContext)null!,
-                                                    TaskContinuationOptions.OnlyOnCanceled);
+                                     .ContinueWith(_ => (HttpListenerContext)null!, TaskContinuationOptions.OnlyOnCanceled);
 
                 var winner = await Task.WhenAny(contextTask, cancelTask);
                 if (winner != contextTask)
                     throw new OperationCanceledException("Google login timed out or was cancelled.");
 
-                var context = await contextTask;        // safe — already completed
+                var context = await contextTask;
 
-                // ── Send success page BEFORE stopping the listener ────────────────
                 var html = "<html><body style='font-family:Segoe UI;text-align:center;margin-top:80px'>" +
                             "<h2 style='color:#4CAF50'>&#10003; Login successful!</h2>" +
                             "<p>You can close this window and return to KapwaKuha.</p></body></html>";
@@ -103,7 +90,6 @@ namespace KapwaKuha.Services
                 resp.OutputStream.Flush();
                 resp.Close();
 
-                // ── NOW safe to stop ──────────────────────────────────────────────
                 listener.Stop();
                 listener.Close();
 
@@ -111,7 +97,7 @@ namespace KapwaKuha.Services
                 if (query["error"] != null)
                     throw new InvalidOperationException($"Google error: {query["error"]}");
                 if (query["state"] != state)
-                    throw new InvalidOperationException("State mismatch — possible CSRF.");
+                    throw new InvalidOperationException("State mismatch.");
 
                 var code = query["code"] ?? throw new InvalidOperationException("No auth code returned.");
                 var tokens = await ExchangeCodeAsync(code, verifier);
@@ -128,37 +114,11 @@ namespace KapwaKuha.Services
             }
             finally
             {
-                // Always release the port and the guard, no matter what happened
                 try { listener.Stop(); } catch { }
                 try { listener.Close(); } catch { }
                 _isRunning = false;
             }
         }
-
-
-        /// <summary>
-        /// Revokes the current access token so the next login shows the account picker.
-        /// </summary>
-        public static async Task SignOut()
-        {
-            if (string.IsNullOrEmpty(_accessToken)) return;
-            try
-            {
-                using var http = new HttpClient();
-                await http.PostAsync(
-                    $"https://oauth2.googleapis.com/revoke?token={Uri.EscapeDataString(_accessToken)}",
-                    null);
-            }
-            catch { /* best-effort */ }
-            finally
-            {
-                _accessToken = null;
-                _refreshToken = null;
-                _idToken = null;
-            }
-        }
-
-        // ── HELPERS ───────────────────────────────────────────────────────────
 
         private static string BuildAuthUrl(string challenge, string state)
         {
@@ -170,6 +130,7 @@ namespace KapwaKuha.Services
             sb.Append("&code_challenge=").Append(challenge);
             sb.Append("&code_challenge_method=S256");
             sb.Append("&state=").Append(state);
+            sb.Append("&nonce=").Append(RandomBase64Url(16)); // Added nonce
             sb.Append("&prompt=select_account");
             sb.Append("&access_type=offline");
             return sb.ToString();
@@ -210,8 +171,7 @@ namespace KapwaKuha.Services
             using var doc = JsonDocument.Parse(bytes);
             var result = new Dictionary<string, object?>();
             foreach (var prop in doc.RootElement.EnumerateObject())
-                result[prop.Name] = prop.Value.ValueKind == JsonValueKind.String
-                    ? prop.Value.GetString() : prop.Value.GetRawText();
+                result[prop.Name] = prop.Value.ValueKind == JsonValueKind.String ? prop.Value.GetString() : prop.Value.GetRawText();
             return result;
         }
 
@@ -219,16 +179,14 @@ namespace KapwaKuha.Services
         {
             var verifier = RandomBase64Url(32);
             var hash = SHA256.HashData(Encoding.ASCII.GetBytes(verifier));
-            var challenge = Convert.ToBase64String(hash)
-                .Replace('+', '-').Replace('/', '_').TrimEnd('=');
+            var challenge = Convert.ToBase64String(hash).Replace('+', '-').Replace('/', '_').TrimEnd('=');
             return (verifier, challenge);
         }
 
         private static string RandomBase64Url(int byteLength)
         {
             var bytes = RandomNumberGenerator.GetBytes(byteLength);
-            return Convert.ToBase64String(bytes)
-                .Replace('+', '-').Replace('/', '_').TrimEnd('=');
+            return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
         }
 
         private record TokenResponse(string AccessToken, string RefreshToken, string IdToken);

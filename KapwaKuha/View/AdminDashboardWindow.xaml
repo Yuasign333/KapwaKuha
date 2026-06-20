@@ -919,9 +919,22 @@
                                                         <Border Grid.Column="0" Background="#FEF2F2" CornerRadius="6" Padding="10,8">
                                                             <StackPanel>
                                                                 <TextBlock Text="BEFORE" FontSize="9" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,5"/>
-                                                                <TextBlock Text="{Binding PreviousTitle}" FontSize="12" FontWeight="SemiBold" Foreground="#7F1D1D" TextWrapping="Wrap"/>
-                                                                <TextBlock Text="{Binding PreviousDescription}" FontSize="11" Foreground="#991B1B" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="#7F1D1D" TextWrapping="Wrap"/>
+                                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#991B1B" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
                                                                 <TextBlock FontSize="11" Foreground="#B91C1C">
+                                                    <Run Text="Urgency: "/>
+                                                    <Run Text="{Binding Urgency, Mode=OneWay}" FontWeight="Bold"/>
+                                                                </TextBlock>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="→" FontSize="18" FontWeight="Bold"
+                                                   Foreground="#92400E" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                        <Border Grid.Column="2" Background="#F0FFF4" CornerRadius="6" Padding="10,8">
+                                                            <StackPanel>
+                                                                <TextBlock Text="AFTER" FontSize="9" FontWeight="Bold" Foreground="#16A34A" Margin="0,0,0,5"/>
+                                                                <TextBlock Text="{Binding PreviousTitle}" FontSize="12" FontWeight="SemiBold" Foreground="#14532D" TextWrapping="Wrap"/>
+                                                                <TextBlock Text="{Binding PreviousDescription}" FontSize="11" Foreground="#166534" TextWrapping="Wrap" Margin="0,3,0,4" MaxHeight="50" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock FontSize="11" Foreground="#15803D">
                                                     <Run Text="Urgency: "/>
                                                     <Run Text="{Binding PreviousUrgency, Mode=OneWay}" FontWeight="Bold"/>
                                                                 </TextBlock>
